@@ -14,7 +14,7 @@ from proteins.factories import (
     OpticalConfigWithFiltersFactory,
     StateFactory,
 )
-from proteins.models import OcFluorEff, Protein, Spectrum, State
+from proteins.models import Filter, FilterPlacement, OcFluorEff, Protein, Spectrum, State
 from proteins.tasks import calculate_scope_report
 
 User = get_user_model()
@@ -518,3 +518,33 @@ class TestProteinSubmitMultiState(TestCase):
         new_prot = cast("Protein", Protein.objects.get(name="MultiStateProtein"))
         assert response.url == new_prot.get_absolute_url()
         assert new_prot.states.count() == 2
+
+
+@pytest.mark.django_db
+def test_microscope_detail_with_spectrumless_filter(client):
+    """A filter with no spectrum (e.g. made in the admin) is skipped, not a 500 (FPBASE-5E6)."""
+    microscope = MicroscopeFactory()
+    oc = OpticalConfigWithFiltersFactory(microscope=microscope)
+    bare = Filter.objects.create(name="BareFilter")
+    FilterPlacement.objects.create(filter=bare, config=oc, path=FilterPlacement.EM)
+
+    response = client.get(microscope.get_absolute_url())
+    assert response.status_code == 200
+    scope_spectra = json.loads(response.context["scopespectra"])
+    assert len(scope_spectra) == len(microscope.spectra)
+    assert bare.slug not in {s["slug"] for s in scope_spectra}
+
+
+@pytest.mark.django_db
+def test_deleting_spectrum_deletes_its_filter():
+    """A filter is only its spectrum; deleting the spectrum removes it from microscopes."""
+    oc = OpticalConfigWithFiltersFactory()
+    filt = oc.filterplacement_set.first().filter
+    Spectrum.objects.all_objects().filter(owner_filter=filt).delete()
+    assert not Filter.objects.filter(pk=filt.pk).exists()
+    assert not oc.filterplacement_set.filter(filter_id=filt.pk).exists()
+
+    # deleting the filter (which cascades to its spectrum) still works
+    other = oc.filterplacement_set.first().filter
+    other.delete()
+    assert not Spectrum.objects.all_objects().filter(owner_filter_id=other.pk).exists()

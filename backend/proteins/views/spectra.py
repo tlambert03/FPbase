@@ -9,11 +9,13 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.core.mail import EmailMessage
+from django.db.models import QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView
 
@@ -21,6 +23,7 @@ from fpbase.util import is_ajax, uncache_protein_page
 from proteins.forms import SpectrumForm
 from proteins.forms.spectrum_v2 import SpectrumFormV2
 from proteins.models import Filter, Protein, Spectrum, State
+from proteins.models.fluorophore import FluorState
 from proteins.util.importers import add_filter_to_database
 from proteins.util.spectra import spectra2csv
 
@@ -408,6 +411,7 @@ def filter_import(request, brand):
 
 
 @permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
+@ensure_csrf_cookie  # the page's JS reads the token from the cookie
 def pending_spectra_dashboard(request):
     """Dashboard for reviewing pending spectra submissions."""
     pending_spectra = (
@@ -461,6 +465,28 @@ def pending_spectra_dashboard(request):
     return render(request, "pending_spectra_dashboard.html", context)
 
 
+def _set_status(spectra: QuerySet[Spectrum], status: str) -> list[Spectrum]:
+    # save() rather than queryset.update(): update() sends no post_save signal, so the
+    # (never-expiring) cached spectra list would not pick up the change
+    changed = list(spectra)
+    for spectrum in changed:
+        spectrum.status = status
+        spectrum.save()
+    return changed
+
+
+def _accept_conflicts(spectra: QuerySet[Spectrum]) -> set[str]:
+    """Names of fluorophore spectra that can't be approved: one approved per (fluor, subtype)."""
+    conflicts: set[str] = set()
+    seen: set[tuple[int, str]] = set()
+    for spectrum in spectra.exclude(owner_fluor=None):
+        key = (spectrum.owner_fluor_id, spectrum.subtype)
+        if key in seen or Spectrum.objects.filter(owner_fluor=key[0], subtype=key[1]).exists():
+            conflicts.add(str(spectrum))
+        seen.add(key)
+    return conflicts
+
+
 @permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
 @require_POST
 def pending_spectrum_action(request):
@@ -482,7 +508,7 @@ def pending_spectrum_action(request):
                     {"success": False, "error": "No spectra found with provided IDs"}, status=404
                 )
             count = spectra.count()
-            spectra.update(status=Spectrum.STATUS.pending)
+            _set_status(spectra, Spectrum.STATUS.pending)
             message = f"Reverted {count} spectrum(s) to pending"
         else:
             # For other actions, only work with pending spectra
@@ -501,17 +527,25 @@ def pending_spectrum_action(request):
             count = spectra.count()
 
             if action == "accept":
-                spectra.update(status=Spectrum.STATUS.approved)
+                if conflicts := _accept_conflicts(spectra):
+                    names = ", ".join(sorted(conflicts))
+                    error = (
+                        f"Already has an approved spectrum of this type: {names}. "
+                        "Delete the approved spectrum first (or accept only one duplicate)."
+                    )
+                    return JsonResponse({"success": False, "error": error}, status=409)
+                accepted = _set_status(spectra, Spectrum.STATUS.approved)
                 # Clear cache for affected protein pages
-                for spectrum in spectra:
-                    with contextlib.suppress(Exception):
-                        # Uncache if this is a State (Protein) spectrum
-                        if spectrum.owner_fluor and hasattr(spectrum.owner_fluor, "protein"):
-                            uncache_protein_page(spectrum.owner_fluor.protein.slug, request)
+                for spectrum in accepted:
+                    fluor = spectrum.owner_fluor
+                    # owner_fluor is the FluorState parent: `.protein` lives on the State child
+                    if fluor and fluor.entity_type == FluorState.EntityTypes.PROTEIN:
+                        with contextlib.suppress(Exception):
+                            uncache_protein_page(fluor.owner_slug, request)
                 message = f"Accepted {count} spectrum(s)"
 
             elif action == "reject":
-                spectra.update(status=Spectrum.STATUS.rejected)
+                _set_status(spectra, Spectrum.STATUS.rejected)
                 message = f"Rejected {count} spectrum(s)"
 
             elif action == "delete":

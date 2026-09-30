@@ -3,7 +3,6 @@ import html
 import logging
 from collections import defaultdict
 
-import reversion
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
@@ -11,6 +10,7 @@ from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView
 
 from fpbase.util import uncache_protein_page
@@ -45,16 +45,22 @@ def serialize_comparison(request):
     return info
 
 
+# exempt: it only edits the caller's own comparison list, and logged-out pages are
+# cached at the edge, so the CSRF token embedded in them isn't the visitor's
+@csrf_exempt
 def update_comparison(request):
-    current = set(request.session.get("comparison", []))
-    if request.POST.get("operation") == "add":
-        current.add(request.POST.get("object"))
-    elif request.POST.get("operation") == "remove":
-        with contextlib.suppress(KeyError):
-            current.remove(request.POST.get("object"))
-    elif request.POST.get("operation") == "clear":
-        current.clear()
-    request.session["comparison"] = list(current)
+    operation = request.POST.get("operation")
+    # every page load GETs this: only write the session on an actual change, or each
+    # visitor gets a session (a DB row, and a cookie that makes the edge cache skip them)
+    if operation in ("add", "remove", "clear"):
+        current = set(request.session.get("comparison", []))
+        if operation == "add":
+            current.add(request.POST.get("object"))
+        elif operation == "remove":
+            current.discard(request.POST.get("object"))
+        else:
+            current.clear()
+        request.session["comparison"] = list(current)
     return JsonResponse({"status": 200, "comparison_set": serialize_comparison(request)})
 
 
@@ -99,13 +105,9 @@ def approve_protein(request, slug=None):
         with contextlib.suppress(Exception):
             if p.versions.first().field_dict["status"] == "pending":
                 p.versions.first().delete()
-        with reversion.create_revision():
-            reversion.set_user(request.user)
-            reversion.set_comment(f"{request.user} approved current version")
-            p.status = "approved"
-            p.save()
-            with contextlib.suppress(Exception):
-                uncache_protein_page(p.slug, request)
+        p.approve(request.user)
+        with contextlib.suppress(Exception):
+            uncache_protein_page(p.slug, request)
         return JsonResponse({})
     except Exception as e:
         logger.error(e)

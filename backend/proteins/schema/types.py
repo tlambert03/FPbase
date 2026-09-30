@@ -4,6 +4,7 @@ from django.db.models import Prefetch
 from graphene.utils.str_converters import to_camel_case
 from graphene_django.converter import get_choices
 from graphene_django.types import DjangoObjectType
+from graphene_django.utils import bypass_get_queryset
 
 from proteins import models
 from references.schema import Reference
@@ -157,6 +158,15 @@ class SpectrumOwnerInterface(graphene.Interface):
         return str(self)
 
 
+@bypass_get_queryset
+def _resolve_approved_spectrum(owner, info):
+    # graphene-django's default one-to-one resolver runs a fresh query per owner
+    # (ignoring any prefetch), which was one query per filter in a microscope query.
+    # Only approved spectra, like `Spectrum.objects`.
+    spectrum = getattr(owner, "spectrum", None)
+    return spectrum if spectrum and spectrum.status == models.Spectrum.STATUS.approved else None
+
+
 class Camera(DjangoObjectType):
     class Meta:
         interfaces = (SpectrumOwnerInterface,)
@@ -166,6 +176,8 @@ class Camera(DjangoObjectType):
     @classmethod
     def is_type_of(cls, root, info):
         return isinstance(root, models.Camera)
+
+    resolve_spectrum = _resolve_approved_spectrum
 
 
 class Dye(DjangoObjectType):
@@ -199,6 +211,8 @@ class Filter(DjangoObjectType):
     def is_type_of(cls, root, info):
         return isinstance(root, models.Filter)
 
+    resolve_spectrum = _resolve_approved_spectrum
+
 
 class Light(DjangoObjectType):
     class Meta:
@@ -209,6 +223,8 @@ class Light(DjangoObjectType):
     @classmethod
     def is_type_of(cls, root, info):
         return isinstance(root, models.Light)
+
+    resolve_spectrum = _resolve_approved_spectrum
 
 
 class State(gdo.OptimizedDjangoObjectType):
@@ -238,6 +254,18 @@ class SpectrumOwnerUnion(graphene.Union):
         types = (State,)
 
 
+class SpectrumData(graphene.Scalar):
+    """Spectrum data as [[wavelength, value], ...] pairs.
+
+    A scalar rather than `[[Float]]`, which made graphql-core check and serialize
+    every value one at a time: ~10x slower for a microscope with many filters.
+    """
+
+    @staticmethod
+    def serialize(value):
+        return value
+
+
 class Spectrum(gdo.OptimizedDjangoObjectType):
     class Meta:
         model = models.Spectrum
@@ -248,7 +276,7 @@ class Spectrum(gdo.OptimizedDjangoObjectType):
     color = graphene.String()
     # Expose spectrum data as list of [wavelength, value] pairs
     # maintains compatibility with API
-    data = graphene.List(graphene.List(graphene.Float))
+    data = SpectrumData()
 
     def resolve_data(self, info, **kwargs):
         return self.data
@@ -391,3 +419,11 @@ class OpticalConfig(gdo.OptimizedDjangoObjectType):
     )
     def resolve_filters(self, info):
         return self.filterplacement_set.all()
+
+    @gdo.resolver_hints(select_related=("camera__spectrum",), only=("camera",))
+    def resolve_camera(self, info):
+        return self.camera
+
+    @gdo.resolver_hints(select_related=("light__spectrum",), only=("light",))
+    def resolve_light(self, info):
+        return self.light

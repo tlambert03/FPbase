@@ -5,11 +5,13 @@ import io
 import json
 import os
 import sys
+import unicodedata
 from collections import Counter
 from random import choices
 from subprocess import PIPE, run
 from typing import TYPE_CHECKING, cast
 
+import reversion
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -27,7 +29,7 @@ from favit.models import Favorite
 from proteins import util
 from proteins.models._sequence_field import SequenceField
 from proteins.models.collection import ProteinCollection
-from proteins.models.fluorophore import FluorState
+from proteins.models.fluorophore import FluorState, primary_reference_changed
 from proteins.models.mixins import Authorable
 from proteins.models.spectrum import Spectrum
 from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
@@ -38,6 +40,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import Self
 
+    from django.contrib.auth.models import AbstractUser
     from django.db.models.manager import RelatedManager
     from reversion.models import VersionQuerySet
 
@@ -69,11 +72,25 @@ def prot_uuid(k: int = 5, opts: Sequence[str] = "ABCDEFGHJKLMNOPQRSTUVWXYZ123456
         return prot_uuid(k, opts)
 
 
+def ascii_name(name: str) -> str:
+    """Best-effort ASCII rendering of `name`, for FASTA headers fed to muscle/blast."""
+    out = []
+    for char in unicodedata.normalize("NFKD", name):
+        if char.isascii():
+            out.append(char)
+        elif unicodedata.category(char).startswith(("P", "Z")):
+            out.append("-")
+        # last word of e.g. "GREEK SMALL LETTER KAPPA" is a decent stand-in
+        elif not unicodedata.combining(char) and (words := unicodedata.name(char, "").split()):
+            out.append(words[-1].lower())
+    return "".join(out)
+
+
 class _ProteinQuerySet(models.QuerySet):
     def fasta(self):
         seqs = list(self.exclude(seq__isnull=True).values("uuid", "name", "seq"))
         for s in seqs:
-            s["name"] = s["name"].replace("\u03b1", "-alpha").replace("β", "-beta")
+            s["name"] = ascii_name(s["name"])
         return io.StringIO("\n".join([">{uuid} {name}\n{seq}".format(**s) for s in seqs]))
 
     def to_tree(self, output="clw"):
@@ -84,7 +101,7 @@ class _ProteinQuerySet(models.QuerySet):
         cmd += ["-maxiters", "2", "-diags", "-quiet", f"-{output}"]
         # make tree
         cmd += ["-cluster", "neighborjoining", "-tree2", "tree.phy"]
-        result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="ascii")
+        result = run(cmd, input=fasta.read(), stdout=PIPE, encoding="utf-8")
         with open("tree.phy") as handle:
             newick = handle.read().replace("\n", "")
         os.remove("tree.phy")
@@ -310,6 +327,18 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         version_objects = cast("VersionQuerySet", Version.objects)
         return version_objects.get_for_object(self)
 
+    def approve(self, user: AbstractUser) -> None:
+        """Mark as approved, recording a reversion snapshot of the approved record.
+
+        Always approve through this rather than `queryset.update()`: the snapshot is what
+        later pending edits get compared to, and `save()` triggers cache invalidation.
+        """
+        with reversion.create_revision():
+            reversion.set_user(user)
+            reversion.set_comment(f"{user} approved current version")
+            self.status = self.STATUS.approved
+            self.save()
+
     def last_approved_version(self):
         if self.status == "approved":
             return self
@@ -437,9 +466,13 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         self.base_name = self._base_name
+        ref_changed = primary_reference_changed(self)
         super().save(*args, **kwargs)
         if self.set_default_state():
             super().save()
+        if ref_changed:
+            for state in self.states.all():
+                state.rebuild_attributes()
 
         # Update cached owner fields on all states when protein name/slug changes
         # These fields are cached on Fluorophore for query performance
@@ -456,9 +489,6 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         from proteins.util.history import get_history
 
         return get_history(self, ignoreKeys)
-
-    # ##################################
-    # for algolia index
 
     def is_visible(self):
         return self.status != "hidden"
@@ -595,6 +625,10 @@ class State(FluorState):  # TODO: rename to ProteinState
         transitions_to: models.QuerySet[StateTransition]
         bleach_measurements: models.QuerySet[BleachMeasurement]
         fluorophore_ptr: FluorState  # added by Django MTI
+
+    def _owner(self) -> Protein:
+        # (the in-memory protein: it may carry a not-yet-saved primary_reference)
+        return self.protein
 
     def save(self, *args, **kwargs) -> None:
         self.entity_type = FluorState.EntityTypes.PROTEIN

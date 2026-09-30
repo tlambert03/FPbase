@@ -15,6 +15,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
@@ -43,6 +45,7 @@ if TYPE_CHECKING:
         maxwave: float
         category: str
         type: str
+        subtype: str
         color: str
         area: bool
         url: str | None
@@ -343,7 +346,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         on_delete=models.SET_NULL,
         related_name="spectra",
     )
-    source = models.CharField(max_length=128, blank=True, help_text="Source of the spectra data")
+    source = models.CharField(max_length=200, blank=True, help_text="Source of the spectra data")
 
     objects: SpectrumManager = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
@@ -393,16 +396,16 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                     | models.Q(category="l", subtype="pd")
                 ),
             ),
-            # Ensure unique (owner, subtype) combination
+            # One *approved* spectrum per (fluorophore, subtype); pending/rejected
+            # submissions may coexist with it until a moderator sorts them out.
+            # (filter/light/camera owners are already unique via OneToOneField)
             models.UniqueConstraint(
-                name="spectrum_unique_owner_subtype",
-                fields=[
-                    "owner_fluor",
-                    "owner_filter",
-                    "owner_light",
-                    "owner_camera",
-                    "subtype",
-                ],
+                name="spectrum_unique_approved_fluor_subtype",
+                fields=["owner_fluor", "subtype"],
+                condition=models.Q(status="approved"),
+                violation_error_message=(
+                    "This fluorophore already has an approved spectrum of this type"
+                ),
             ),
         ]
 
@@ -530,7 +533,10 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             "minwave": self.min_wave,
             "maxwave": self.max_wave,
             "category": self.category,
+            # `type` collapses absorption into excitation for legacy display callers
+            # that draw both with the same styling. `subtype` preserves the true value.
             "type": self.subtype if self.subtype != self.ABS else self.EX,
+            "subtype": self.subtype,
             "color": color,
             "area": self.subtype not in (self.LP, self.BS),
             "url": self.owner.get_absolute_url(),
@@ -639,8 +645,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         """
         # Clear cached properties
         for prop in ("x", "y"):
-            if prop in self.__dict__:
-                del self.__dict__[prop]
+            vars(self).pop(prop, None)
 
         # Interpolate to 1nm steps if needed
         if len(wavelengths) > 1:
@@ -674,8 +679,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
             )
 
         # Clear cached property before modifying data
-        if "y" in self.__dict__:
-            del self.__dict__["y"]
+        vars(self).pop("y", None)
 
         self.y_values = self._encode_y_values(value)
 
@@ -808,3 +812,16 @@ class Filter(SpectrumOwner, Product):
             except Exception:
                 pass
         super().save(*args, **kwargs)
+
+
+@receiver(post_delete, sender=Spectrum)
+def _delete_spectrumless_owner(sender, instance: Spectrum, **kwargs) -> None:
+    # a filter, light or camera is only its spectrum: left without one, it breaks every
+    # microscope that uses it (FPBASE-5E6)
+    for model, owner_id in (
+        (Filter, instance.owner_filter_id),
+        (Light, instance.owner_light_id),
+        (Camera, instance.owner_camera_id),
+    ):
+        if owner_id is not None:
+            model.objects.filter(pk=owner_id).delete()

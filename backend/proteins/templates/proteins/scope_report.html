@@ -30,6 +30,9 @@ container-fluid
   <div class="alert alert-info alert-dismissible fade show" role="alert" id="update-alert">
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     <h4 class="alert-heading" style="font-weight:400">{% if not needs_update%}(NO) {%endif%}Updates Available!</h4>
+    {% if not request.user.is_authenticated %}
+    <p>This report is out of date. <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}" class="alert-link">Sign in</a> to update it.</p>
+    {% else %}
     {% if outdated|length %}
     <p>There are {{outdated | length}} outdated items in this chart. Click the "update" button below to update the report.</p>
     {% else %}
@@ -43,6 +46,7 @@ container-fluid
       </div>
       <div id="update-progress" class="float-start"></div>
     </div>
+    {% endif %}
   </div>
   {% endif %}
   <p id="status">loading scope report... <img src="{% static 'images/GFP_spinner.gif' %}"></p>

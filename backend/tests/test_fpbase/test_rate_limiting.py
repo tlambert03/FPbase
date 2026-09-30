@@ -5,7 +5,11 @@ from django.core.cache import cache
 from django.test import Client
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
-from fpbase.views import RateLimitedGraphQLView, SameOriginExemptAnonThrottle
+from fpbase.views import (
+    ExpensiveListAnonThrottle,
+    RateLimitedGraphQLView,
+    SameOriginExemptAnonThrottle,
+)
 
 
 @pytest.mark.django_db
@@ -105,3 +109,31 @@ def test_same_origin_exempt_throttle(monkeypatch):
     assert len(throttled_prod_referer) == 0, (
         f"Expected 0 throttled requests with production referer, got {len(throttled_prod_referer)}"
     )
+
+
+def test_throttle_ident_prefers_cloudflare_ip(rf):
+    """One client arriving via different Cloudflare edges must share a bucket."""
+    throttle = SameOriginExemptAnonThrottle()
+    idents = {
+        throttle.get_ident(
+            rf.get("/", HTTP_CF_CONNECTING_IP="1.2.3.4", HTTP_X_FORWARDED_FOR=f"1.2.3.4, {edge}")
+        )
+        for edge in ("172.69.176.59", "162.158.88.76")
+    }
+    assert idents == {"1.2.3.4"}
+
+
+@pytest.mark.django_db
+def test_protein_list_throttled_despite_referer(monkeypatch):
+    """The expensive list endpoint is limited even for "same-origin" requests."""
+    monkeypatch.setitem(ExpensiveListAnonThrottle.THROTTLE_RATES, "anon_list", "3/min")
+    cache.clear()
+
+    client = Client()
+    # vary the query so that cache_page doesn't short-circuit the view
+    codes = [
+        client.get(f"/api/proteins/?name={i}", HTTP_REFERER="http://testserver/").status_code
+        for i in range(6)
+    ]
+    assert codes == [200, 200, 200, 429, 429, 429]
+    cache.clear()

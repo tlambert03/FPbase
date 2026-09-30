@@ -9,12 +9,17 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import logging
+import warnings
 from pathlib import Path
 
 import environ
 import structlog
 from corsheaders.defaults import default_headers
 from structlog_sentry import SentryProcessor
+
+# structlog-sentry (<=2.2.1) mistakenly installs its pyproject.toml into site-packages,
+# which makes biopython (>=1.87) think it is being imported from its own source tree.
+warnings.filterwarnings("ignore", message="You may be importing Biopython from inside")
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = ROOT_DIR / "fpbase"
@@ -71,7 +76,6 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",  # registration
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.orcid",
-    "allauth.socialaccount.providers.twitter",
     "django_recaptcha",
     "django_filters",
     "reversion",
@@ -302,6 +306,10 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 
 ACCOUNT_FORMS = {"signup": "fpbase.forms.CustomSignupForm"}
 
+# Surface CSRF failure reasons (NO_REFERER / BAD_REFERER / BAD_TOKEN /
+# BAD_ORIGIN) to logs/Sentry instead of hiding them behind an opaque 403 page.
+CSRF_FAILURE_VIEW = "fpbase.views.csrf_failure"
+
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = "users.User"
@@ -321,6 +329,8 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # throttling is only enabled in production (None means "no limit")
+    "DEFAULT_THROTTLE_RATES": {"anon": None, "user": None, "anon_list": None},
 }
 
 # By Default swagger ui is available only to admin user(s). You can change permission
@@ -375,17 +385,6 @@ GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default="")
 GOOGLE_API_PRIVATE_KEY_ID = env("GOOGLE_API_PRIVATE_KEY_ID", default="")
 
 MAXMIND_API_KEY = env("MAXMIND_API_KEY", default="")
-
-ALGOLIA_SUFFIX = "dev" if (DEBUG or ("staging" in env("SENTRY_PROJECT", default=""))) else "prod"
-ALGOLIA_PUBLIC_KEY = "421b453d4f93e332ebd0c7f3ace29476"
-ALGOLIA = {
-    "APPLICATION_ID": "9WAWQMVNTB",
-    "API_KEY": env("ALGOLIA_API_KEY", default=""),
-    "INDEX_SUFFIX": ALGOLIA_SUFFIX,
-}
-
-if ALGOLIA["API_KEY"]:
-    INSTALLED_APPS += ["algoliasearch_django"]
 
 REDIS_URL = env("REDIS_URL", default="redis://localhost/")
 if REDIS_URL.startswith("rediss://"):
@@ -462,7 +461,7 @@ def add_sentry_context(logger, method_name, event_dict):
            )
        ```
 
-    The sentry_event_id field allows searching Logtail for the log, then
+    The sentry_event_id field allows finding the log line in Axiom, then
     using the ID to find the full exception context in Sentry.
     """
     # Check if sentry_event_id was explicitly passed in extra dict

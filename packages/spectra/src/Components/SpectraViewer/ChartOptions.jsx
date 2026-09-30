@@ -28,7 +28,7 @@ const toolTipRow = (entry) => {
 const DEFAULT_OPTIONS = {
   plotOptions: {
     series: {
-      boostThreshold: 800,
+      boostThreshold: 0, // keep boost disabled (no boost module loaded)
       findNearestPointBy: "x",
       stickyTracking: true,
       events: {
@@ -47,17 +47,6 @@ const DEFAULT_OPTIONS = {
         enabled: false,
         symbol: "circle",
       },
-    },
-  },
-  boost: {
-    useGPUTranslations: true,
-    seriesThreshold: 50,
-    enabled: true,
-    allowForce: false,
-    debug: {
-      showSkipSummary: true,
-      timeSeriesProcessing: true,
-      timeRendering: true,
     },
   },
   chart: {

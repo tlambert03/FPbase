@@ -91,7 +91,9 @@ class AbstractFluorescenceData(Authorable, TimeStampedModel, models.Model):
         abstract = True
 
     def save(self, *args, **kwargs):
-        if self.qy and self.ext_coeff:
+        if self.qy is None or self.ext_coeff is None:
+            self.brightness = None
+        else:
             self.brightness = float(round(self.ext_coeff * self.qy / 1000, 2))
 
         self.emhex = "#000" if self.is_dark else wave_to_hex(self.em_max)

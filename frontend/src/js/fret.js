@@ -10,7 +10,7 @@ export default function initFRET() {
   var data = []
   var localData = {}
   var donorEM
-  var acceptorEX
+  var acceptorAbs
   var options = {
     showArea: true,
     minwave: 350,
@@ -53,14 +53,14 @@ export default function initFRET() {
     },
     tooltip: {
       shared: !window.mobilecheck(),
-      valueDecimals: 1,
-      valueSuffix: "%",
-      valueFormatter: (value) => {
-        if (value !== null && value !== undefined) {
-          return `${Math.round(value * 1000) / 10}%`
-        } else {
-          return "--"
+      formatter: function () {
+        const points = this.points || [this.point]
+        let html = `<b>${this.x} nm</b><br/>`
+        for (const p of points) {
+          const pct = Math.round(p.y * 1000) / 10
+          html += `<span style="color:${p.color}">\u25CF</span> ${p.series.name}: <b>${pct}%</b><br/>`
         }
+        return html
       },
     },
     legend: {
@@ -267,10 +267,11 @@ export default function initFRET() {
   })
 
   function updateTable() {
-    var r = forster_distance(donorEM, acceptorEX, $("#k2-input").val(), $("#ni-input").val())
+    var r = forster_distance(donorEM, acceptorAbs, $("#k2-input").val(), $("#ni-input").val())
     $("#overlapIntgrl").text(Math.round(r[0] * 1e15) / 100)
     $("#r0").text(Math.round(r[1] * 1000) / 100)
-    $("#r0QYA").text(Math.round(r[1] * $("#QYA").text() * 1000) / 100)
+    var qya = parseFloat($("#QYA").text())
+    $("#r0QYA").text(Number.isFinite(qya) ? Math.round(r[1] * qya * 1000) / 100 : "")
   }
 
   function updateChart() {
@@ -350,9 +351,15 @@ export default function initFRET() {
         $("#QYD").text("")
       }
       if (acceptorslug) {
-        acceptorEX = dataItemMatching({ slug: acceptorslug, type: "ex" })[0]
-        acceptorEX.classed = `${acceptorEX.classed || ""} faded-fret`
-        $("#ECA").text(acceptorEX.scalar.toLocaleString())
+        // FRET depends on acceptor absorption, not excitation. Prefer the absorption
+        // spectrum (subtype "ab") when available; fall back to excitation otherwise.
+        const acceptorSpectra = dataItemMatching({ slug: acceptorslug, type: "ex" })
+        acceptorAbs =
+          acceptorSpectra.find((s) => s.subtype === "ab") ||
+          acceptorSpectra.find((s) => s.subtype === "ex") ||
+          acceptorSpectra[0]
+        acceptorAbs.classed = `${acceptorAbs.classed || ""} faded-fret`
+        $("#ECA").text(acceptorAbs.scalar.toLocaleString())
 
         const acceptorEM = dataItemMatching({ slug: acceptorslug, type: "em" })[0]
         $("#QYA").text(acceptorEM ? acceptorEM.scalar : "")
@@ -364,7 +371,7 @@ export default function initFRET() {
         import("highcharts/modules/pattern-fill").then(() => {
           data.push({
             key: "Overlap",
-            values: spectral_product(donorEM.values, acceptorEX.values),
+            values: spectral_product(donorEM.values, acceptorAbs.values),
             area: true,
             color: {
               pattern: {
@@ -384,7 +391,7 @@ export default function initFRET() {
           })
           updateChart()
         })
-        updateTable(donorEM, acceptorEX)
+        updateTable(donorEM, acceptorAbs)
       } else {
         $("#overlapIntgrl, #r0").text("")
         updateChart()

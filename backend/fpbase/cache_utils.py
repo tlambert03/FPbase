@@ -74,6 +74,16 @@ OPTICAL_CONFIG_MODELS = {
     "proteins.OpticalConfig",
     "proteins.FilterPlacement",
 }
+# models whose versions key the autocomplete search index (see proteins.search_index)
+SEARCH_INDEX_MODELS = {
+    "proteins.Dye",
+    "proteins.DyeState",
+    "proteins.Organism",
+    "proteins.Protein",
+    "proteins.Spectrum",
+    "proteins.State",
+    "references.Reference",
+}
 
 
 def _invalidate_on_change(sender: type[Model], **kwargs: Any) -> None:
@@ -98,7 +108,7 @@ def _register_signal_handlers():
     IMPORTANT: This is the SINGLE place where these signals are connected.
     Must be called during app ready phase, not at module import time.
     """
-    for model_label in SPECTRUM_OWNER_MODELS | OPTICAL_CONFIG_MODELS:
+    for model_label in SPECTRUM_OWNER_MODELS | OPTICAL_CONFIG_MODELS | SEARCH_INDEX_MODELS:
         model_class = apps.get_model(model_label)
         post_save.connect(
             _invalidate_on_change,

@@ -342,3 +342,63 @@ class TestGetPrimaryReferenceId:
         """Should return primary_reference_id for dye state."""
         expected = dyestate_with_ref.dye.primary_reference_id
         assert dyestate_with_ref._get_primary_reference_id() == expected
+
+
+def test_queryset_delete_triggers_rebuild(state: State):
+    m = FM.objects.create(state=state, ex_max=488)
+    FM.objects.filter(id=m.id).delete()
+    state.refresh_from_db()
+    assert state.ex_max is None
+    assert state.source_map == {}
+
+
+def test_cascade_delete_triggers_rebuild(state_with_ref: State):
+    ref = state_with_ref.protein.primary_reference
+    other = Reference(doi="10.1234/other", year=2021)
+    other.save(skipdoi=True)
+    FM.objects.create(state=state_with_ref, reference=other, ex_max=500)
+    FM.objects.create(state=state_with_ref, reference=ref, ex_max=488)
+    state_with_ref.protein.primary_reference = None
+    state_with_ref.protein.save()
+
+    ref.delete()  # cascades to its measurement
+    state_with_ref.refresh_from_db()
+    assert state_with_ref.ex_max == 500
+
+
+def test_reassigning_measurement_rebuilds_both_states(state: State):
+    other = State.objects.create(protein=state.protein, name="other")
+    m = FM.objects.create(state=state, ex_max=488)
+    m.state = other
+    m.save()
+
+    state.refresh_from_db()
+    other.refresh_from_db()
+    assert other.ex_max == 488
+    assert state.ex_max is None
+    assert state.source_map == {}
+
+
+def test_deleting_state_with_measurements(state: State):
+    FM.objects.create(state=state, ex_max=488)
+    state.delete()
+    assert not State.objects.filter(id=state.id).exists()
+    assert not FM.objects.exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("owner_fixture", ["state_with_ref", "dyestate_with_ref"])
+def test_changing_primary_reference_triggers_rebuild(owner_fixture: str, request):
+    fluor_state = request.getfixturevalue(owner_fixture)
+    owner = fluor_state.protein if isinstance(fluor_state, State) else fluor_state.dye
+    other = Reference(doi="10.1234/other", year=2021)
+    other.save(skipdoi=True)
+    FM.objects.create(state=fluor_state, reference=owner.primary_reference, ex_max=488)
+    FM.objects.create(state=fluor_state, reference=other, ex_max=500)
+    fluor_state.refresh_from_db()
+    assert fluor_state.ex_max == 488
+
+    owner.primary_reference = other
+    owner.save()
+    fluor_state.refresh_from_db()
+    assert fluor_state.ex_max == 500

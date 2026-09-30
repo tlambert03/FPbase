@@ -29,15 +29,13 @@ class SpectrumSerializer(serializers.ModelSerializer):
         )
 
     def get_protein_name(self, obj):
-        # Check if owner_fluor is a State (has protein attribute)
         if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
-            return obj.owner_fluor.protein.name
+            return obj.owner_fluor.owner_name
         return None
 
     def get_protein_slug(self, obj):
-        # Check if owner_fluor is a State (has protein attribute)
         if obj.owner_fluor and obj.owner_fluor.entity_type == FluorState.EntityTypes.PROTEIN:
-            return obj.owner_fluor.protein.slug
+            return obj.owner_fluor.owner_slug
         return None
 
 

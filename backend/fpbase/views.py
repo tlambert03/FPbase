@@ -1,9 +1,11 @@
+import json
 import logging
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.csrf import csrf_failure as default_csrf_failure
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
@@ -18,7 +20,28 @@ from proteins.models import Protein, Spectrum
 logger = logging.getLogger(__name__)
 
 
-class SameOriginExemptAnonThrottle(AnonRateThrottle):
+class CloudflareIdentMixin:
+    """Identify clients by the IP Cloudflare reports, rather than X-Forwarded-For.
+
+    Behind Cloudflare, X-Forwarded-For is "<client>, <edge ip>", and the edge IP
+    varies per request, so DRF's default ident fragments one client into many buckets.
+    """
+
+    def get_ident(self, request):
+        return request.headers.get("cf-connecting-ip") or super().get_ident(request)
+
+
+class ExpensiveListAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
+    """Stricter anonymous limit for list endpoints that serialize the whole database.
+
+    Deliberately has no same-origin exemption: the referer is trivially spoofed,
+    and the FPbase frontend does not use these endpoints.
+    """
+
+    scope = "anon_list"
+
+
+class SameOriginExemptAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
     """
     Throttle class that exempts same-origin requests from rate limiting.
 
@@ -140,7 +163,31 @@ class RateLimitedGraphQLView(GraphQLView):
 
             return response
 
-        return super().dispatch(request, *args, **kwargs)
+        response = super().dispatch(request, *args, **kwargs)
+        if response.status_code == 400 and not self.batch:
+            self._log_bad_request(request, response)
+        return response
+
+    def _log_bad_request(self, request, response) -> None:
+        # the access log lines don't say why a query was rejected: log the errors and query
+        try:
+            errors = [e.get("message") for e in json.loads(response.content)["errors"]]
+        except (ValueError, KeyError, TypeError, AttributeError):
+            errors = []
+        try:
+            body = json.loads(request.body) if request.method == "POST" else {}
+        except ValueError:
+            body = {}
+        body = body if isinstance(body, dict) else {}
+        query = request.GET.get("query") or body.get("query") or ""
+        logger.warning(
+            "GraphQL bad request",
+            extra={
+                "errors": errors[:5],
+                "operation_name": request.GET.get("operationName") or body.get("operationName"),
+                "query": str(query)[:500],
+            },
+        )
 
 
 class HomeView(TemplateView):
@@ -183,3 +230,25 @@ def server_error(request, *args, **argv):
         },
         status=500,
     )
+
+
+def csrf_failure(request, reason=""):
+    """Log CSRF failures with their reason before delegating to Django's default.
+
+    Django's default view only renders an opaque 403 page; we want the specific
+    reason (REASON_NO_REFERER, REASON_BAD_REFERER, REASON_BAD_TOKEN,
+    REASON_BAD_ORIGIN, etc.) surfaced to Sentry so we can diagnose 403s without
+    having to reproduce them.
+    """
+    logger.warning(
+        "CSRF failure",
+        extra={
+            "path": request.path,
+            "method": request.method,
+            "reason": reason,
+            "referer": request.headers.get("referer"),
+            "origin": request.headers.get("origin"),
+            "user_agent": request.headers.get("user-agent"),
+        },
+    )
+    return default_csrf_failure(request, reason=reason)

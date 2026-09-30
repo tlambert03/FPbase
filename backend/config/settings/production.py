@@ -9,6 +9,7 @@ Production settings for FPbase project.
 
 """
 
+import logging
 import re
 import ssl
 
@@ -128,6 +129,11 @@ DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="FPbase <noreply@m
 EMAIL_SUBJECT_PREFIX = env("DJANGO_EMAIL_SUBJECT_PREFIX", default="[FPbase]")
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
 
+# Build allauth links (confirmation, password reset, etc.) as https:// from the
+# start, instead of relying on SECURE_SSL_REDIRECT to upgrade an http:// link.
+# Removes a redirect hop that some email scanners/proxies mishandle.
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+
 # Anymail with Mailgun
 INSTALLED_APPS += [
     "anymail",
@@ -136,6 +142,12 @@ ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
     "MAILGUN_SENDER_DOMAIN": env("MAILGUN_DOMAIN"),
     # "SENDGRID_API_KEY": env('SENDGRID_API_KEY'),
+    # Disable Mailgun click/open tracking for every message sent through
+    # Anymail. Click tracking rewrites links through email.mg.fpbase.org
+    "SEND_DEFAULTS": {
+        "track_clicks": False,
+        "track_opens": False,
+    },
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 # EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
@@ -190,6 +202,10 @@ CACHES = {
 CELERY_BROKER_TRANSPORT_OPTIONS = {"ssl": {"ssl_cert_reqs": ssl.CERT_NONE}}
 CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"ssl_cert_reqs": ssl.CERT_NONE}
 
+# Google Analytics
+# only set here, so that dev/test/CI never report to the live GA property
+GOOGLE_ANALYTICS_ID = env("GOOGLE_ANALYTICS_ID", default="G-C8W3G31KL6")
+
 # Sentry Configuration
 
 SENTRY_DSN = env("SENTRY_DSN")
@@ -210,14 +226,8 @@ sentry_sdk.init(
     ),  # 5% of traced requests
 )
 
-# Scout APM Configuration
-# ------------------------------------------------------------------------------
-# SCOUT_MONITOR and SCOUT_KEY are automatically set by the Heroku addon
-INSTALLED_APPS += ["scout_apm.django"]
-SCOUT_NAME = "FPbase"
-
 # Structlog Configuration for Production
-# Uses JSON output for log aggregation systems like Logtail
+# Uses JSON output for the log aggregator (Axiom, via a Heroku log drain)
 # Base structlog configuration is in base.py - no need to reconfigure here
 
 LOGGING = {
@@ -296,7 +306,7 @@ LOGGING = {
             "level": "ERROR",
             "propagate": False,
         },
-        # django-structlog request logging
+        # django-structlog request logging: one `request_finished` line per request
         "django_structlog": {
             "handlers": ["console"],
             "level": "INFO",
@@ -310,6 +320,8 @@ LOGGING = {
         },
     },
 }
+# `request_started` only duplicates `request_finished` (see fpbase/request_logging.py)
+DJANGO_STRUCTLOG_STATUS_START_LOG_LEVEL = logging.DEBUG
 
 
 # Custom Admin URL, use {% url 'admin:index' %}
@@ -331,4 +343,5 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
     "anon": "60/min",  # Generous limit for unauthenticated API/GraphQL users (external only)
     "user": "300/min",  # 10x higher for authenticated users
+    "anon_list": "20/min",  # expensive list endpoints (see ExpensiveListAnonThrottle)
 }

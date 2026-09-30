@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, TypedDict
 from django import forms
 from django.apps import apps
 from django.db import transaction
+from django.db.models import F
 from django.utils.text import slugify
 
 from proteins.extrest.entrez import is_valid_doi
@@ -16,6 +17,7 @@ from references.models import Reference
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import User
+    from django.db.models import QuerySet
 
 
 class SpectrumJSONData(TypedDict):
@@ -130,6 +132,13 @@ def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
     return spectra
 
 
+def _protein_state(owner_slug: str | None) -> State | None:
+    """The state that receives spectra submitted for the protein with `owner_slug`."""
+    states = State.objects.select_related("protein").filter(protein__slug=owner_slug)
+    # the protein's default state, falling back to its oldest state if none is set
+    return states.order_by(F("default_for").desc(nulls_last=True), "id").first()
+
+
 class SpectrumFormV2(forms.Form):
     """Enhanced spectrum submission form supporting multi-spectrum file uploads.
 
@@ -189,7 +198,31 @@ class SpectrumFormV2(forms.Form):
     def clean_spectra_json(self) -> list[SpectrumJSONData]:
         """Parse and validate the JSON array of processed spectra."""
         raw = self.cleaned_data.get("spectra_json", "")
-        return _validate_spectrum_json(raw)
+        spectra = _validate_spectrum_json(raw)
+        for spec in spectra:
+            if existing := self._existing_spectra(spec).first():
+                raise forms.ValidationError(
+                    f"{spec['owner']} already has a spectrum of type "
+                    f"'{existing.get_subtype_display()}'."
+                )
+        return spectra
+
+    def _existing_spectra(self, spec: SpectrumJSONData) -> QuerySet[Spectrum]:
+        """Approved spectra that the submitted `spec` would duplicate."""
+        qs = Spectrum.objects.all()
+        category, name = spec["category"], spec["owner"].strip()
+        if category == Spectrum.PROTEIN:
+            state = _protein_state(spec.get("owner_slug"))
+            return qs.filter(owner_fluor=state, subtype=spec["subtype"]) if state else qs.none()
+        if category == Spectrum.DYE:
+            return qs.filter(
+                owner_fluor__dyestate__dye__slug=slugify(name),
+                owner_fluor__name=FluorState.DEFAULT_NAME,
+                subtype=spec["subtype"],
+            )
+        # filters, cameras, and lights have a single spectrum, whatever its status
+        owner_field = self.OWNER_LOOKUP[category][0]
+        return Spectrum.objects.all_objects().filter(**{f"{owner_field}__name": name})
 
     def clean_primary_reference(self) -> str:
         """Validate that the DOI is resolvable if provided."""
@@ -237,17 +270,9 @@ class SpectrumFormV2(forms.Form):
                 raise forms.ValidationError(
                     f"Protein '{owner_name}' must be selected from the autocomplete dropdown."
                 )
-            try:
-                owner_fluor = State.objects.select_related("protein").get(protein__slug=owner_slug)
-            except State.DoesNotExist:
-                raise forms.ValidationError(f"Protein not found: {owner_name}") from None
-            except State.MultipleObjectsReturned:
-                # Get the default state
-                owner_fluor = (
-                    State.objects.select_related("protein")
-                    .filter(protein__slug=owner_slug)
-                    .first()
-                )
+            owner_fluor = _protein_state(owner_slug)
+            if owner_fluor is None:
+                raise forms.ValidationError(f"Protein not found: {owner_name}")
 
         elif category == Spectrum.DYE:
             dye, created = Dye.objects.get_or_create(

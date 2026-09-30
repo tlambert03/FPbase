@@ -18,7 +18,7 @@ FPbase is a Django/React monorepo for the Fluorescent Protein Database (fpbase.o
 ### Key Technologies
 - **Backend**: Django, Django REST Framework, Graphene (GraphQL), Celery (Redis), PostgreSQL
 - **Frontend**: React, Material-UI, Vite
-- **Search**: Algolia for protein/organism search
+- **Search**: client-side autocomplete over a JSON index served by `/api/search-index/`
 - **Bioinformatics**: Biopython (sequence alignment), BLAST (local binaries in `backend/bin/`)
 - **Deployment**: Heroku, AWS S3 (media), Sentry (error tracking)
 
@@ -73,9 +73,9 @@ Core models in `models/`:
 4. **Versioning**: `django-reversion` tracks changes to proteins/microscopes
 
 ### Search & Indexing
-- Algolia integration via `algoliasearch_django` (see `proteins/index.py`)
-- Protein and Organism models auto-indexed on save
-- Use `ALGOLIA_SUFFIX` env var to separate dev/prod indexes
+- The navbar autocomplete searches in the browser (`frontend/src/js/search/`)
+- Its index (proteins, dyes, references, organisms + popularity) is built by `proteins/search_index.py`,
+  cached, and rebuilt when those models change (see `fpbase/cache_utils.py`)
 
 ## API Patterns
 
@@ -122,9 +122,6 @@ python backend/manage.py createsuperuser
 # Frontend build
 pnpm build  # production build
 pnpm start  # dev server with watch
-
-# Algolia reindex
-python backend/manage.py algolia_reindex
 
 # Django shell
 python backend/manage.py shell_plus  # (django-extensions)

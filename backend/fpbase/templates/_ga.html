@@ -1,10 +1,10 @@
 <!-- Google Analytics 4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-C8W3G31KL6"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ google_analytics_id }}"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-C8W3G31KL6');
+  gtag('config', '{{ google_analytics_id }}');
   {% if request.user.is_authenticated %}gtag('set', {'user_id': '{{ request.user.id }}'});{% endif %}
   var trackOutboundLink = function(url) {
     gtag('event', 'click', {

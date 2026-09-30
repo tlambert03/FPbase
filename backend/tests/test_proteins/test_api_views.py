@@ -6,6 +6,7 @@ These tests ensure the API endpoints perform efficiently and avoid N+1 query iss
 
 from __future__ import annotations
 
+import pytest
 from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
@@ -134,3 +135,183 @@ class SpectraListAPIViewTests(TestCase):
             names,
             "Should find spectra with modified protein name",
         )
+
+
+@pytest.mark.django_db
+def test_protein_list_api_limit_offset(client):
+    """limit/offset slice the (still bare) list; paging past the end gives []."""
+    for _ in range(5):
+        ProteinFactory()
+
+    def get(query: str) -> list:
+        return client.get(f"/api/proteins/?format=json{query}").json()
+
+    everything = get("")
+    assert len(everything) == 5
+    assert get("&limit=2&offset=1") == everything[1:3]
+    assert get("&limit=2&offset=1000") == []
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url", ["/api/proteins/", "/api/proteins/table-data/"])
+def test_unknown_query_params_rejected(client, url):
+    """Guessed params are a 400 naming the valid ones, not an unfiltered dump."""
+    ProteinFactory()
+
+    response = client.get(f"{url}?format=json&find=mCherry&page=2")
+    assert response.status_code == 400
+    error = response.json()
+    assert "find, page" in error["detail"]
+    assert "name__icontains" in error["valid_parameters"]
+    assert error["docs"].endswith("/api/")
+
+    assert client.get(f"{url}?format=json").status_code == 200
+
+
+@pytest.mark.django_db
+def test_protein_list_api_non_filter_params_allowed(client):
+    """Search page URLs (which carry `display`) can be pasted into the API, per the docs."""
+    ProteinFactory(name="KnownProtein")
+    url = "/api/proteins/?format=json&name__icontains=known&display=t&limit=5&offset=0"
+    response = client.get(url)
+    assert response.status_code == 200
+    assert [p["name"] for p in response.json()] == ["KnownProtein"]
+
+
+@pytest.mark.django_db
+def test_protein_list_api_name_alias(client):
+    """A bare `name=` is a case-insensitive exact match."""
+    ProteinFactory(name="AliasProtein")
+    ProteinFactory(name="AliasProtein2")
+    response = client.get("/api/proteins/?format=json&name=aliasprotein")
+    assert [p["name"] for p in response.json()] == ["AliasProtein"]
+
+
+@pytest.mark.django_db
+def test_protein_list_api_pdb_alias(client):
+    """A bare `pdb=` matches proteins with that PDB ID, in any case."""
+    ProteinFactory(name="PdbProtein", pdb=["5WJ2", "2IB5"])
+    ProteinFactory(name="OtherProtein", pdb=["3ADF"])
+    for query in ("pdb=5WJ2", "pdb=5wj2", "pdb=2ib5,5WJ2"):
+        response = client.get(f"/api/proteins/?format=json&{query}")
+        assert [p["name"] for p in response.json()] == ["PdbProtein"], query
+
+
+@pytest.mark.django_db
+def test_spectrum_detail_api_names_protein(client):
+    """A protein state's spectrum reports its protein (FPBASE-6HV)."""
+    protein = ProteinFactory(name="SpecProtein")
+    state = StateFactory(protein=protein, name="default")
+    spectrum = state.spectra.first()
+    assert spectrum is not None
+
+    response = client.get(f"/api/spectrum/{spectrum.id}/?format=json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["protein_name"] == "SpecProtein"
+    assert data["protein_slug"] == protein.slug
+
+
+@pytest.mark.django_db
+def test_protein_detail_api(client, django_assert_max_num_queries):
+    """A single protein by slug (in any case), in a fixed number of queries."""
+    protein = ProteinFactory(name="DetailProtein")
+    StateFactory(protein=protein, name="state1")
+    StateFactory(protein=protein, name="state2")
+
+    with django_assert_max_num_queries(6):
+        response = client.get("/api/proteins/DetailProtein/?format=json")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["slug"] == "detailprotein"
+    assert {"state1", "state2"} <= {state["name"] for state in data["states"]}
+
+    # sibling routes are not swallowed by the slug route
+    assert isinstance(client.get("/api/proteins/basic/?format=json").json(), list)
+    assert client.get("/api/proteins/no-such-protein/?format=json").status_code == 404
+
+
+@pytest.mark.django_db
+def test_unknown_api_path_is_json_404(client):
+    response = client.get("/api/no/such/endpoint/")
+    assert response.status_code == 404
+    assert response.json()["proteins"].endswith("/api/proteins/")
+
+    # paths without a trailing slash still get the APPEND_SLASH redirect
+    response = client.get("/api/proteins")
+    assert response.status_code == 301
+    assert response["Location"] == "/api/proteins/"
+
+    # routes declared after the api include are not shadowed
+    assert client.get("/api/schema/").status_code != 404
+
+
+@pytest.mark.django_db
+def test_protein_spectra_api_filters(client):
+    """Filters narrow /api/proteins/spectra/, instead of being ignored (a full dump)."""
+    for name in ("SpectraOne", "SpectraTwo", "SpectraThree"):
+        StateFactory(protein=ProteinFactory(name=name), name="default")
+
+    def names(query: str) -> list[str]:
+        response = client.get(f"/api/proteins/spectra/?format=json&{query}")
+        assert response.status_code == 200, response.content
+        return sorted(p["name"] for p in response.json())
+
+    assert names("name=spectraone") == ["SpectraOne"]
+    assert names("name__icontains=spectrat") == ["SpectraThree", "SpectraTwo"]
+    assert len(names("limit=2")) == 2
+    assert len(names("")) == 3
+    assert names("slug=spectratwo") == ["SpectraTwo"]
+    assert client.get("/api/proteins/spectra/?format=json&protein=x").status_code == 400
+
+
+@pytest.mark.django_db
+def test_protein_list_api_search_alias(client):
+    """`search=` is a name/alias search, as the conventional name for one."""
+    ProteinFactory(name="GuessProtein")
+    ProteinFactory(name="OtherProtein")
+    response = client.get("/api/proteins/?format=json&search=guess")
+    assert [p["name"] for p in response.json()] == ["GuessProtein"]
+
+
+@pytest.mark.parametrize(
+    ("param", "hint"),
+    [
+        ("pdb_id", "pdb"),
+        ("pdb__icontains", "pdb__contains"),
+        ("ex_max__gte", "default_state__ex_max__gte"),
+        ("name__contains", "name__icontains"),
+        ("default_state__ex_max__exact", "default_state__ex_max"),
+        ("ex_maxx", "ex_max"),
+        ("q", None),
+        ("find", None),
+    ],
+)
+@pytest.mark.django_db
+def test_unknown_param_did_you_mean(client, param, hint):
+    """A guessed param's 400 names the param it most likely meant, if any."""
+    response = client.get(f"/api/proteins/?format=json&{param}=1")
+    assert response.status_code == 400
+    error = response.json()
+    assert error["did_you_mean"] == ({param: hint} if hint else {})
+    assert (f"Did you mean: {hint} (for {param})" in error["detail"]) == bool(hint)
+
+
+@pytest.mark.django_db
+def test_protein_list_api_ex_em_max_aliases(client):
+    ProteinFactory(name="Green", default_state__ex_max=488, default_state__em_max=507)
+    ProteinFactory(name="Red", default_state__ex_max=587, default_state__em_max=610)
+    for query in ("ex_max=488", "em_max=507"):
+        response = client.get(f"/api/proteins/?format=json&{query}")
+        assert [p["name"] for p in response.json()] == ["Green"], query
+
+
+@pytest.mark.django_db
+def test_protein_spectra_api_query_count(client, django_assert_max_num_queries):
+    """Spectra are prefetched, not queried per state."""
+    for i in range(4):
+        StateFactory(protein=ProteinFactory(name=f"Many{i}"), name="default")
+    with django_assert_max_num_queries(8):
+        response = client.get("/api/proteins/spectra/?format=json")
+    assert len(response.json()) == 4
+    assert all(p["spectra"] for p in response.json())

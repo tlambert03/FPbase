@@ -60,17 +60,23 @@ def fetch_chroma_url(url):
         raise ValueError("ASCII download failed")
 
 
+def _url_exists(url: str) -> bool:
+    # follow redirects: vendors redirect retired URLs (semrock.com -> idex-hs.com) to a
+    # 404, and an unfollowed 301 is truthy, which let unfetchable parts through
+    return requests.head(url, allow_redirects=True, timeout=10).ok
+
+
 def check_chroma_for_part(part):
     part = part.replace("/", "-")
     chroma_url = "https://www.chroma.com/products/parts/"
-    return requests.head(chroma_url + slugify(part))
+    return _url_exists(chroma_url + slugify(part))
 
 
 def check_semrock_for_part(part):
     part = normalize_semrock_part(part)
     part = part.replace("/", "_").upper()
     semrock_url = "https://www.semrock.com/_ProductData/Spectra/"
-    return requests.head(semrock_url + slugify(part) + "_Spectrum.txt")
+    return _url_exists(semrock_url + slugify(part) + "_Spectrum.txt")
 
 
 def fetch_chroma_part(part):
@@ -245,8 +251,8 @@ def text_to_spectra(text, wavecol=0):
 
     Returns:
         tuple: (waves, outdata, headers).  waves is 1D, outdata is MxN, where M
-            is the number of data columns and N is the number of wavelenghts.
-            headers is 1D of length M, containing titles of data colums
+            is the number of data columns and N is the number of wavelengths.
+            headers is 1D of length M, containing titles of data columns
     """
     headers, data = read_csv_text(text)
 

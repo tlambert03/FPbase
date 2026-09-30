@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django_recaptcha.client import RecaptchaResponse
 from playwright.sync_api import expect
@@ -33,6 +34,7 @@ if TYPE_CHECKING:
 
     from django.contrib.auth.models import AbstractUser
     from playwright.sync_api import Browser, Page
+    from pytest_django.fixtures import SettingsWrapper
     from pytest_django.live_server_helper import LiveServer
 
 SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
@@ -166,6 +168,32 @@ def test_spectrum_submission_preview_manual_data(
         assert_snapshot(auth_page)
 
     # submit it!
+    auth_page.get_by_text("Submit Spectrum").click()
+    expect(auth_page).to_have_url(
+        f"{live_server.url}{reverse('proteins:spectrum_submitted_legacy')}"
+    )
+
+
+def test_spectrum_submission_preview_with_preselected_protein(
+    auth_page: Page, live_server: LiveServer
+) -> None:
+    """Preview works when the protein slug is in the URL (category field is disabled)."""
+    protein = ProteinFactory.create(name="PreselectedProtein")
+    protein.default_state.ex_spectrum.delete()
+
+    url = f"{live_server.url}{reverse('proteins:submit-spectra', args=(protein.slug,))}"
+    auth_page.goto(url)
+    expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
+    expect(auth_page.locator("#id_category")).to_be_disabled()
+
+    auth_page.locator("#id_subtype").select_option(Spectrum.EX)
+    auth_page.locator("#id_confirmation").check()
+    auth_page.locator("#manual-tab").click()
+    auth_page.locator("#id_data").fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
+
+    auth_page.locator('input[type="submit"]').click()
+    expect(auth_page.locator("#spectrum-preview-section")).to_be_visible(timeout=10000)
+
     auth_page.get_by_text("Submit Spectrum").click()
     expect(auth_page).to_have_url(
         f"{live_server.url}{reverse('proteins:spectrum_submitted_legacy')}"
@@ -805,3 +833,152 @@ def test_page_simply_loads_without_errors(
     url = f"{live_server.url}{reverse(viewname)}"
     page.goto(url)
     expect(page).to_have_url(url)
+
+
+def test_search_autocomplete(live_server: LiveServer, page: Page) -> None:
+    """Site search ranks popular proteins first, tolerates typos, and navigates on Enter."""
+    User = get_user_model()
+    egfp = ProteinFactory(name="EGFP", slug="egfp")
+    ProteinFactory(name="EGFP-Q69L", slug="egfp-q69l")
+    ProteinFactory(name="mCherry", slug="mcherry")
+    for i in range(3):
+        user = User.objects.create_user(username=f"searcher{i}", password="pw")
+        Favorite.objects.create(user, egfp.id, "proteins.Protein")
+
+    with (
+        patch("proteins.search_index.cached_ga_popular", return_value={"year": []}),
+        patch("proteins.search_index.cached_ga_spectra_views", return_value={}),
+    ):
+        page.goto(live_server.url)
+        search = page.locator("#algolia-search-input")
+        first = page.locator(".aa-suggestion").first
+
+        search.fill("egf")
+        expect(first).to_contain_text("EGFP")
+        expect(first).not_to_contain_text("Q69L")
+
+        search.fill("mchery")  # typo
+        expect(first).to_contain_text("mCherry")
+        expect(first.locator("em")).to_have_text("mCherry")
+
+        search.fill("")
+        search.type("egpf")  # transposition
+        expect(first).to_contain_text("EGFP")
+        # the protein page itself is slow on the test server; just check we navigate there
+        with page.expect_request(f"{live_server.url}{egfp.get_absolute_url()}"):
+            page.keyboard.press("Enter")
+
+
+def test_search_autocomplete_dyes_and_analytics(
+    live_server: LiveServer, page: Page, settings: SettingsWrapper
+) -> None:
+    """Dyes are searchable (link to the spectra viewer) and each search sends one GA event."""
+    dye = DyeFactory(name="Alexa Fluor 488")
+    ProteinFactory(name="mCherry", slug="mcherry")
+    events: list = []
+    settings.GOOGLE_ANALYTICS_ID = "G-TEST"  # render the (otherwise absent) GA snippet
+    page.route(re.compile(r"googletagmanager|google-analytics"), lambda route: route.abort())
+    page.expose_binding("reportGA", lambda _source, args: events.append(args))
+    page.add_init_script(
+        "window.dataLayer = []; const push = dataLayer.push.bind(dataLayer);"
+        "dataLayer.push = (...a) => {"
+        "  a.forEach((x) => reportGA(Array.from(x))); return push(...a) }"
+    )
+
+    with (
+        patch("proteins.search_index.cached_ga_popular", return_value={"year": []}),
+        patch("proteins.search_index.cached_ga_spectra_views", return_value={}),
+    ):
+        page.goto(live_server.url)
+        search = page.locator("#algolia-search-input")
+        search.type("alexa488")  # letters glued to digits
+        first = page.locator(".aa-suggestion").first
+        expect(first).to_contain_text(dye.name)
+        expect(first.locator("svg.dye")).to_be_visible()
+        with page.expect_request(re.compile(r"/spectra/\?s=\d+")):
+            page.keyboard.press("Enter")
+
+    searches = [e[2] for e in events if e[:2] == ["event", "search"]]
+    assert searches == [
+        {
+            "search_term": "alexa488",
+            "result_count": 1,
+            "result_type": "dye",
+            "result_rank": 1,
+            "transport_type": "beacon",
+        }
+    ]
+
+
+def _mock_ncbi_eutils(page: Page, ipg_result: dict | None, fasta: str = "") -> None:
+    """Fulfill the NCBI eutils requests that the protein form makes from the browser."""
+
+    def handle(route) -> None:
+        if "esummary.fcgi" in route.request.url:
+            route.fulfill(json={"result": ipg_result} if ipg_result else {})
+        else:
+            route.fulfill(body=fasta, content_type="text/plain")
+
+    page.route(re.compile(r"eutils\.ncbi\.nlm\.nih\.gov"), handle)
+
+
+def test_protein_form_ipg_lookup_updates_hints(auth_page: Page, live_server: LiveServer) -> None:
+    """IPG ID lookup writes the IPG name into the field's help text and fills the sequence."""
+    ipg = {"12345": {"accession": "ABC123.1", "title": "mock fluorescent protein"}}
+    _mock_ncbi_eutils(auth_page, ipg, fasta=f">ABC123.1 mock\n{SEQ[:40]}\n{SEQ[40:]}\n")
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+
+    ipg_field = auth_page.locator("#id_ipg_id")
+    ipg_field.fill("12345")
+    ipg_field.blur()
+    expect(auth_page.locator("#div_id_ipg_id")).to_contain_text(
+        "IPG name: mock fluorescent protein"
+    )
+    expect(auth_page.locator("#id_seq")).to_have_value(SEQ)
+
+
+def test_protein_form_unknown_ipg_resets_hints(auth_page: Page, live_server: LiveServer) -> None:
+    """An unrecognized IPG ID restores the help text of the IPG and sequence fields."""
+    _mock_ncbi_eutils(auth_page, None)
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+    expect(auth_page.locator("#div_id_seq")).not_to_contain_text("IPG ID is preferred")
+
+    ipg_field = auth_page.locator("#id_ipg_id")
+    ipg_field.fill("999")
+    ipg_field.blur()
+    expect(auth_page.locator("#div_id_seq")).to_contain_text("(IPG ID is preferred)")
+    expect(auth_page.locator("#div_id_ipg_id")).to_contain_text("Identical Protein Group ID")
+
+
+def test_protein_form_warns_on_existing_name(auth_page: Page, live_server: LiveServer) -> None:
+    """Entering the name of an existing protein shows an inline error under the field."""
+    ProteinFactory.create(name="AlreadyTakenFP")
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
+
+    name_field = auth_page.locator("#id_name")
+    name_field.fill("AlreadyTakenFP")
+    name_field.blur()
+    error = auth_page.locator("#div_id_name").get_by_text("already exists in the database")
+    expect(error).to_be_visible()
+    expect(name_field).to_have_class(re.compile(r"\bis-invalid\b"))
+
+    name_field.fill("SomethingBrandNewFP")
+    name_field.blur()
+    expect(auth_page.locator("#div_id_name")).not_to_contain_text("already exists")
+
+
+def test_legacy_spectrum_form_warns_on_similar_owner(
+    auth_page: Page, live_server: LiveServer
+) -> None:
+    """Typing an owner name close to an existing one lists the similar owners in the help text."""
+    FilterFactory.create(name="Chroma ET525/50m", subtype=Spectrum.BP)
+    auth_page.goto(f"{live_server.url}{reverse('proteins:submit-spectra-legacy')}")
+    expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
+
+    auth_page.locator("#id_category").select_option(Spectrum.FILTER)
+    owner_field = auth_page.locator("#id_owner")
+    owner_field.fill("Chroma ET525/50")
+    owner_field.blur()
+    hint = auth_page.locator("#div_id_owner")
+    expect(hint).to_contain_text("Avoid duplicates")
+    expect(hint).to_contain_text("Chroma ET525/50m")

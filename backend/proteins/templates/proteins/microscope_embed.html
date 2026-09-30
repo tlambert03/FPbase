@@ -14,7 +14,7 @@
     <meta name="author" content="Talley Lambert">
     <meta name="copyright" content="Talley Lambert" />
     {% block ga %}
-      {% if not debug %}
+      {% if google_analytics_id %}
         {% include "_ga.html" %}
       {% endif %}
     {% endblock ga %}

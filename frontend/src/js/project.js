@@ -2,6 +2,7 @@ import { fetchWithSentry } from "./ajax-sentry"
 import { icon } from "./icons.js"
 
 const $ = window.jQuery // jQuery loaded from CDN
+
 import "./detect-touch" // adds window.USER_IS_TOUCHING = true; after touch event.
 
 // Helper to wait for Bootstrap plugins to be available
@@ -397,12 +398,19 @@ $(() => {
   })
 })
 
+// Help text of a form field. The widget points to it (and to its error list, when invalid)
+// via aria-describedby, so this doesn't depend on how the form library names the element.
+function fieldHelpText(field) {
+  const ids = ($(field).attr("aria-describedby") || "").split(/\s+/).filter(Boolean)
+  return $(ids.map((id) => `#${id}`).join(", ")).filter(".form-text")
+}
+
 function reset_ipgid(hintstring) {
   if (hintstring) {
-    $("#hint_id_ipg_id").html(hintstring)
+    fieldHelpText("#id_ipg_id").html(hintstring)
   }
   $("#id_seq").prop("disabled", false)
-  $("#hint_id_seq").html("Amino acid sequence (IPG ID is preferred)")
+  fieldHelpText("#id_seq").html("Amino acid sequence (IPG ID is preferred)")
 }
 
 $("#id_ipg_id").change(function () {
@@ -423,7 +431,7 @@ $("#id_ipg_id").change(function () {
       } else if (ipg_id in data.result) {
         const accession = data.result[ipg_id].accession
         const title = data.result[ipg_id].title
-        $("#hint_id_ipg_id").html(`IPG name: ${title}`)
+        fieldHelpText("#id_ipg_id").html(`IPG name: ${title}`)
 
         fetchWithSentry(protein_uri + accession + fpbase_params)
           .then((response) => response.text())
@@ -477,7 +485,7 @@ $("#proteinform #id_name").change(function () {
             id: "error_1_id_name",
             class: "invalid-feedback",
           }).append(message)
-          $("#hint_id_name").before(span)
+          fieldHelpText("#id_name").before(span)
         }
       } else {
         if ($("#error_1_id_name").length) {
@@ -522,9 +530,9 @@ $("#spectrum-submit-form #id_owner").change(function () {
             str = `${str}, `
           }
         })
-        $("#hint_id_owner").html(str)
+        fieldHelpText("#id_owner").html(str)
       } else {
-        $("#hint_id_owner").html("Owner of the spectrum")
+        fieldHelpText("#id_owner").html("Owner of the spectrum")
       }
     })
 })

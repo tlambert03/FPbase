@@ -17,11 +17,11 @@ class SpectraCSVViewTests(TestCase):
     def setUpTestData(cls):
         """Create test data once for all tests."""
         cls.spectra_list = []
-        for i in range(10):
+        for _ in range(10):
             state = StateFactory()
             spectrum = SpectrumFactory(
                 owner_fluor=state,
-                subtype=Spectrum.EX if i % 2 == 0 else Spectrum.EM,
+                subtype=Spectrum.ABS,  # StateFactory already makes ex/em/2p
                 category=Spectrum.PROTEIN,
             )
             cls.spectra_list.append(spectrum)

@@ -183,6 +183,7 @@ class Microscope(OwnedCollection):
 
     @cached_property
     def spectra(self) -> list[Spectrum]:
+        # a filter/light/camera whose spectrum was deleted has nothing to plot
         return [
             obj.spectrum
             for qs in (
@@ -192,7 +193,7 @@ class Microscope(OwnedCollection):
                 self.lights,
                 self.cameras,
             )
-            for obj in qs.select_related("spectrum")
+            for obj in qs.filter(spectrum__isnull=False).select_related("spectrum")
         ]
 
     def spectra_d3(self) -> list[D3Dict]:

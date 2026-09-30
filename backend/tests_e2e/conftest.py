@@ -259,6 +259,7 @@ IGNORE_PATTERNS = [
     "WebGL",
     r".*cookie.*overwritten",  # cookie updates
     r"\[Report Only\]",  # Content Security Policy reports
+    r"Content-Security-Policy: \(Report-Only",  # Firefox: Content Security Policy reports
     r"accessibility\.js",  # highcharts accessibility module warnings
     r"cdnjs\.cloudflare\.com",  # CDN assets cancelled during teardown
     r"doubleclick\.net",

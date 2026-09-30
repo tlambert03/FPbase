@@ -1,6 +1,10 @@
+import pytest
 from django.test import TestCase
 
 from proteins.models import Protein, Spectrum, State
+from proteins.models.protein import ascii_name
+
+SEQ = "MVSKGEELFTGVVPILVELDGDVNGHKFSVSGEGEGDATYGKLTLKFICTTGKLPVPWPTLVTTLTYGVQCFS"
 
 
 class TestProteinModel(TestCase):
@@ -62,3 +66,35 @@ class TestProteinModel(TestCase):
         # The cached property should be invalidated and return the new values
         assert spectrum.y == new_y, f"Expected {new_y}, got {spectrum.y}"
         assert spectrum.y != original_y
+
+
+@pytest.mark.parametrize(
+    ("name", "expect"),
+    [
+        ("mKOκ", "mKOkappa"),
+        ("Nữ", "Nu"),
+        ("lanRFP-ΔS83l", "lanRFP-deltaS83l"),
+        ("TeAPCα", "TeAPCalpha"),  # noqa: RUF001
+        ("αGFP", "alphaGFP"),  # noqa: RUF001
+        ("β-lactamase", "beta-lactamase"),
+        ("mCherry–2", "mCherry-2"),  # noqa: RUF001  # en dash
+        ("mCherry", "mCherry"),
+    ],
+)
+def test_ascii_name(name: str, expect: str) -> None:
+    assert ascii_name(name) == expect
+
+
+@pytest.mark.django_db
+def test_fasta_is_ascii_for_unicode_names() -> None:
+    """FASTA headers must be ASCII: muscle/blast choke on non-ascii input."""
+    names = ["mKOκ", "Nữ", "lanRFP-ΔS83l"]
+    for i, name in enumerate(names):
+        # seq is unique across proteins
+        Protein.objects.create(name=name, seq=SEQ + "A" * i)
+
+    fasta = Protein.objects.filter(name__in=names).fasta().read()
+
+    fasta.encode("ascii")  # raises UnicodeEncodeError on regression
+    for name in names:
+        assert ascii_name(name) in fasta

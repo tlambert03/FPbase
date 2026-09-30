@@ -20,6 +20,7 @@ from fpbase.sitemaps import (
     ReferencesSitemap,
     StaticSitemap,
 )
+from proteins.api.views import api_not_found
 from references.views import ReferenceListView
 
 sitemaps = {
@@ -112,6 +113,9 @@ urlpatterns = [  # noqa: RUF005
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
+    # JSON 404 for any other api path (must come after all other api/ routes).
+    # Requires the trailing slash, so that APPEND_SLASH redirects still happen.
+    re_path(r"^api/.*/$", api_not_found),
     # custom apps
     path("", include("proteins.urls")),  # NOTE: without $
     path("reference/", include("references.urls")),  # NOTE: without $

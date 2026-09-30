@@ -1,7 +1,9 @@
+import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
+from proteins.factories import OrganismFactory
 from proteins.forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
 from proteins.models import Protein, Spectrum, State
 from tests.test_users.factories import UserFactory
@@ -112,6 +114,37 @@ class TestProteinForm(TestCase):
         self.assertTrue("genbank" in form.errors)
         self.assertTrue("uniprot" in form.errors)
         self.assertTrue("pdb" in form.errors)
+
+
+@pytest.mark.django_db
+def test_resave_keeps_locked_fields() -> None:
+    """Fields that are locked (disabled) once set must survive a re-save.
+
+    Browsers don't submit disabled inputs, so the POST data won't contain them.
+    """
+    protein = Protein.objects.create(
+        name="Locked Protein",
+        agg=Protein.AggChoices.MONOMER,
+        cofactor=Protein.CofactorChoices.BILIVERDIN,
+        switch_type=Protein.SwitchingChoices.PHOTOSWITCHABLE,
+        parent_organism=OrganismFactory(),
+    )
+    data = {"name": protein.name, "confirmation": True, "genbank": "ABC12345"}
+    form = ProteinForm(data, instance=protein)
+    assert " disabled" in str(form["agg"])  # still rendered as locked
+    assert form.is_valid(), form.errors
+    form.save()
+
+    protein.refresh_from_db()
+    assert protein.genbank == "ABC12345"
+    assert protein.agg == Protein.AggChoices.MONOMER
+    assert protein.cofactor == Protein.CofactorChoices.BILIVERDIN
+    assert protein.switch_type == Protein.SwitchingChoices.PHOTOSWITCHABLE
+    assert protein.parent_organism is not None
+    # and they can't be changed by posting a value anyway
+    form = ProteinForm({**data, "agg": Protein.AggChoices.DIMER}, instance=protein)
+    assert form.is_valid(), form.errors
+    assert form.save().agg == Protein.AggChoices.MONOMER
 
 
 class TestStateForm(TestCase):

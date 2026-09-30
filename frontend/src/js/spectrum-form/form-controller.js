@@ -844,8 +844,13 @@ function processSpectrum(spectrum, index, el, state) {
       spectrum.manualPeakWave = result.peakWave
     }
   } else {
-    // Use absolute values (no normalization)
-    processedData = spectrum.interpolated
+    // Use absolute values (no normalization), but convert percentage (0-100) to fraction (0-1)
+    const maxVal = Math.max(...spectrum.interpolated.map(([, v]) => v))
+    if (maxVal > 1) {
+      processedData = spectrum.interpolated.map(([w, v]) => [w, v / 100])
+    } else {
+      processedData = spectrum.interpolated
+    }
   }
 
   spectrum.processed = processedData

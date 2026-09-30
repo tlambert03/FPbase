@@ -29,16 +29,16 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.decorators import method_decorator
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_POST
 from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import CreateView, DetailView, ListView, UpdateView, base
 from reversion.models import Revision, Version
 
-from fpbase.util import is_ajax, uncache_protein_page
+from fpbase.util import is_ajax, protein_page_key_prefix, uncache_protein_page
 from proteins.extrest.entrez import get_cached_gbseqs
 from proteins.extrest.ga import cached_ga_popular
 from proteins.forms import (
@@ -50,7 +50,15 @@ from proteins.forms import (
     StateTransitionFormSet,
     bleach_items_formset,
 )
-from proteins.models import BleachMeasurement, Excerpt, Organism, Protein, Spectrum, State
+from proteins.models import (
+    BleachMeasurement,
+    Excerpt,
+    FluorState,
+    Organism,
+    Protein,
+    Spectrum,
+    State,
+)
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
@@ -175,13 +183,14 @@ class ProteinDetailView(DetailView):
         .select_related("primary_reference")
     )
 
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
-    # Only enable caching in production (when DEBUG=False)
-    if not settings.DEBUG:
-        dispatch = method_decorator(cache_page(60 * 30))(dispatch)
-        dispatch = method_decorator(vary_on_cookie)(dispatch)
+    def dispatch(self, request, *args, **kwargs):
+        # Only enable caching in production (when DEBUG=False)
+        if settings.DEBUG:
+            return super().dispatch(request, *args, **kwargs)
+        # the key prefix is per-protein, so that uncache_protein_page can drop all of them
+        key_prefix = protein_page_key_prefix(kwargs["slug"])
+        cached = cache_page(60 * 30, key_prefix=key_prefix)(super().dispatch)
+        return vary_on_cookie(cached)(request, *args, **kwargs)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
@@ -378,9 +387,11 @@ class ProteinCreateUpdateMixin:
 
             if not self.request.user.is_staff:
                 self.object.status = "pending"
-                msg = f"User: {self.request.user.username}\n"
-                f"Protein: {self.object}\n\n{chg_string}\n\n"
-                f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                msg = (
+                    f"User: {self.request.user.username}\n"
+                    f"Protein: {self.object}\n\n{chg_string}\n\n"
+                    f"{self.request.build_absolute_uri(self.object.get_absolute_url())}"
+                )
                 mail_managers(comment, msg, fail_silently=True)
             # else:
             #     self.object.status = 'approved'
@@ -759,20 +770,18 @@ def add_protein_excerpt(request, slug=None):
         return JsonResponse({"status": "failed", "msg": e})
 
 
-@staff_member_required
-def revert_version(request, ver=None):
-    with contextlib.suppress(Exception):
-        version = Version.objects.get(id=ver)
-        version.revision.revert(delete=True)
-        return JsonResponse({})
-
-
-@staff_member_required
-def revert_revision(request, rev=None):
-    revision = get_object_or_404(Revision, id=rev)
-
+def _revert_to_revision(request, revision: Revision) -> JsonResponse:
     with transaction.atomic():
         revision.revert(delete=True)
+        # revert() restores rows without calling save(): record the restored values as
+        # measurements, or the next rebuild_attributes() would undo the revert
+        state_ids = {
+            v.object_id
+            for v in revision.version_set.select_related("content_type")
+            if issubclass(v.content_type.model_class(), FluorState)
+        }
+        for state in FluorState.objects.filter(pk__in=state_ids):
+            state.as_subclass().write_through()
         proteins = {
             v.object for v in revision.version_set.all() if v.object._meta.model_name == "protein"
         }
@@ -786,6 +795,19 @@ def revert_revision(request, rev=None):
                     uncache_protein_page(p.slug, request)
 
     return JsonResponse({"status": 200})
+
+
+@require_POST
+@staff_member_required
+def revert_version(request, ver=None):
+    version = get_object_or_404(Version.objects.select_related("revision"), id=ver)
+    return _revert_to_revision(request, version.revision)
+
+
+@require_POST
+@staff_member_required
+def revert_revision(request, rev=None):
+    return _revert_to_revision(request, get_object_or_404(Revision, id=rev))
 
 
 @login_required

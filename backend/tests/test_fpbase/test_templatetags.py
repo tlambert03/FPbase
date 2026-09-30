@@ -198,9 +198,11 @@ class TestIconTemplateTag:
         # If there are invalid icons, create a helpful error message
         if invalid_icons:
             error_lines = [
-                "Found icon tags with invalid icon names. "
-                "Either fix the template or add it to ICON_MAP in "
-                "scripts/extract_fa_icons.py and re-run it."
+                (
+                    "Found icon tags with invalid icon names. "
+                    "Either fix the template or add it to ICON_MAP in "
+                    "scripts/extract_fa_icons.py and re-run it."
+                )
             ]
             for item in invalid_icons:
                 error_lines.append(f"  - '{item['icon']}' used in {item['file']}:{item['line']}")

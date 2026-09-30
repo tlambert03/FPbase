@@ -140,7 +140,10 @@ class ProteinForm(forms.ModelForm):
                 ("switch_type", "switch_type"),
             ]:
                 if bool(getattr(prot, attr)):
-                    self.fields[field].widget.attrs["disabled"] = True
+                    # NOT widget.attrs["disabled"]: browsers don't submit disabled inputs,
+                    # so the missing value would be saved as blank.  Field.disabled
+                    # renders the same, but makes django keep the instance's value.
+                    self.fields[field].disabled = True
 
         self.helper = FormHelper(self)
         self.helper.form_tag = False
