@@ -1,5 +1,7 @@
 User-agent: *
 Disallow: /protein/*/update
 Disallow: /protein/*/bleach
+Disallow: /protein/*/ver/
+Disallow: /protein/*/rev/
 Disallow: /collection/*/
 Disallow: /microscope/*/report/
