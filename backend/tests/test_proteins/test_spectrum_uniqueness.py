@@ -50,7 +50,9 @@ def test_other_subtype_still_allowed():
     assert state.spectra.count() == 4
 
 
-def _form(category: str, owner: str, subtype: str, owner_slug: str | None = None):
+def _form(
+    category: str, owner: str, subtype: str, owner_slug: str | None = None, source: str = "test"
+):
     spec = {
         "data": [[400, 0.1], [500, 1.0], [600, 0.5]],
         "category": category,
@@ -63,7 +65,7 @@ def _form(category: str, owner: str, subtype: str, owner_slug: str | None = None
         "peak_wave": 500,
         "column_name": "A",
     }
-    data = {"spectra_json": json.dumps([spec]), "source": "test", "confirmation": True}
+    data = {"spectra_json": json.dumps([spec]), "source": source, "confirmation": True}
     return SpectrumFormV2(data)
 
 
@@ -151,3 +153,13 @@ def test_v2_form_submits_to_default_state():
     assert form.is_valid(), form.errors
     (created,) = form.save()
     assert created.owner_fluor_id == default.id
+
+
+def test_v2_form_accepts_max_length_source():
+    # the form allowed 200 chars but the model only 128, so save() raised a 500
+    state = StateFactory()
+    source = "x" * SpectrumFormV2.base_fields["source"].max_length
+    form = _form("p", state.protein.name, "ab", owner_slug=state.protein.slug, source=source)
+    assert form.is_valid(), form.errors
+    (created,) = form.save()
+    assert created.source == source
