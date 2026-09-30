@@ -18,11 +18,12 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.throttling import UserRateThrottle
 from rest_framework_csv import renderers as r
 
 import proteins.models as pm
 from fpbase.cache_utils import get_model_version
-from fpbase.views import ExpensiveListAnonThrottle
+from fpbase.views import ExpensiveListAnonThrottle, SameOriginExemptAnonThrottle
 from proteins.api.serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
@@ -174,7 +175,7 @@ class ProteinListAPIView2(ListAPIView):
     lookup_field = "slug"  # Don't use Protein.id!
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter
-    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
+    renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, r.CSVRenderer]  # pyright: ignore[reportAssignmentType]
 
     @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
@@ -217,7 +218,7 @@ class ProteinListAPIView(ListAPIView):
     filterset_class = ProteinAPIFilter
     pagination_class = OptionalLimitOffsetPagination
     throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
-    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
+    renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, r.CSVRenderer]  # pyright: ignore[reportAssignmentType]
 
     @method_decorator(cache_page(60 * 10))
     def dispatch(self, *args, **kwargs):
@@ -262,7 +263,7 @@ class StatesListAPIView(ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = StateSerializer
     lookup_field = "slug"  # Don't use State.id!
-    renderer_classes = [r.CSVRenderer, *api_settings.DEFAULT_RENDERER_CLASSES]  # pyright: ignore[reportAssignmentType]
+    renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, r.CSVRenderer]  # pyright: ignore[reportAssignmentType]
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = StateFilter
 
@@ -299,6 +300,8 @@ class ProteinTableAPIView(ListAPIView):
     )
     permission_classes = (AllowAny,)
     serializer_class = ProteinTableSerializer
+    # fetched by the table page itself
+    throttle_classes = [SameOriginExemptAnonThrottle, UserRateThrottle]
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter
 

@@ -10,8 +10,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene_django.views import GraphQLView
 from rest_framework import exceptions
-from rest_framework.settings import api_settings
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
 
 from fpbase.forms import ContactForm
@@ -29,6 +28,10 @@ class CloudflareIdentMixin:
 
     def get_ident(self, request):
         return request.headers.get("cf-connecting-ip") or super().get_ident(request)
+
+
+class AnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
+    """The default anonymous limit for the REST API."""
 
 
 class ExpensiveListAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
@@ -50,7 +53,8 @@ class SameOriginExemptAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
     throttling external API consumers.
 
     Same-origin is determined by checking if the Referer header matches
-    the request host.
+    the request host.  Scripts send that header too, so only use this on
+    endpoints that the FPbase frontend itself calls.
     """
 
     def allow_request(self, request, view):
@@ -79,14 +83,14 @@ class RateLimitedGraphQLView(GraphQLView):
     GraphQL view with rate limiting using DRF's throttle infrastructure.
 
     Leverages Django REST Framework's battle-tested throttling system:
-    - Uses DEFAULT_THROTTLE_CLASSES from settings (AnonRateThrottle, UserRateThrottle)
+    - Uses the same rates as the REST API (DEFAULT_THROTTLE_RATES in settings)
     - Automatically handles X-Forwarded-For for Heroku deployments
     - Raises DRF's Throttled exception which includes retry-after information
     - Converts the exception to GraphQL error format with proper HTTP headers
     """
 
-    # Use the same throttle classes as the REST API (from settings.REST_FRAMEWORK)
-    throttle_classes = api_settings.DEFAULT_THROTTLE_CLASSES
+    # the spectra viewer and protein pages fetch every spectrum with its own request
+    throttle_classes = [SameOriginExemptAnonThrottle, UserRateThrottle]
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
