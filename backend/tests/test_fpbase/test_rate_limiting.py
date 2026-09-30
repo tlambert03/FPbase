@@ -6,6 +6,7 @@ from django.test import Client
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 from fpbase.views import (
+    AnonThrottle,
     ExpensiveListAnonThrottle,
     RateLimitedGraphQLView,
     SameOriginExemptAnonThrottle,
@@ -136,4 +137,25 @@ def test_protein_list_throttled_despite_referer(monkeypatch):
         for i in range(6)
     ]
     assert codes == [200, 200, 200, 429, 429, 429]
+    cache.clear()
+
+
+@pytest.mark.django_db
+def test_referer_exemption_is_limited_to_frontend_endpoints(monkeypatch):
+    """A same-origin Referer only lifts the limit where the frontend makes requests."""
+    monkeypatch.setitem(AnonThrottle.THROTTLE_RATES, "anon", "3/min")
+    cache.clear()
+
+    client = Client(headers={"referer": "http://testserver/"})
+    # the 404s are not cached by cache_page, so every request reaches the view
+    codes = [client.get("/api/proteins/no-such-protein/").status_code for _ in range(5)]
+    assert codes == [404, 404, 404, 429, 429]
+
+    cache.clear()
+    query = '{"query": "{ __typename }"}'
+    codes = {
+        client.post("/graphql/", query, content_type="application/json").status_code
+        for _ in range(5)
+    } | {client.get(f"/api/proteins/table-data/?name={i}").status_code for i in range(5)}
+    assert codes == {200}
     cache.clear()

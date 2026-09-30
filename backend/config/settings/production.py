@@ -335,10 +335,6 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
 ]
 
 # Enable API and GraphQL rate limiting in production
-REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = [
-    "fpbase.views.SameOriginExemptAnonThrottle",  # Custom throttle that exempts same-origin
-    "rest_framework.throttling.UserRateThrottle",
-]
 # NOTE: Rate limiting settings are used by both REST API and GraphQL
 REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
     "anon": "60/min",  # Generous limit for unauthenticated API/GraphQL users (external only)

@@ -267,6 +267,22 @@ def test_api_paths_without_trailing_slash_are_served(client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("url", ["/api/proteins/", "/api/proteins/basic/"])
+def test_protein_lists_default_to_json(client, url):
+    ProteinFactory(name="FormatProtein")
+
+    # what curl and python-requests send
+    response = client.get(url, headers={"accept": "*/*"})
+    assert response["Content-Type"] == "application/json"
+    assert response.json()[0]["name"] == "FormatProtein"
+
+    for kwargs in ({"QUERY_STRING": "format=csv"}, {"headers": {"accept": "text/csv"}}):
+        response = client.get(url, **kwargs)
+        assert response["Content-Type"].startswith("text/csv")
+        assert b"FormatProtein" in response.content
+
+
+@pytest.mark.django_db
 def test_protein_spectra_api_filters(client):
     """Filters narrow /api/proteins/spectra/, instead of being ignored (a full dump)."""
     for name in ("SpectraOne", "SpectraTwo", "SpectraThree"):
