@@ -1,3 +1,5 @@
+import copy
+
 import django_filters
 from Bio import Seq
 from django import forms
@@ -241,3 +243,11 @@ class ProteinAPIFilter(ProteinFilter):
 
     def pdb_contains(self, queryset, name, value):
         return queryset.filter(pdb__contains=[v.strip().upper() for v in value])
+
+
+# short names for every default-state filter: `ex_max__gte`, `qy__gte`, `em_max__around`
+for _name, _filter in list(ProteinAPIFilter.base_filters.items()):
+    if _name.startswith("default_state__") and "bleach" not in _name:
+        ProteinAPIFilter.base_filters.setdefault(
+            _name.removeprefix("default_state__"), copy.deepcopy(_filter)
+        )

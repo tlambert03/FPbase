@@ -137,3 +137,20 @@ def test_optical_config_filter_without_spectrum(client):
             assert placement == {"id": filter_id, "spectrumId": None, "spectrum": None}
         else:
             assert placement["spectrumId"] == placement["spectrum"]["id"]
+
+
+def test_protein_by_slug_or_name(client):
+    protein = ProteinFactory(name="Named Protein", aliases=["NmP"])
+    query = (
+        '{ a: protein(slug: "NAMED-PROTEIN") { name } b: protein(name: "named protein") { name }'
+        ' c: protein(name: "nmp") { name } d: protein(slug: "nope") { name }'
+        f' e: protein(id: "{protein.uuid}") {{ name }} }}'
+    )
+    data, _ = _query(client, query)
+    assert data == {
+        "a": {"name": "Named Protein"},
+        "b": {"name": "Named Protein"},
+        "c": {"name": "Named Protein"},
+        "d": None,
+        "e": {"name": "Named Protein"},
+    }

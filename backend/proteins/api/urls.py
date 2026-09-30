@@ -35,8 +35,9 @@ urlpatterns = [
     path(
         "proteins/ocinfo/", RedirectView.as_view(url="/api/optical-configs-list/", permanent=True)
     ),
-    # must come after all other proteins/ routes, which would also match as a slug
-    path("proteins/<slug:slug>/", views.ProteinRetrieveAPIView.as_view(), name="protein-detail"),
+    # must come after all other proteins/ routes, which would also match as a slug.
+    # (`str`, not `slug`: a name, alias or PDB ID is accepted here too)
+    path("proteins/<str:slug>/", views.ProteinRetrieveAPIView.as_view(), name="protein-detail"),
     path("optical-configs-list/", views.optical_configs_list, name="ocinfo"),
     path("search-index/", views.search_index, name="search-index"),
 ]
