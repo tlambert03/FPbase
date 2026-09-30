@@ -270,7 +270,7 @@ class StatesListAPIView(ListAPIView):
 class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
-    queryset = pm.Protein.objects.with_spectra().prefetch_related("states")
+    queryset = pm.Protein.objects.with_spectra().prefetch_related("states__spectra")
     # without these, every filtered query returned (and serialized) every spectrum
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter

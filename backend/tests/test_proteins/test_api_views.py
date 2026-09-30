@@ -304,3 +304,14 @@ def test_protein_list_api_ex_em_max_aliases(client):
     for query in ("ex_max=488", "em_max=507"):
         response = client.get(f"/api/proteins/?format=json&{query}")
         assert [p["name"] for p in response.json()] == ["Green"], query
+
+
+@pytest.mark.django_db
+def test_protein_spectra_api_query_count(client, django_assert_max_num_queries):
+    """Spectra are prefetched, not queried per state."""
+    for i in range(4):
+        StateFactory(protein=ProteinFactory(name=f"Many{i}"), name="default")
+    with django_assert_max_num_queries(8):
+        response = client.get("/api/proteins/spectra/?format=json")
+    assert len(response.json()) == 4
+    assert all(p["spectra"] for p in response.json())
