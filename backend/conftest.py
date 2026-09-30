@@ -16,6 +16,13 @@ def _clear_cache():
     cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def _invalidate_caches_without_commit(monkeypatch):
+    # a test's transaction is never committed, so neither would be the cache
+    # invalidation that waits for the commit
+    monkeypatch.setattr("fpbase.cache_utils._after_commit", lambda func: func())
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _mock_blast_db(tmp_path_factory: "TempPathFactory"):
     from proteins.util import blast

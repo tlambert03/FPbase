@@ -4,7 +4,6 @@ import logging
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.csrf import csrf_failure as default_csrf_failure
@@ -15,7 +14,7 @@ from rest_framework import exceptions
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
 
-from fpbase.cache_utils import DATA_CACHE_TTL, get_data_version
+from fpbase.cache_utils import get_versioned, set_versioned
 from fpbase.forms import ContactForm
 from proteins.models import Protein, Spectrum
 
@@ -38,6 +37,19 @@ class CloudflareIdentMixin:
 
 class AnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
     """The default anonymous limit for the REST API."""
+
+
+class UserThrottle(UserRateThrottle):
+    """Limit for logged-in users only.
+
+    DRF's `UserRateThrottle` also counts anonymous clients, by IP: the same thing
+    the anonymous throttles do, at the cost of two more cache round trips.
+    """
+
+    def get_cache_key(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return None
+        return super().get_cache_key(request, view)
 
 
 class ExpensiveListAnonThrottle(CloudflareIdentMixin, AnonRateThrottle):
@@ -96,7 +108,7 @@ class RateLimitedGraphQLView(GraphQLView):
     """
 
     # the spectra viewer and protein pages fetch every spectrum with its own request
-    throttle_classes = [SameOriginExemptAnonThrottle, UserRateThrottle]
+    throttle_classes = [SameOriginExemptAnonThrottle, UserThrottle]
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
@@ -187,8 +199,9 @@ class RateLimitedGraphQLView(GraphQLView):
         query, variables, operation_name, _ = self.get_graphql_params(request, data)
         params = [query, variables, operation_name]
         digest = hashlib.sha256(json.dumps(params, sort_keys=True, default=str).encode())
-        key = f"graphql:{get_data_version()}:{digest.hexdigest()}"
-        if (cached := cache.get(key)) is not None:
+        key = f"graphql:{digest.hexdigest()}"
+        version, cached = get_versioned(key)
+        if cached is not None:
             return cached, 200
         result, status_code = super().get_response(request, data, show_graphiql)
         if (
@@ -197,7 +210,7 @@ class RateLimitedGraphQLView(GraphQLView):
             and len(result) <= GRAPHQL_CACHE_MAX_SIZE
             and not result.startswith('{"errors"')
         ):
-            cache.set(key, result, DATA_CACHE_TTL)
+            set_versioned(key, version, result)
         return result, status_code
 
     def _log_bad_request(self, request, response) -> None:

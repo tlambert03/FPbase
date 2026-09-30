@@ -18,12 +18,11 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
-from rest_framework.throttling import UserRateThrottle
 from rest_framework_csv import renderers as r
 
 import proteins.models as pm
 from fpbase.cache_utils import cache_page_by_data_version, get_model_version
-from fpbase.views import ExpensiveListAnonThrottle, SameOriginExemptAnonThrottle
+from fpbase.views import ExpensiveListAnonThrottle, SameOriginExemptAnonThrottle, UserThrottle
 from proteins.api.serializers import (
     BasicProteinSerializer,
     ProteinSerializer,
@@ -301,7 +300,7 @@ class ProteinTableAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinTableSerializer
     # fetched by the table page itself
-    throttle_classes = [SameOriginExemptAnonThrottle, UserRateThrottle]
+    throttle_classes = [SameOriginExemptAnonThrottle, UserThrottle]
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter
 
