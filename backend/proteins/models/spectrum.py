@@ -346,7 +346,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         on_delete=models.SET_NULL,
         related_name="spectra",
     )
-    source = models.CharField(max_length=128, blank=True, help_text="Source of the spectra data")
+    source = models.CharField(max_length=200, blank=True, help_text="Source of the spectra data")
 
     objects: SpectrumManager = SpectrumManager()
     fluorophores = QueryManager(models.Q(category=DYE) | models.Q(category=PROTEIN))
