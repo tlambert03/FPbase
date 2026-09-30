@@ -12,7 +12,7 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
 from proteins.factories import ProteinFactory, StateFactory
-from proteins.models import Protein
+from proteins.models import Protein, Spectrum
 
 
 class ProteinListAPIViewTests(TestCase):
@@ -402,7 +402,7 @@ def test_protein_list_page_and_page_size(client):
 def test_protein_list_fields_and_include_fields(client):
     protein = ProteinFactory(name="Fields")
     state = protein.states.get()
-    spectrum = state.spectra.get(subtype="ex")
+    spectrum = Spectrum.objects.get(owner_fluor=state, subtype="ex")
 
     response = client.get("/api/proteins/?format=json&fields=name,states__ex_max")
     assert response.json() == [{"name": "Fields", "states": [{"ex_max": state.ex_max}]}]
