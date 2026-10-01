@@ -87,7 +87,6 @@ export function initSentry() {
       if (window.FPBASE?.user) {
         Sentry.setUser({
           id: window.FPBASE.user.id,
-          email: window.FPBASE.user.email,
           username: window.FPBASE.user.name,
         })
       }

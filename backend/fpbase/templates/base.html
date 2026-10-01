@@ -69,7 +69,6 @@
       window.FPBASE.searchIndexURL = "{% url 'api:search-index' %}";
       {% if request.user.is_authenticated %}
       window.FPBASE.user = {
-          email: "{{ request.user.email }}",
           id: "{{ request.user.id }}",
           name: "{{ request.user.username }}"
       };
