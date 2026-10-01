@@ -8,14 +8,12 @@ from typing import TYPE_CHECKING, cast
 
 import django.forms
 import django.forms.formsets
-import requests
 import reversion
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from django.core.mail import mail_admins, mail_managers
 from django.db import transaction
 from django.db.models import Case, Count, F, Func, Prefetch, Q, Value, When
@@ -127,46 +125,6 @@ def get_form_changes(*forms):
 class _RollBackRevisionView(Exception):
     def __init__(self, response):
         self.response = response
-
-
-def _mask_ip_for_caching(ip: str) -> str:
-    """Mask IP to /16 (IPv4) or /48 (IPv6) for caching."""
-    if not ip or not isinstance(ip, str):
-        return ""
-    if ":" in ip:  # IPv6
-        # Mask to /48 (first 3 groups)
-        parts = ip.split(":")
-        return ":".join(parts[:3]) + "::" if len(parts) >= 3 else ip
-    else:  # IPv4
-        parts = ip.split(".")
-        return f"{parts[0]}.{parts[1]}.0.0" if len(parts) == 4 else ""
-
-
-def get_country_code(request) -> str:
-    """Get country code from IP address using cached API lookup."""
-
-    x_forwarded_for = request.headers.get("x-forwarded-for")
-    ip = (
-        x_forwarded_for.split(",")[0].strip()
-        if x_forwarded_for
-        else request.META.get("REMOTE_ADDR")
-    )
-
-    try:
-        if not (masked_ip := _mask_ip_for_caching(ip)):
-            return ""
-
-        cache_key = f"country_code:{masked_ip}"
-        country_code = cache.get(cache_key)
-        if country_code is not None:
-            return country_code
-
-        response = requests.get(f"https://ipapi.co/{ip}/country/", timeout=2)
-        country_code = response.text.strip()
-        cache.set(cache_key, country_code, 14 * 60 * 60 * 24)  # cache for 14 days
-        return country_code
-    except Exception:
-        return ""
 
 
 class ProteinDetailView(DetailView):
@@ -291,12 +249,6 @@ class ProteinDetailView(DetailView):
         data["excerpts"] = link_excerpts(
             self.object.excerpts.all(), self.object.name, self.object.aliases
         )
-
-        # Add country code to context
-        try:
-            data["country_code"] = get_country_code(self.request)
-        except Exception:
-            data["country_code"] = ""
 
         # Serialize PDB IDs as JSON for JavaScript
         if self.object.pdb:

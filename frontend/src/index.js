@@ -11,6 +11,7 @@ import "vite/modulepreload-polyfill"
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/ajax-sentry.js" // Track jQuery AJAX errors
+import { showChinaOnlyLinks } from "./js/china-links.js"
 import { icon } from "./js/icons.js" // Icon helper for dynamic HTML
 
 import "select2/dist/css/select2.css"
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("algolia-search-input")) {
     initAutocomplete()
   }
+  showChinaOnlyLinks()
 
   // Auto-initialization: Look for elements with data-fpbase-init attribute
   document.querySelectorAll("[data-fpbase-init]").forEach((element) => {

@@ -14,6 +14,7 @@ from proteins.factories import (
     FilterPlacementFactory,
     MicroscopeFactory,
     OpticalConfigWithFiltersFactory,
+    ProteinFactory,
     StateFactory,
 )
 from proteins.models import Filter, FilterPlacement, OcFluorEff, Protein, Spectrum, State
@@ -566,3 +567,10 @@ def test_deleting_spectrum_deletes_its_filter():
     other = oc.filterplacement_set.first().filter
     other.delete()
     assert not Spectrum.objects.all_objects().filter(owner_filter_id=other.pk).exists()
+
+
+@pytest.mark.django_db
+def test_protein_detail_wekwikgene_link_is_hidden_by_default(client):
+    """The link is in every copy of the page, for the browser to show to visitors in China."""
+    content = client.get(ProteinFactory().get_absolute_url()).content.decode()
+    assert '<li class="d-none" data-china-only>Search <a href="https://wekwikgene.' in content

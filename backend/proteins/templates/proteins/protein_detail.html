@@ -436,9 +436,8 @@
       {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
         <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name}}</li>
         <li>Search <a href="https://knowledge.brc.riken.jp/resource/dna/list?query={{ protein.name | urlencode }}" target="_blank" rel="noopener">RIKEN BRC</a> for {{ protein.name}}</li>
-        {% if country_code == 'CN' %}
-          <li>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name}}</li>
-        {% endif %}
+        {# shown by china-links.js #}
+        <li class="d-none" data-china-only>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name}}</li>
         {% if protein.snapgene_plasmids.exists %}
           <li>
             SnapGene plasmid{% if protein.snapgene_plasmids.count > 1 %}s{% endif %}:
