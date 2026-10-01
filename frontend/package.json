@@ -38,7 +38,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "autoprefixer": "^10.6.1",
     "bootstrap": "^5.3.8",
-    "cssnano": "^7.1.9",
+    "cssnano": "^9.0.5",
     "rollup-plugin-visualizer": "^7.1.1",
     "sass": "1.94.3",
     "vite": "^8.3.0"
