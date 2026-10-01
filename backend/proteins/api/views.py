@@ -160,20 +160,20 @@ def _suggest_param(param: str, allowed: set[str]) -> str | None:
 
 
 class SpectrumList(ListAPIView):
-    queryset = pm.Spectrum.objects.all()
+    queryset = pm.Spectrum.objects.public()
     serializer_class = SpectrumSerializer
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = SpectrumFilter
 
 
 class SpectrumDetail(RetrieveAPIView):
-    queryset = pm.Spectrum.objects.prefetch_related("owner_fluor")
+    queryset = pm.Spectrum.objects.public().prefetch_related("owner_fluor")
     permission_classes = (AllowAny,)
     serializer_class = SpectrumSerializer
 
 
 class ProteinListAPIView2(ListAPIView):
-    queryset = pm.Protein.objects.all().prefetch_related("states", "transitions")
+    queryset = pm.Protein.visible.prefetch_related("states", "transitions")
     permission_classes = (AllowAny,)
     serializer_class = ProteinSerializer2
     lookup_field = "slug"  # Don't use Protein.id!
@@ -282,7 +282,7 @@ FIELDS_PARAMETERS = [
 )
 class ProteinListAPIView(ListAPIView):
     queryset = (
-        pm.Protein.objects.all()
+        pm.Protein.visible.all()
         .prefetch_related(
             "states__spectra",  # Prefetch spectra for each state to avoid N+1 queries
             Prefetch(
@@ -392,7 +392,7 @@ class ProteinRetrieveAPIView(RetrieveAPIView):
 
 
 class StatesListAPIView(ListAPIView):
-    queryset = pm.State.objects.all().select_related("protein")
+    queryset = pm.State.objects.exclude(protein__status="hidden").select_related("protein")
     permission_classes = (IsAuthenticated,)
     serializer_class = StateSerializer
     lookup_field = "slug"  # Don't use State.id!
@@ -416,7 +416,11 @@ class SpectraPagination(OptionalLimitOffsetPagination):
 class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
-    queryset = pm.Protein.objects.with_spectra().prefetch_related("states__spectra")
+    queryset = (
+        pm.Protein.objects.with_spectra()
+        .exclude(status=pm.Protein.STATUS.hidden)
+        .prefetch_related("states__spectra")
+    )
     # without these, every filtered query returned (and serialized) every spectrum
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter

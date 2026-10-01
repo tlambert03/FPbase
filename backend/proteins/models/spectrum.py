@@ -80,7 +80,7 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
     """Fetch spectra with polymorphic owner info in a single optimized query."""
     if query_set is None:
         filters.setdefault("status", Spectrum.STATUS.approved)
-        qs = Spectrum.objects.filter(**filters)
+        qs = Spectrum.objects.public().filter(**filters)
     else:
         qs = query_set
 
@@ -136,10 +136,14 @@ class SpectrumManager(models.Manager):
     def all_objects(self):
         return super().get_queryset()
 
+    def public(self):
+        """Approved spectra, apart from those of hidden proteins (see `Protein.visible`)."""
+        return self.get_queryset().exclude(owner_fluor__state__protein__status="hidden")
+
     def fluor_slugs(self):
         """Get all fluorophore (State + DyeState) slugs."""
         return (
-            self.get_queryset()
+            self.public()
             .exclude(owner_fluor=None)
             .values_list("owner_fluor__slug", "owner_fluor__owner_name")
             .distinct()
@@ -154,7 +158,7 @@ class SpectrumManager(models.Manager):
             "owner_fluor__owner_name",
         ]
         Q = (
-            self.get_queryset()
+            self.public()
             .filter(models.Q(category=Spectrum.DYE) | models.Q(category=Spectrum.PROTEIN))
             .exclude(owner_fluor=None)
             .values(*vallist)
