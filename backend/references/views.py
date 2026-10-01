@@ -1,8 +1,10 @@
 import reversion
 from dal import autocomplete
+from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.utils.html import strip_tags
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
 from fpbase.util import is_ajax
@@ -73,6 +75,8 @@ class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
+@login_required
+@require_POST
 def add_excerpt(request, pk=None):
     if not is_ajax(request):
         return HttpResponseNotAllowed([])
