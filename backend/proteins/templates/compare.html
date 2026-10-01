@@ -44,7 +44,7 @@
     <h3 class='mb-3'>Sequence Comparison</h3>
     <div class="text-center">
       {% if alignment %}
-        <pre>{{alignment | safe}}</pre>
+        <pre>{{ alignment }}</pre>
         {% if mutations %}
             <p style="word-wrap: break-word; margin-bottom:0; margin-top: 0"><strong>Mutations: </strong>{{mutations}}</p>
             <small class='fst-italic small text-muted mb-3'>Note: exact amino acid positions in mutations is still experimental and may be inaccurate/relative</small>
@@ -55,7 +55,7 @@
     {% for protein in proteins %}
       {% if not protein.seq %}
       <div>
-          <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary small'>Add sequence for {{protein.name|safe}}</a><br>
+          <a href="{% url 'proteins:update' slug=protein.slug %}" class='text-secondary small'>Add sequence for {{protein.name}}</a><br>
       </div>
       {% endif %}
     {% endfor %}

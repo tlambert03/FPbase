@@ -2,8 +2,8 @@
 {
   "@context":"http://schema.org/",
   "@type":"Dataset",
-  "name":"{{ protein.name | safe }}",
-  "description":"{{ protein.description | safe }}",
+  "name":"{{ protein.name|escapejs }}",
+  "description":"{{ protein.description|escapejs }}",
   "url":"https://www.fpbase.org{{protein.get_absolute_url}}",
   "license":"https://creativecommons.org/licenses/by-sa/4.0/",
   {% if protein.has_spectra %}"image":"https://www.fpbase.org/spectra_img/{{protein.slug}}.svg",{% endif %}
@@ -93,5 +93,5 @@
         "contentUrl":"https://www.fpbase.org/api/proteins/?slug={{protein.slug}}&format=csv"
      }
   ]
-};
+}
 </script>

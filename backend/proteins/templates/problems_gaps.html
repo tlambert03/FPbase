@@ -12,7 +12,7 @@
 <div>
   <ul class="row">
     {% for p in noseqs  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
@@ -25,7 +25,7 @@
 <div>
   <ul class="row">
     {% for p in nostates  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' p.slug %}">{{p.name}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
@@ -37,7 +37,7 @@
 <div>
   <ul class="row">
     {% for p in only2p  %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.protein__slug %}">{{p.protein__name|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{% url 'proteins:protein-detail' p.protein__slug %}">{{p.protein__name}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
@@ -49,7 +49,7 @@
 <div>
   <ul class="row">
     {% for p in noparent %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6"><a href="{{p.get_absolute_url}}">{{p}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}
@@ -61,7 +61,7 @@
 <div>
   <ul class="row">
     {% for prot in nolineage %}
-      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name|safe}}</a></li>
+      <li class="col-12 col-lg-3 col-md-4 col-sm-6 small"><a href="{% url 'proteins:protein-detail' prot.slug %}">{{prot.name}}</a></li>
     {% empty %}
       <p>None!  🎉🍾🏆</p>
     {% endfor %}

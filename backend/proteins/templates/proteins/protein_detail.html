@@ -4,11 +4,11 @@
 {% load flag_object from protein_tags %}
 {% load django_vite %}
 
-{% block title %}{{ protein.name|safe  }} :: Fluorescent Protein Database {% endblock %}
+{% block title %}{{ protein.name  }} :: Fluorescent Protein Database {% endblock %}
 {% block meta-description %}{{ protein.description }}{% endblock %}
 
 {% block twitter_card_type %}summary_large_image{% endblock twitter_card_type %}
-{% block twitter_title %}{{protein.name|safe}} at FPbase{% endblock twitter_title %}
+{% block twitter_title %}{{protein.name}} at FPbase{% endblock twitter_title %}
 {% block twitter_description %}{{ protein.description }}{% endblock twitter_description %}
 {% block twitter_image %}{{ABSOLUTE_ROOT}}{% url 'proteins:spectra-img' slug=protein.slug %}.png?twitter=1{% endblock twitter_image %}
 
@@ -32,7 +32,7 @@
 
 
 {% block content %}
-			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name | safe }}</h1>
+			<h1 class="name display-4 {% if protein.aliases %}pb-0{%endif%}">{{ protein.name }}</h1>
 			{% if protein.aliases %}
 				<p class='text-center aliases pb-2'>
 					a.k.a.
@@ -111,7 +111,7 @@
           {% if protein.blurb %}
             {{ protein.blurb | safe }}
           {% else %}
-            {{ protein.description | safe }}
+            {{ protein.description }}
           {% endif %}
         </div>
       </div>
@@ -136,8 +136,8 @@
 		      data-options='{"height": 0.6, "simpleMode": true}'>
           {# This div is for accessibility, and will be replaced by highcharts #}
 		      <svg id="simple_spectrasvg" role='img' aria-labelledby='svgTitle svgDesc' style="width:100%;">
-		        <title id="svgTitle">{{protein.name|safe}} Spectrum</title>
-		        <desc id="svgDesc">Fluorescent protein {{protein.name|safe}} excitation and emission spectra</desc>
+		        <title id="svgTitle">{{protein.name}} Spectrum</title>
+		        <desc id="svgDesc">Fluorescent protein {{protein.name}} excitation and emission spectra</desc>
 		      </svg>
 		    </div>
 		  </div>
@@ -242,7 +242,7 @@
 
     {% if protein.oser_measurements.count %}
     <div class="attributes mt-1">
-      <h3>{{protein.name | safe}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank">{% icon "info" class_="ms-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
+      <h3>{{protein.name}} OSER Measurements <a href="{{ HELP_URL }}glossary#oser" target="_blank">{% icon "info" class_="ms-2 text-muted" style='font-size: 1rem; position: relative; top: -1px; cursor: pointer;' %}</a></h3>
         <table class="table table-striped flip-scroll">
           <thead>
             <tr class="table-header">
@@ -286,7 +286,7 @@
 		<div class="sequence mt-3">
 			<div class="row">
 			  	<div class="col">
-				  <h3 class='d-inline'>{{ protein.name | safe }} Sequence</h3>
+				  <h3 class='d-inline'>{{ protein.name }} Sequence</h3>
             {% if protein.seq %}
               {% if protein.seq_validated %}
                 <span id='seq-badge' data-bs-toggle="tooltip" data-bs-placement="right" title="This sequence has been moderated, and matches the original publication">{% icon "check" title="sequence validated" %}</span>
@@ -300,7 +300,7 @@
       <div class="float-sm-end text-info"><a href="{% url 'proteins:blast' %}?query={{protein.seq}}">BLAST</a></div>
       {% endif %}
       {% if protein.lineage and protein.lineage.parent %}
-      <p class="text-muted">{{protein.name | safe}} was derived from
+      <p class="text-muted">{{protein.name}} was derived from
           <a href="{{protein.lineage.parent.protein.get_absolute_url}}">{{protein.lineage.parent.protein}}</a>
           with the following mutations:
           <span class="mut-rel-parent hidden">{{protein.lineage.mutation}}</span>
@@ -401,7 +401,7 @@
         {% endfor %}
       {% else %}
 
-        <p class='text-muted'>No excerpts have been added for {{protein.name | safe }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
+        <p class='text-muted'>No excerpts have been added for {{protein.name }}<br><em class='text-muted small'>Excerpts are snippets from publications that capture key information about this protein that does not easily fit into one of the existing fields (such as a summary, motivation, or observation).</em></p>
 
       {% endif %}
       <button type="button" class='btn btn-sm btn-secondary mt-1' data-bs-toggle="modal" data-bs-target="#excerptModal">{% icon "quote" class_="me-2" %}Add an excerpt</button>
@@ -434,10 +434,10 @@
       <h3>External Resources</h3>
       <ul>
       {#             <li>Search <a href="https://bionumbers.hms.harvard.edu/search.aspx?task=searchbytrmorg&trm={{ protein.name | urlencode }}" target="_blank" rel="noopener">BioNumbers</a> for {{ protein.name }}</li> #}
-        <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name | safe}}</li>
-        <li>Search <a href="https://knowledge.brc.riken.jp/resource/dna/list?query={{ protein.name | urlencode }}" target="_blank" rel="noopener">RIKEN BRC</a> for {{ protein.name | safe}}</li>
+        <li>Search <a href="https://www.addgene.org/search/advanced/?q={{ protein.name | urlencode }}" target="_blank" rel="noopener">Addgene</a> for {{ protein.name}}</li>
+        <li>Search <a href="https://knowledge.brc.riken.jp/resource/dna/list?query={{ protein.name | urlencode }}" target="_blank" rel="noopener">RIKEN BRC</a> for {{ protein.name}}</li>
         {% if country_code == 'CN' %}
-          <li>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name | safe}}</li>
+          <li>Search <a href="https://wekwikgene.wllsb.edu.cn/plasmids?search={{ protein.name | urlencode }}" target="_blank" rel="noopener">WeKwikGene</a> for {{ protein.name}}</li>
         {% endif %}
         {% if protein.snapgene_plasmids.exists %}
           <li>
@@ -511,7 +511,7 @@
     {% endif %}
     {% if request.user.is_staff %}
       {% load admin_urls %}
-      <a href="{% url 'admin:proteins_protein_change' protein.id %}">{{ protein.name | safe}} on admin</a><br>
+      <a href="{% url 'admin:proteins_protein_change' protein.id %}">{{ protein.name}} on admin</a><br>
     {% endif %}
 {% endblock extrafooter %}
 
