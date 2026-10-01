@@ -9,7 +9,7 @@ export default defineConfig({
       entry: "src/index.tsx",
       formats: ["es"],
     },
-    rollupOptions: {
+    rolldownOptions: {
       external,
       output: {
         // Manual chunking for optimal code splitting
@@ -38,8 +38,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
     // Enable source maps for debugging
     sourcemap: true,
-    // Enable minification
-    minify: "esbuild",
     target: ["es2015", "safari13"],
   },
   server: {
