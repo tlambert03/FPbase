@@ -395,3 +395,18 @@ def test_protein_name_exists_error_links_to_protein():
     error = str(form.errors["name"])
     assert f'<a href="{protein.get_absolute_url()}"' in error
     assert "&lt;b&gt;FP&lt;/b&gt;</a> already has this name" in error
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("name", ["GFP (S65T)", "mTFP*", "\u03b1GFP", "FAST + HBR 3,5 DM"])
+def test_protein_name_accepts_existing_styles(name: str):
+    form = ProteinForm({"name": name, "aliases": 'CP_YGFP "dual-peak"', "confirmation": True})
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field", ["name", "aliases"])
+def test_protein_name_and_aliases_reject_angle_brackets(field: str):
+    form = ProteinForm({"name": "NewFP", "confirmation": True} | {field: "New<i>FP"})
+    assert not form.is_valid()
+    assert list(form.errors) == [field]

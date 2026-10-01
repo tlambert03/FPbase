@@ -15,6 +15,10 @@ validate_uniprot = RegexValidator(
     "Not a valid UniProt Accession",
 )
 
+validate_no_angle_brackets = RegexValidator(
+    r"[<>]", "Angle brackets are not allowed", inverse_match=True
+)
+
 UNAMBIGUOUS_DNA_LETTERS = Seq.Seq("GATC")
 IUPAC_PROTEIN_LETTERS = Seq.Seq("ACDEFGHIKLMNPQRSTVWY")
 
