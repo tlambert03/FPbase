@@ -15,6 +15,7 @@ from pathlib import Path
 import environ
 import structlog
 from corsheaders.defaults import default_headers
+from sentry_sdk.scrubber import DEFAULT_DENYLIST
 from structlog_sentry import SentryProcessor
 
 # structlog-sentry (<=2.2.1) mistakenly installs its pyproject.toml into site-packages,
@@ -434,6 +435,11 @@ BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
 # ------------------------------------------------------------------------------
 # Shared configuration for both local and production environments
 # Environment-specific settings override this in local.py and production.py
+
+
+# keys whose values are redacted from Sentry events: the SDK's defaults, plus the names
+# allauth gives its password fields
+SENTRY_DENYLIST = [*DEFAULT_DENYLIST, "password1", "password2", "oldpassword"]
 
 
 def add_sentry_context(logger, method_name, event_dict):
