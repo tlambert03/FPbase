@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 
 from fpbase.util import uncache_protein_page
@@ -94,6 +95,7 @@ def add_organism(request):
 
 
 @staff_member_required
+@require_POST
 def approve_protein(request, slug=None):
     try:
         p = Protein.objects.get(slug=slug)

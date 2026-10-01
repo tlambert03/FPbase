@@ -7,7 +7,7 @@ from textwrap import dedent
 
 from django import forms
 from django.conf import settings
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.mail import EmailMessage
 from django.db.models import QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -236,6 +236,7 @@ def spectra_csv(request):
         return HttpResponse("malformed spectra csv request")
 
 
+@login_required
 def spectrum_preview(request) -> JsonResponse:
     """
     AJAX endpoint to preview spectrum data with server-side normalization
@@ -373,6 +374,8 @@ def spectrum_preview(request) -> JsonResponse:
         )
 
 
+@login_required
+@require_POST
 def filter_import(request, brand):
     part = request.POST["part"]
     new_objects = []
