@@ -35,8 +35,8 @@ def _assert_cached_per_visitor(url: str) -> None:
     member, visitor = Client(), Client()
     member.force_login(user)
     for _ in range(2):  # (the first response sets the csrftoken cookie)
-        assert user.email in member.get(url).content.decode()
-    assert user.email not in visitor.get(url).content.decode()
+        assert user.username in member.get(url).content.decode()
+    assert user.username not in visitor.get(url).content.decode()
 
 
 def test_reference_list_cached_per_visitor():
@@ -49,3 +49,11 @@ def test_protein_page_cached_per_visitor():
 
 def test_protein_version_page_cached_per_visitor(version_url: str):
     _assert_cached_per_visitor(version_url)
+
+
+def test_page_does_not_include_user_email(client):
+    user = UserFactory()
+    client.force_login(user)
+    content = client.get(reverse("reference-list")).content.decode()
+    assert user.username in content
+    assert user.email not in content
