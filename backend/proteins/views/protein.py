@@ -189,8 +189,9 @@ class ProteinDetailView(DetailView):
             return super().dispatch(request, *args, **kwargs)
         # the key prefix is per-protein, so that uncache_protein_page can drop all of them
         key_prefix = protein_page_key_prefix(kwargs["slug"])
-        cached = cache_page(60 * 30, key_prefix=key_prefix)(super().dispatch)
-        return vary_on_cookie(cached)(request, *args, **kwargs)
+        # vary_on_cookie goes inside cache_page, so that Vary is set before the page is stored
+        view = vary_on_cookie(super().dispatch)
+        return cache_page(60 * 30, key_prefix=key_prefix)(view)(request, *args, **kwargs)
 
     def version_view(self, request, version, *args, **kwargs):
         try:
