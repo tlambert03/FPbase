@@ -139,9 +139,7 @@ class Query(graphene.ObjectType):
     opticalConfig = graphene.Field(types.OpticalConfig, id=graphene.Int())
 
     def resolve_opticalConfigs(self, info, **kwargs):
-        return models.OpticalConfig.objects.select_related("microscope").prefetch_related(
-            "microscope__optical_configs"
-        )
+        return models.OpticalConfig.objects.select_related("microscope")
 
     def resolve_opticalConfig(self, info, **kwargs):
         _id = kwargs.get("id")

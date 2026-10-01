@@ -175,16 +175,15 @@ def test_list_roots_leave_out_filters_and_spectra(client):
     assert {m["name"] for m in data["microscopes"]} == {f"Scope{i}" for i in range(8)}
     assert data["microscopes"][0]["opticalConfigs"][0]["name"]
 
-    data, _ = _query(
-        client, "{ opticalConfigs { id name microscope { id opticalConfigs { name } } } }"
-    )
+    data, _ = _query(client, "{ opticalConfigs { id name microscope { id name description } } }")
     assert len(data["opticalConfigs"]) == 8
 
     # the full types, with filters and spectra, are for one at a time
     for query in (
         "{ microscopes { opticalConfigs { filters { id } } } }",
         "{ opticalConfigs { filters { id } } }",
-        "{ opticalConfigs { microscope { opticalConfigs { filters { id } } } } }",
+        # (a config's microscope does not list its configs: that repeats every list)
+        "{ opticalConfigs { microscope { opticalConfigs { id } } } }",
     ):
         response = client.post("/graphql/", {"query": query}, content_type="application/json")
         assert response.status_code == 400

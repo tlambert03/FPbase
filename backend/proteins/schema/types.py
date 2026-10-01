@@ -410,6 +410,14 @@ class Microscope(DjangoObjectType):
         )
 
 
+class MicroscopeRef(graphene.ObjectType):
+    """The microscope an optical configuration belongs to; query `microscope(id:)` for it."""
+
+    id = graphene.String(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+
+
 class OpticalConfigInfo(graphene.ObjectType):
     """An optical configuration, as listed.
 
@@ -420,7 +428,9 @@ class OpticalConfigInfo(graphene.ObjectType):
     name = graphene.String(required=True)
     description = graphene.String(required=True)
     comments = graphene.String(required=True)
-    microscope = graphene.Field(lambda: MicroscopeInfo)
+    # (not MicroscopeInfo: config -> microscope -> configs -> ... repeats every
+    # microscope's config list once per config, a 40 MB response)
+    microscope = graphene.Field(MicroscopeRef)
 
 
 class MicroscopeInfo(graphene.ObjectType):
