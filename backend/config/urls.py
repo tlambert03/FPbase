@@ -1,3 +1,4 @@
+from allauth.account.decorators import secure_admin_login
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -27,6 +28,9 @@ from fpbase.sitemaps import (
 )
 from proteins.api.views import api_not_found
 from references.views import ReferenceListView
+
+# staff log in through the site's login form, then land on the admin
+admin.site.login = secure_admin_login(admin.site.login)
 
 sitemaps = {
     "static": StaticSitemap(),
