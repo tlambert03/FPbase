@@ -250,11 +250,7 @@ class SpectrumPreviewViewTests(TestCase):
         }
 
         response = self.client.post(self.preview_url, data=post_data)
-        # Should fail with 500 error because anonymous user can't be assigned to created_by
-        self.assertEqual(response.status_code, 500)
-
-        data = json.loads(response.content)
-        self.assertIn("error", data)
+        self.assertRedirects(response, f"{reverse('account_login')}?next={self.preview_url}", 302)
 
     def test_spectrum_preview_data_source_defaults_to_file(self):
         """Test that data_source defaults to 'file' when not provided"""

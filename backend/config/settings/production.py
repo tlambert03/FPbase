@@ -18,6 +18,7 @@ import structlog
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.scrubber import EventScrubber
 
 from .base import *  # noqa
 
@@ -221,6 +222,7 @@ sentry_sdk.init(
         LoggingIntegration(level=None, event_level=None),
     ],
     send_default_pii=True,
+    event_scrubber=EventScrubber(denylist=SENTRY_DENYLIST, recursive=True, send_default_pii=True),
     release=HEROKU_SLUG_COMMIT,
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),  # 10% of all requests
     profiles_sample_rate=env.float(

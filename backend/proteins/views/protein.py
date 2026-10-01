@@ -713,6 +713,8 @@ def problems_inconsistencies(request):
     )
 
 
+@login_required
+@require_POST
 def add_reference(request, slug=None):
     try:
         with reversion.create_revision():
@@ -740,6 +742,8 @@ def add_reference(request, slug=None):
         return JsonResponse({"status": "failed", "msg": e})
 
 
+@login_required
+@require_POST
 def add_protein_excerpt(request, slug=None):
     try:
         with reversion.create_revision():
