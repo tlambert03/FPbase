@@ -106,7 +106,6 @@ MIDDLEWARE = [
     "django.middleware.gzip.GZipMiddleware",  # important for large JSON APIs
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "fpbase.middleware.BlackListMiddleware",
     "fpbase.middleware.ApiTrailingSlashMiddleware",  # before CommonMiddleware (APPEND_SLASH)
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -395,8 +394,6 @@ GOOGLE_API_PRIVATE_KEY = env("GOOGLE_API_PRIVATE_KEY", default="").replace("#", 
 GOOGLE_API_CLIENT_EMAIL = env("GOOGLE_API_CLIENT_EMAIL", default="")
 GOOGLE_API_PRIVATE_KEY_ID = env("GOOGLE_API_PRIVATE_KEY_ID", default="")
 
-MAXMIND_API_KEY = env("MAXMIND_API_KEY", default="")
-
 REDIS_URL = env("REDIS_URL", default="redis://localhost/")
 if REDIS_URL.startswith("rediss://"):
     REDIS_URL += "?ssl_cert_reqs=none"
@@ -428,8 +425,6 @@ CORS_ALLOW_HEADERS = [
     "sentry-trace",  # Sentry distributed tracing
     "baggage",  # Sentry trace context propagation
 ]
-
-BLOCKED_IPS = env.list("IP_BLACKLIST", default=[])
 
 # LOGGING CONFIGURATION - Structlog Base Setup
 # ------------------------------------------------------------------------------

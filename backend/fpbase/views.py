@@ -108,7 +108,7 @@ class RateLimitedGraphQLView(GraphQLView):
 
     Leverages Django REST Framework's battle-tested throttling system:
     - Uses the same rates as the REST API (DEFAULT_THROTTLE_RATES in settings)
-    - Automatically handles X-Forwarded-For for Heroku deployments
+    - Identifies anonymous clients by the IP that Cloudflare reports
     - Raises DRF's Throttled exception which includes retry-after information
     - Converts the exception to GraphQL error format with proper HTTP headers
     """
