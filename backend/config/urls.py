@@ -138,7 +138,6 @@ urlpatterns = [  # noqa: RUF005
     re_path(r"^test500/", fpbase.views.test500),
     # GraphQL endpoints with rate limiting (30 requests/min per IP)
     path("graphql/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(graphiql=True))),
-    path("graphql/batch/", csrf_exempt(fpbase.views.RateLimitedGraphQLView.as_view(batch=True))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler500 = "fpbase.views.server_error"
