@@ -20,11 +20,17 @@ import {
   Typography,
 } from "@mui/material"
 import {
+  createPaginatedRowModel,
+  createSortedRowModel,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  rowPaginationFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table"
 import { useMemo, useState } from "react"
 
@@ -142,6 +148,20 @@ function ColoredCell({ value, backgroundColor }) {
     </Box>
   )
 }
+
+// v9 only resolves the "auto" sort fns that are registered
+const features = tableFeatures({
+  rowSortingFeature,
+  rowPaginationFeature,
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    basic: sortFn_basic,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
+})
 
 /**
  * Create column definitions for the protein table
@@ -383,7 +403,8 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
 
   const columns = useMemo(() => createColumns(), [])
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data: filteredData,
     columns,
     state: {
@@ -392,9 +413,6 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
     },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false, // Client-side pagination
   })
 
@@ -499,7 +517,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                   },
                 }}
               >
-                {row.getVisibleCells().map((cell) => {
+                {row.getAllCells().map((cell) => {
                   const isColorCell = cell.column.columnDef.meta?.noPadding
                   return (
                     <TableCell
