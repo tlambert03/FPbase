@@ -109,8 +109,6 @@ urlpatterns = [  # noqa: RUF005
     # path("api/", include("proteins.api.urls", namespace="api")),
     # path('api/', TemplateView.as_view(template_name='pages/api.html'), name='api'),
     path("api/", include("config.api_router")),
-    # api-auth for DRF
-    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     # re_path(r"^api-docs/", include_docs_urls(title="FPbase API docs")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     # (where clients look for it)
