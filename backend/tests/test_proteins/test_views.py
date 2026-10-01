@@ -1,4 +1,5 @@
 import json
+from html.parser import HTMLParser
 from typing import cast
 from unittest.mock import patch
 
@@ -10,6 +11,7 @@ from django.urls import reverse
 
 from proteins.factories import (
     DyeStateFactory,
+    FilterPlacementFactory,
     MicroscopeFactory,
     OpticalConfigWithFiltersFactory,
     StateFactory,
@@ -533,6 +535,26 @@ def test_microscope_detail_with_spectrumless_filter(client):
     scope_spectra = json.loads(response.context["scopespectra"])
     assert len(scope_spectra) == len(microscope.spectra)
     assert bare.slug not in {s["slug"] for s in scope_spectra}
+
+
+def _attr(html: str, name: str) -> str:
+    """Value of the first `name` attribute in `html`, as a browser reads it."""
+    values: list[str] = []
+    parser = HTMLParser()
+    parser.handle_starttag = lambda tag, attrs: values.extend(v for k, v in attrs if k == name)
+    parser.feed(html)
+    return values[0]
+
+
+@pytest.mark.django_db
+def test_microscope_detail_filter_name_with_apostrophe(client):
+    """A filter named like "Omega SDSS g'" reaches the page's spectra data intact."""
+    placement = FilterPlacementFactory(filter__name="Omega SDSS g'")
+
+    response = client.get(placement.config.microscope.get_absolute_url())
+    scope_spectra = json.loads(_attr(response.content.decode(), "data-scope-spectra"))
+    assert scope_spectra == json.loads(response.context["scopespectra"])
+    assert any("Omega SDSS g'" in s["key"] for s in scope_spectra)
 
 
 @pytest.mark.django_db
