@@ -6,6 +6,7 @@ from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.vary import vary_on_cookie
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import (
@@ -127,7 +128,7 @@ urlpatterns = [  # noqa: RUF005
     path("reference/", include("references.urls")),  # NOTE: without $
     path(
         "references/",
-        cache_page(60 * 30)(ReferenceListView.as_view()),
+        cache_page(60 * 30)(vary_on_cookie(ReferenceListView.as_view())),
         name="reference-list",
     ),
     path("fav/", include("favit.urls")),
