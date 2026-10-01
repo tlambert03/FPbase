@@ -6,6 +6,7 @@ from crispy_forms.layout import HTML, Div, Field, Layout
 from dal import autocomplete
 from django import forms
 from django.forms.models import inlineformset_factory  # ,BaseInlineFormSet
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
@@ -62,10 +63,11 @@ def check_existence(form, fieldname, value):
     if query.exists():
         prot = query.first()
         raise forms.ValidationError(
-            mark_safe(
-                f'<a href="{prot.get_absolute_url()}" style="text-decoration: underline;">'
-                f"{prot.name}</a> already has this "
-                f"{Protein._meta.get_field(fieldname).verbose_name.lower()}"
+            format_html(
+                '<a href="{}" style="text-decoration: underline;">{}</a> already has this {}',
+                prot.get_absolute_url(),
+                prot.name,
+                Protein._meta.get_field(fieldname).verbose_name.lower(),
             )
         )
     return value
@@ -500,9 +502,11 @@ class CollectionForm(forms.ModelForm):
             return name
 
         raise forms.ValidationError(
-            mark_safe(
-                f'You already have a collection named <a href="{col.get_absolute_url()}" '
-                f'style="text-decoration: underline;">{col.name}</a>'
+            format_html(
+                'You already have a collection named <a href="{}" '
+                'style="text-decoration: underline;">{}</a>',
+                col.get_absolute_url(),
+                col.name,
             )
         )
 
