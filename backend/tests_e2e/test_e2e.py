@@ -26,7 +26,7 @@ from proteins.factories import (
     ProteinFactory,
     create_egfp,
 )
-from proteins.models import Filter, Microscope, Protein, Spectrum
+from proteins.models import Filter, Lineage, Microscope, Protein, Spectrum
 from proteins.util.blast import _get_binary
 
 if TYPE_CHECKING:
@@ -952,14 +952,15 @@ def test_protein_form_unknown_ipg_resets_hints(auth_page: Page, live_server: Liv
 
 def test_protein_form_warns_on_existing_name(auth_page: Page, live_server: LiveServer) -> None:
     """Entering the name of an existing protein shows an inline error under the field."""
-    ProteinFactory.create(name="AlreadyTakenFP")
+    ProteinFactory.create(name="AlreadyTaken<i>FP")
     auth_page.goto(f"{live_server.url}{reverse('proteins:submit')}")
 
     name_field = auth_page.locator("#id_name")
-    name_field.fill("AlreadyTakenFP")
+    name_field.fill("AlreadyTaken<i>FP")
     name_field.blur()
     error = auth_page.locator("#div_id_name").get_by_text("already exists in the database")
     expect(error).to_be_visible()
+    expect(error).to_contain_text("AlreadyTaken<i>FP already exists")
     expect(name_field).to_have_class(re.compile(r"\bis-invalid\b"))
 
     name_field.fill("SomethingBrandNewFP")
@@ -971,7 +972,7 @@ def test_legacy_spectrum_form_warns_on_similar_owner(
     auth_page: Page, live_server: LiveServer
 ) -> None:
     """Typing an owner name close to an existing one lists the similar owners in the help text."""
-    FilterFactory.create(name="Chroma ET525/50m", subtype=Spectrum.BP)
+    FilterFactory.create(name="Chroma <i>ET525/50m", subtype=Spectrum.BP)
     auth_page.goto(f"{live_server.url}{reverse('proteins:submit-spectra-legacy')}")
     expect(auth_page.locator("#spectrum-submit-form[data-form-ready='true']")).to_be_attached()
 
@@ -981,4 +982,17 @@ def test_legacy_spectrum_form_warns_on_similar_owner(
     owner_field.blur()
     hint = auth_page.locator("#div_id_owner")
     expect(hint).to_contain_text("Avoid duplicates")
-    expect(hint).to_contain_text("Chroma ET525/50m")
+    expect(hint).to_contain_text("Chroma <i>ET525/50m")
+
+
+def test_lineage_tooltip_shows_names(page: Page, live_server: LiveServer) -> None:
+    """Hovering a node of the lineage chart shows the protein's name and its parent's."""
+    parent = Lineage.objects.create(protein=ProteinFactory.create(name="Parent<i>FP"))
+    child = ProteinFactory.create(name="Child<i>FP")
+    Lineage.objects.create(protein=child, parent=parent, mutation="A2G")
+    page.goto(f"{live_server.url}{child.get_absolute_url()}")
+
+    page.locator(f"#node_{child.slug} circle").hover()
+    tooltip = page.locator(".lineage-tooltip")
+    expect(tooltip).to_contain_text("Child<i>FP")
+    expect(tooltip).to_contain_text("Parent<i>FP")
