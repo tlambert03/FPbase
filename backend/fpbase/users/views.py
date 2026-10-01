@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
 from django.urls import reverse
 from django.views.generic import DetailView, ListView, RedirectView, UpdateView
 
@@ -10,6 +11,13 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     # These next two lines tell the view to index lookups by username
     slug_field = "username"
     slug_url_kwarg = "username"
+
+    def get_object(self, queryset=None):
+        # a profile is visible to its owner (and to staff, from the user list)
+        obj = super().get_object(queryset)
+        if obj != self.request.user and not self.request.user.is_staff:
+            raise Http404
+        return obj
 
 
 class UserRedirectView(LoginRequiredMixin, RedirectView):
