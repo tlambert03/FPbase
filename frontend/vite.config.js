@@ -126,7 +126,13 @@ export default defineConfig(({ mode }) => {
       },
       preprocessorOptions: {
         scss: {
-          silenceDeprecations: ["import", "global-builtin", "color-functions", "abs-percent"],
+          silenceDeprecations: [
+            "import",
+            "global-builtin",
+            "color-functions",
+            "abs-percent",
+            "if-function",
+          ],
         },
       },
     },

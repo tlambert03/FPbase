@@ -14,7 +14,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
-    "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-query": "^5.103.0",
     "@tanstack/react-table": "^8.21.3"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "vite": "^7.3.6"
   },
   "peerDependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }
