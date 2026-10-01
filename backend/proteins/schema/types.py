@@ -410,6 +410,35 @@ class Microscope(DjangoObjectType):
         )
 
 
+class OpticalConfigInfo(graphene.ObjectType):
+    """An optical configuration, as listed.
+
+    For its filters, light and camera (and their spectra), query `opticalConfig(id:)`.
+    """
+
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    comments = graphene.String()
+    microscope = graphene.Field(lambda: MicroscopeInfo)
+
+
+class MicroscopeInfo(graphene.ObjectType):
+    """A microscope, as listed.
+
+    For its optical configurations' filters and spectra, query `microscope(id:)`:
+    every microscope's spectra in one response is more than the server can build.
+    """
+
+    id = graphene.ID()
+    name = graphene.String()
+    description = graphene.String()
+    opticalConfigs = graphene.List(OpticalConfigInfo)
+
+    def resolve_opticalConfigs(self, info):
+        return self.optical_configs.all()
+
+
 class OpticalConfig(gdo.OptimizedDjangoObjectType):
     filters = graphene.List(FilterPlacement)
     microscope = graphene.Field(Microscope)

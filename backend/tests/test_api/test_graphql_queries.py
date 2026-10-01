@@ -129,8 +129,11 @@ def test_optical_config_filter_without_spectrum(client):
     FilterPlacement.objects.create(filter=bare, config=config, path=FilterPlacement.EM)
 
     # (this failed with "Filter has no spectrum.")
-    data, _ = _query(client, "{ opticalConfigs { filters { id spectrumId spectrum { id } } } }")
-    filters = {f["id"]: f for f in data["opticalConfigs"][0]["filters"]}
+    query = (
+        f"{{ opticalConfig(id: {config.id}) {{ filters {{ id spectrumId spectrum {{ id }} }} }} }}"
+    )
+    data, _ = _query(client, query)
+    filters = {f["id"]: f for f in data["opticalConfig"]["filters"]}
     assert len(filters) == 4
     for filter_id, placement in filters.items():
         if filter_id == str(bare.id):
@@ -157,3 +160,38 @@ def test_protein_by_slug_or_name(client):
         "f": None,  # (part of the name)
         "g": None,  # (part of the alias)
     }
+
+
+def test_list_roots_leave_out_filters_and_spectra(client):
+    """Every microscope's spectra in one response is more than the server can build."""
+    scopes = [MicroscopeFactory(name=f"Scope{i}") for i in range(3)]
+    for scope in scopes:
+        OpticalConfigWithFiltersFactory(microscope=scope)
+    _, few = _query(client, "{ microscopes { id name opticalConfigs { id name } } }")
+    for i in range(3, 8):
+        OpticalConfigWithFiltersFactory(microscope=MicroscopeFactory(name=f"Scope{i}"))
+    data, many = _query(client, "{ microscopes { id name opticalConfigs { id name } } }")
+    assert many == few
+    assert {m["name"] for m in data["microscopes"]} == {f"Scope{i}" for i in range(8)}
+    assert data["microscopes"][0]["opticalConfigs"][0]["name"]
+
+    data, _ = _query(
+        client, "{ opticalConfigs { id name microscope { id opticalConfigs { name } } } }"
+    )
+    assert len(data["opticalConfigs"]) == 8
+
+    # the full types, with filters and spectra, are for one at a time
+    for query in (
+        "{ microscopes { opticalConfigs { filters { id } } } }",
+        "{ opticalConfigs { filters { id } } }",
+        "{ opticalConfigs { microscope { opticalConfigs { filters { id } } } } }",
+    ):
+        response = client.post("/graphql/", {"query": query}, content_type="application/json")
+        assert response.status_code == 400
+        assert "Cannot query field" in response.json()["errors"][0]["message"]
+    query = (
+        f'{{ microscope(id: "{scopes[0].id}") '
+        "{ opticalConfigs { filters { spectrum { data } } } } }"
+    )
+    data, _ = _query(client, query)
+    assert data["microscope"]["opticalConfigs"][0]["filters"][0]["spectrum"]["data"]

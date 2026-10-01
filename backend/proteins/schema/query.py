@@ -34,11 +34,12 @@ class Query(graphene.ObjectType):
         # (a connection is not optimized automatically, unlike a list of proteins)
         return gdo.query(models.Protein.objects.all(), info)
 
-    microscopes = graphene.List(types.Microscope)
+    # (the list types leave out filters and spectra: see types.MicroscopeInfo)
+    microscopes = graphene.List(types.MicroscopeInfo)
     microscope = graphene.Field(types.Microscope, id=graphene.String())
 
     def resolve_microscopes(self, info, **kwargs):
-        return gdo.query(models.Microscope.objects.all(), info)
+        return models.Microscope.objects.prefetch_related("optical_configs")
 
     def resolve_microscope(self, info, **kwargs):
         _id = kwargs.get("id")
@@ -134,12 +135,13 @@ class Query(graphene.ObjectType):
         _id = kwargs.get("id")
         return models.State.objects.get(id=_id) if _id is not None else None
 
-    opticalConfigs = graphene.List(types.OpticalConfig)
+    opticalConfigs = graphene.List(types.OpticalConfigInfo)
     opticalConfig = graphene.Field(types.OpticalConfig, id=graphene.Int())
 
     def resolve_opticalConfigs(self, info, **kwargs):
-        # return models.OpticalConfig.objects.all().prefetch_related("microscope")
-        return gdo.query(models.OpticalConfig.objects.all(), info)
+        return models.OpticalConfig.objects.select_related("microscope").prefetch_related(
+            "microscope__optical_configs"
+        )
 
     def resolve_opticalConfig(self, info, **kwargs):
         _id = kwargs.get("id")
