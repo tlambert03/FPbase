@@ -275,7 +275,7 @@
 
 	    <div class="attributes mt-1">
 	    	<h3>Photostability</h3>
-	    	{% if protein.has_bleach_measurements %}
+        {% if has_bleach_measurements %}
 	    	    {% include '_bleach_table.html' %}
 	    	{% else %}
 	    		<p>No photostability measurements available ... <a href="{% url 'proteins:protein-bleach-form' slug=protein.slug %}" class='text-secondary'>add one!</a></p>
@@ -418,8 +418,8 @@
 		<div class="additional-ref references">
 			<h3>Additional References</h3>
 			<ol>
-				{% if protein.additional_references %}
-				{% for ref in protein.additional_references %}
+				{% if additional_references %}
+				{% for ref in additional_references %}
 					<li class="mt-2 mb-2">{% include "_reference.html" %}</li>
 				{% endfor %}
 				{% else %}
