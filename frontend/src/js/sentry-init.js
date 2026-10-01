@@ -15,6 +15,14 @@ import * as Sentry from "@sentry/browser"
 
 let sentryInitialized = false
 
+// Cloudflare redirects every request for http:// or fpbase.org to https://www.fpbase.org,
+// so a page at any other fpbase.org origin is a saved copy replayed by a crawler: its
+// same-origin requests get redirected cross-origin and fail (FPBASE-6BB).
+function isReplayedCopy() {
+  const { hostname, origin } = window.location
+  return ["fpbase.org", "www.fpbase.org"].includes(hostname) && origin !== "https://www.fpbase.org"
+}
+
 /**
  * Initialize Sentry with production-optimized configuration
  * This function is idempotent - calling it multiple times is safe
@@ -63,6 +71,8 @@ export function initSentry() {
 
         // Filter sensitive data before sending
         beforeSend(event, _hint) {
+          if (isReplayedCopy()) return null
+
           // Add bundle information for easier debugging
           event.tags = {
             ...event.tags,
