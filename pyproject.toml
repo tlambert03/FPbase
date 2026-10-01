@@ -27,7 +27,6 @@ dependencies = [
     'djangorestframework>=3.14.0',
     'dnspython>=2.6.1',
     'drf-spectacular>=0.26.3',
-    'google-analytics-data>=0.18.9',
     'google-auth>=2.29.0',
     'graphene-django-optimizer>=0.10.0',
     'graphene-django>=3.2.3',
