@@ -187,7 +187,7 @@ class RateLimitedGraphQLView(GraphQLView):
             return response
 
         response = super().dispatch(request, *args, **kwargs)
-        if response.status_code == 400 and not self.batch:
+        if response.status_code == 400:
             self._log_bad_request(request, response)
         if request.method == "GET" and edge_cache.is_enabled():
             # a GET can be cached by the CDN, so say whether this one may be
@@ -206,7 +206,7 @@ class RateLimitedGraphQLView(GraphQLView):
         # Every operation is a read (the schema has no mutations) of public data, so
         # a response can be reused until the data changes.
         # (pretty-printed JSON has sorted keys, so its errors can't be told by its start)
-        if self.batch or show_graphiql or self.pretty or request.GET.get("pretty"):
+        if show_graphiql or self.pretty or request.GET.get("pretty"):
             return super().get_response(request, data, show_graphiql)
         query, variables, operation_name, _ = self.get_graphql_params(request, data)
         params = [query, variables, operation_name]
