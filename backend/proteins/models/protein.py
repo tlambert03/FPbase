@@ -33,7 +33,7 @@ from proteins.models.fluorophore import FluorState, primary_reference_changed
 from proteins.models.mixins import Authorable
 from proteins.models.spectrum import Spectrum
 from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
-from proteins.validators import validate_uniprot
+from proteins.validators import validate_no_angle_brackets, validate_uniprot
 from references.models import Reference
 
 if TYPE_CHECKING:
@@ -167,13 +167,20 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
         verbose_name="FPbase ID",
     )
     name = models.CharField(
-        max_length=128, help_text="Name of the fluorescent protein", db_index=True
+        max_length=128,
+        help_text="Name of the fluorescent protein",
+        db_index=True,
+        validators=[validate_no_angle_brackets],
     )
     slug = models.SlugField(
         max_length=64, unique=True, help_text="URL slug for the protein"
     )  # for generating urls
     base_name = models.CharField(max_length=128)  # easily searchable "family" name
-    aliases = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    aliases = ArrayField(
+        models.CharField(max_length=200, validators=[validate_no_angle_brackets]),
+        blank=True,
+        null=True,
+    )
     chromophore = _NonNullChar(max_length=5, blank=True, default="")
     seq_validated = models.BooleanField(
         default=False, help_text="Sequence has been validated by a moderator"
