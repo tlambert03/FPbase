@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import html
 import json
 import logging
 import math
@@ -111,10 +110,10 @@ def _protein_records(proteins: list[Protein], pop: dict[int, float]) -> list[dic
         records.append(
             _compact(
                 {
-                    "name": html.unescape(p.name),
+                    "name": p.name,
                     "slug": p.slug,
                     "url": p.get_absolute_url(),
-                    "aliases": [html.unescape(a) for a in p.aliases or []],
+                    "aliases": list(p.aliases or []),
                     "uuid": p.uuid,
                     "pdb": p.pdb or [],
                     "genbank": p.genbank,
@@ -163,8 +162,8 @@ def _reference_records(pop: dict[int, float]) -> list[dict]:
                     "pmid": ref.pmid,
                     "year": ref.year,
                     "url": ref.get_absolute_url(),
-                    "primary": [html.unescape(p.name) for p in ref._primary],
-                    "secondary": [html.unescape(p.name) for p in secondary],
+                    "primary": [p.name for p in ref._primary],
+                    "secondary": [p.name for p in secondary],
                     "p": round(ref_pop, 3),
                 }
             )
@@ -217,7 +216,7 @@ def _dye_records() -> list[dict]:
     return [
         _compact(
             {
-                "name": html.unescape(name),
+                "name": name,
                 "url": f"{viewer}?s={','.join(map(str, spectra[state_id]))}",
                 "ex": ex,
                 "em": em,

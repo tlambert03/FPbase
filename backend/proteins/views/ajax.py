@@ -1,5 +1,4 @@
 import contextlib
-import html
 import logging
 from collections import defaultdict
 
@@ -232,7 +231,7 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
     widths[node.level] += 1
 
     result = {
-        "name": html.unescape(node.protein.name),
+        "name": node.protein.name,
         "mut": node.rootmut or str(node.mutation),
         # 'mut': node.display_mutation(maxwidth=10) or "null",
         "url": node.protein.get_absolute_url(),
