@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from django.core.cache import cache
 from django.urls import reverse
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 
@@ -43,28 +44,18 @@ def link_excerpts(excerpts_qs, obj_name=None, aliases=()):
     if slug_dict is None:
         slug_dict = {}
     for excerpt in excerpt_list:
-        for name in slug_dict:
+        content = escape(excerpt.content)
+        for name, slug in slug_dict.items():
             if len(name) <= 1:
                 continue
             if name == obj_name or (aliases and name in aliases):
-                excerpt.content = mark_safe(
-                    re.sub(
-                        rf"(?<=[\s(])(?<!>){name}(?!.\d)(?!<)",
-                        f"<strong>{name}</strong>",
-                        excerpt.content,
-                    )
-                )
+                html = format_html("<strong>{}</strong>", name)
             else:
-                excerpt.content = mark_safe(
-                    re.sub(
-                        rf"(?<=[\s(])(?<!>){name}(?!.\d)(?!<)",
-                        '<a href="{}" class="text-info">{}</a>'.format(
-                            reverse("proteins:protein-detail", args=[slug_dict[name]]),
-                            name,
-                        ),
-                        excerpt.content,
-                    )
-                )
+                url = reverse("proteins:protein-detail", args=[slug])
+                html = format_html('<a href="{}" class="text-info">{}</a>', url, name)
+            pattern = rf"(?<=[\s(])(?<!>){re.escape(escape(name))}(?!.\d)(?!<)"
+            content = re.sub(pattern, lambda _, html=html: html, content)
+        excerpt.content = mark_safe(content)
     return excerpt_list
 
 

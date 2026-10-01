@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from proteins.factories import OrganismFactory
+from proteins.factories import OrganismFactory, ProteinFactory
 from proteins.forms import CollectionForm, ProteinForm, SpectrumForm, StateForm
 from proteins.models import Protein, Spectrum, State
 from tests.test_users.factories import UserFactory
@@ -385,3 +385,13 @@ class TestSpectrumForm(TestCase):
         # Ensure the form can be saved without NumPy type errors
         spectrum = form.save()
         self.assertIsNotNone(spectrum.id)
+
+
+@pytest.mark.django_db
+def test_protein_name_exists_error_links_to_protein():
+    protein = ProteinFactory(name="<b>FP</b>")
+    form = ProteinForm({"name": protein.name, "confirmation": True})
+    assert not form.is_valid()
+    error = str(form.errors["name"])
+    assert f'<a href="{protein.get_absolute_url()}"' in error
+    assert "&lt;b&gt;FP&lt;/b&gt;</a> already has this name" in error
