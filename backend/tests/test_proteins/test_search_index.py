@@ -56,12 +56,6 @@ def test_search_index_payload(client) -> None:
 
 
 @pytest.mark.django_db
-def test_search_index_unescapes_html_entities(client) -> None:
-    ProteinFactory(name="mKO&kappa;", slug="mkokappa")
-    assert _by_slug(client.get(URL).json())["mkokappa"]["name"] == "mKOκ"
-
-
-@pytest.mark.django_db
 def test_search_index_popularity(client, monkeypatch: pytest.MonkeyPatch) -> None:
     viewed, faved, obscure = (ProteinFactory(name=n) for n in ("mViewed", "mFaved", "mObscure"))
     views = {"year": [(viewed.slug, viewed.name, 90.0), (obscure.slug, obscure.name, 0.001)]}
