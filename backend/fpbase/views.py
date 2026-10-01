@@ -9,7 +9,9 @@ from django.shortcuts import render
 from django.views.csrf import csrf_failure as default_csrf_failure
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
+from graphene.validation import depth_limit_validator
 from graphene_django.views import GraphQLView
+from graphql import specified_rules
 from rest_framework import exceptions
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
@@ -23,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 # responses larger than this (characters) are not worth their space in the cache
 GRAPHQL_CACHE_MAX_SIZE = 1_000_000
+# how many levels of objects a query may nest: types refer back to each other
+# (organism -> proteins -> organism ...), and each added level multiplies the result
+GRAPHQL_MAX_DEPTH = 5
 
 
 class CloudflareIdentMixin:
@@ -110,6 +115,8 @@ class RateLimitedGraphQLView(GraphQLView):
 
     # the spectra viewer and protein pages fetch every spectrum with its own request
     throttle_classes = [SameOriginExemptAnonThrottle, UserThrottle]
+    # (naming rules here replaces the standard ones, so they are listed too)
+    validation_rules = (*specified_rules, depth_limit_validator(max_depth=GRAPHQL_MAX_DEPTH))
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""
