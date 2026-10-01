@@ -2,7 +2,6 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import MiddlewareNotUsed
-from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
@@ -56,16 +55,4 @@ class ApiTrailingSlashMiddleware:
         ):
             request.path_info += "/"
             request.path += "/"
-        return self.get_response(request)
-
-
-class BlackListMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-        self.blacklist: set[str] = settings.BLOCKED_IPS
-
-    def __call__(self, request):
-        if request.META.get("REMOTE_ADDR") in self.blacklist:
-            return HttpResponseForbidden()
-
         return self.get_response(request)
