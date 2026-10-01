@@ -11,7 +11,7 @@
  */
 
 import noUiSlider from "nouislider"
-import "nouislider/distribute/nouislider.min.css"
+import "nouislider/dist/nouislider.min.css"
 
 import { max, min } from "d3-array"
 import { axisBottom, axisLeft, axisRight, axisTop } from "d3-axis"

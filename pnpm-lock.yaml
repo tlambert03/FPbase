@@ -63,8 +63,8 @@ importers:
         specifier: ^12.6.2
         version: 12.6.2
       nouislider:
-        specifier: ^14.7.0
-        version: 14.7.0
+        specifier: ^15.8.1
+        version: 15.8.1
       process:
         specifier: ^0.11.10
         version: 0.11.10
@@ -2028,8 +2028,8 @@ packages:
     resolution: {integrity: sha512-x0InOIyzgdk+eyaWaRJFH5snEtiImgBgblZ2CyPrLmqqcuMQkEvcDPHbzqbD8eDsSeJbVOjn+crzyzHaM4D+/A==}
     engines: {node: '>=18'}
 
-  nouislider@14.7.0:
-    resolution: {integrity: sha512-4RtQ1+LHJKesDCNJrXkQcwXAWCrC2aggdLYMstS/G5fEWL+fXZbUA9pwVNHFghMGuFGRATlDLNInRaPeRKzpFQ==}
+  nouislider@15.8.1:
+    resolution: {integrity: sha512-93TweAi8kqntHJSPiSWQ1o/uZ29VWOmal9YKb6KKGGlCkugaNfAupT7o1qTHqdJvNQ7S0su5rO6qRFCjP8fxtw==}
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
@@ -4270,7 +4270,7 @@ snapshots:
 
   node-releases@2.0.56: {}
 
-  nouislider@14.7.0: {}
+  nouislider@15.8.1: {}
 
   nth-check@2.1.1:
     dependencies:
