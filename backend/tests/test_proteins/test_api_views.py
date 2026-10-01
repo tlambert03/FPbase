@@ -475,3 +475,13 @@ def test_protein_spectra_api_requires_a_filter_or_a_page(client):
     ):
         response = client.get(f"/api/proteins/spectra/?format=json&{query}")
         assert response.status_code == 400, query
+
+
+@pytest.mark.django_db
+def test_stray_authorization_header_is_ignored(client):
+    """`Authorization: Token ...` was a 500 (TokenAuthentication without its app)."""
+    ProteinFactory(name="Open")
+    for value in ("Token abc123", "Bearer abc123", "Basic YWJjOmRlZg=="):
+        response = client.get("/api/proteins/?format=json&fields=name", HTTP_AUTHORIZATION=value)
+        assert response.status_code == 200, value
+        assert response.json() == [{"name": "Open"}]
