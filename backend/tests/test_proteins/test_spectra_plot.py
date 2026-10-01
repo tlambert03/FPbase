@@ -116,6 +116,8 @@ def test_to_rgba(color: str, rgba: tuple[float, ...]) -> None:
         {"alpha": 5},
         {"alpha": "-1"},
         {"linewidth": -5},
+        {"linewidth": "inf"},
+        {"linewidth": "nan"},
     ],
 )
 def test_rejects_bad_options(kwargs: dict) -> None:

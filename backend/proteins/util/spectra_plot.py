@@ -159,8 +159,8 @@ def spectra_figure(
     if alpha is not None and not 0 <= alpha <= 1:
         raise ValueError(f"alpha must be between 0 and 1, not {alpha}")
     linewidth = None if linewidth is None else float(linewidth)
-    if linewidth is not None and linewidth < 0:
-        raise ValueError(f"linewidth must not be negative, not {linewidth}")
+    if linewidth is not None and not 0 <= linewidth < math.inf:
+        raise ValueError(f"linewidth must be a finite, non-negative number, not {linewidth}")
     y0, y1 = (0, 1.07) if twitter else (-0.005, 1.025)
 
     W, H = figsize[0] * 72, figsize[1] * 72
