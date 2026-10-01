@@ -408,8 +408,8 @@ class SpectraPagination(OptionalLimitOffsetPagination):
 @extend_schema_view(
     get=extend_schema(
         description=(
-            "Proteins' spectra. Every protein's spectra at once is more than the server "
-            "can build: filter (e.g. `name=`), or page with `limit` (at most 200)."
+            "Proteins' spectra. Filter the proteins (e.g. `name=`), or page through them "
+            "with `limit` (at most 200) and `offset`."
         )
     )
 )
@@ -434,9 +434,8 @@ class ProteinSpectraListAPIView(ListAPIView):
         if not filters and not (paging & set(request.query_params)):
             raise ValidationError(
                 {
-                    "detail": "This would be every protein's spectra at once: filter the "
-                    "proteins (e.g. ?name=mCherry), or page through them with ?limit= "
-                    f"(at most {SpectraPagination.max_limit}) and ?offset=.",
+                    "detail": "Filter the proteins (e.g. ?name=mCherry), or page through "
+                    f"them with ?limit= (at most {SpectraPagination.max_limit}) and ?offset=.",
                     "docs": request.build_absolute_uri(reverse("api:api")),
                 }
             )

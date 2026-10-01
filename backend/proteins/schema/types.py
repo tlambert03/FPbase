@@ -416,24 +416,24 @@ class OpticalConfigInfo(graphene.ObjectType):
     For its filters, light and camera (and their spectra), query `opticalConfig(id:)`.
     """
 
-    id = graphene.ID()
-    name = graphene.String()
-    description = graphene.String()
-    comments = graphene.String()
+    id = graphene.ID(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    comments = graphene.String(required=True)
     microscope = graphene.Field(lambda: MicroscopeInfo)
 
 
 class MicroscopeInfo(graphene.ObjectType):
     """A microscope, as listed.
 
-    For its optical configurations' filters and spectra, query `microscope(id:)`:
-    every microscope's spectra in one response is more than the server can build.
+    For its optical configurations' filters and spectra, query `microscope(id:)`.
     """
 
-    id = graphene.ID()
-    name = graphene.String()
-    description = graphene.String()
-    opticalConfigs = graphene.List(OpticalConfigInfo)
+    # (the same types as on `Microscope`)
+    id = graphene.String(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    opticalConfigs = graphene.List(graphene.NonNull(OpticalConfigInfo), required=True)
 
     def resolve_opticalConfigs(self, info):
         return self.optical_configs.all()
