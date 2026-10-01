@@ -20,6 +20,10 @@ pgpull:
     heroku  pg:pull DATABASE_URL fpbase --exclude-table-data='public.django_session;public.proteins_ocfluoreff' -a fpbase || true
     uv run backend/manage.py migrate
 
+# (production) drop every cached API response, e.g. after writing to the database by hand
+invalidate-api-cache:
+    heroku run --no-tty --no-notify -a fpbase -- python backend/manage.py invalidate_api_cache
+
 # expect "0 state(s) would be synced": anything else means something bypassed FluorState.save()
 # (production, read-only) list states whose values have drifted from their measurements
 check-measurements:
