@@ -14,7 +14,7 @@
         <label class="input-group-text" for="proteinSlug">Protein</label>
         <select class="form-select form-select-sm" id="proteinSlug">
           {% if protein %}
-            <option value='{{protein.slug}}'>{{protein.name|safe}}</option>
+            <option value='{{protein.slug}}'>{{protein.name}}</option>
           {% else %}
             <option value='egfp'>EGFP</option>
           {% endif %}

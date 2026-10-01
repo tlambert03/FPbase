@@ -29,7 +29,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.html import strip_tags
+from django.utils.html import escape, strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
@@ -587,8 +587,8 @@ class ComparisonView(base.TemplateView):
             a, _ = prots_with_seqs.to_tree("html")
             alignment = "\n".join(a.splitlines()[3:]).replace("FFEEE0", "FFFFFF")
             for p in prots:
-                alignment = alignment.replace(f"{p.uuid:16}", f"{p.name[:16]:16}")
-            context["alignment"] = alignment
+                alignment = alignment.replace(f"{p.uuid:16}", escape(f"{p.name[:16]:16}"))
+            context["alignment"] = mark_safe(alignment)  # (muscle's html output)
         elif prots_with_seqs.count() == 2:
             seq_a = prots_with_seqs[0]
             seq_b = prots_with_seqs[1]

@@ -46,7 +46,7 @@
 						{% endif %}
 						<td class="protein">
 							<a href="{{ protein.get_absolute_url }}">
-								{{ protein | safe }}
+								{{ protein }}
 								{% if not 'default' in state.name %} <small>({{ state.name }})</small>{% endif %}
 							</a>
 						</td>
@@ -79,7 +79,7 @@
                     <td class="remove-button">{% collection_remove_button protein %}</td>
                   {% endif %}
                   <td class="protein">
-                    <a href="{{ protein.get_absolute_url }}">{{ protein | safe }}</a>
+                    <a href="{{ protein.get_absolute_url }}">{{ protein }}</a>
                   </td>
                   <td class="numeric exmax"></td>
                   <td class="numeric"></td>

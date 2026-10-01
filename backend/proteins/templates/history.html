@@ -2,7 +2,7 @@
 {% load fpbase_tags %}
 
 {% block content %}
-<h3>Change History for {{protein|safe}}</h3>
+<h3>Change History for {{protein}}</h3>
 <ul class="small text-muted" style="word-wrap: break-word">
   {% for revision, changes in history.items %}
   <li>
@@ -31,7 +31,7 @@
 </ul>
 
 <p>
-<a href="{% url 'proteins:protein-detail' slug=protein.slug %}">Back to current {{protein.name | safe}} version</a>
+<a href="{% url 'proteins:protein-detail' slug=protein.slug %}">Back to current {{protein.name}} version</a>
 </p>
 
 
