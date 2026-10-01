@@ -16,6 +16,7 @@ import string
 from itertools import product
 from pathlib import Path
 
+import matplotlib
 from fontTools import subset
 from matplotlib import _text_helpers
 from matplotlib.font_manager import FontProperties, findfont, get_font
@@ -111,6 +112,7 @@ os2 = font.get_sfnt_table("OS/2")
 upem = font.get_sfnt_table("head")["unitsPerEm"]
 data = {
     "font": "DejaVu Sans (glyph outlines from matplotlib's copy; Bitstream Vera license)",
+    "matplotlib": matplotlib.__version__,
     "font_scale": FONT_SCALE,
     # matplotlib's minimum line metrics, as fractions of the font size
     "ascent": os2["sTypoAscender"] / upem,

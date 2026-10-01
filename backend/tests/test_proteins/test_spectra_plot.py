@@ -105,3 +105,26 @@ def test_ticks() -> None:
 )
 def test_to_rgba(color: str, rgba: tuple[float, ...]) -> None:
     assert to_rgba(color) == pytest.approx(rgba)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"xlim": [0, 10**30]},  # would allocate ticks without bound
+        {"xlim": [0, 10**5], "grid": True},  # >1000 minor ticks, matplotlib's limit too
+        {"xlim": [0, float("inf")]},
+        {"alpha": 5},
+        {"alpha": "-1"},
+        {"linewidth": -5},
+    ],
+)
+def test_rejects_bad_options(kwargs: dict) -> None:
+    with pytest.raises((ValueError, OverflowError)):
+        _render("svg", **kwargs)
+
+
+@pytest.mark.parametrize("fmt", ["svg", "png", "pdf"])
+def test_accepts_edge_options(fmt: str) -> None:
+    _render(fmt, xlim=[500, 500])  # widened, as matplotlib does
+    _render(fmt, xlim=[0, 10**5], xlabels=False)  # no ticks to draw
+    _render(fmt, linewidth=10**9, fill=False)  # clamped for rasters

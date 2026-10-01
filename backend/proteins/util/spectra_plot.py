@@ -47,8 +47,11 @@ WHITE = (1.0, 1.0, 1.0, 1.0)
 TICK_LABEL_SIZE = 10
 TICK_PAD = 3.5
 MINOR_TICK_LENGTH, MINOR_TICK_WIDTH = 2.0, 0.6
-FORMATS = {"svg": "svg", "pdf": "pdf", "png": "PNG", "jpg": "JPEG", "jpeg": "JPEG"}
-FORMATS |= {"tif": "TIFF", "tiff": "TIFF"}
+FORMATS = {
+    **{"svg": "svg", "pdf": "pdf", "png": "PNG", "jpg": "JPEG", "jpeg": "JPEG"},
+    **{"tif": "TIFF", "tiff": "TIFF"},
+}
+MAX_TICKS = 1000  # per tick spacing, as matplotlib's `Locator.MAXTICKS`
 # matplotlib's single-letter colors, which CSS doesn't have
 BASE_COLORS = {"b": "#0000ff", "g": "#008000", "r": "#ff0000", "c": "#00bfbf"}
 BASE_COLORS |= {"m": "#bf00bf", "y": "#bfbf00", "k": "#000000", "w": "#ffffff"}
@@ -107,6 +110,8 @@ class Figure:
 def _multiples(step: float, lo: float, hi: float) -> list[float]:
     """Multiples of `step` within [lo, hi], like matplotlib's `MultipleLocator`."""
     first, last = math.ceil(lo / step - 1e-9), math.floor(hi / step + 1e-9)
+    if last - first >= MAX_TICKS:
+        raise ValueError(f"x range too wide: would draw {last - first + 1} ticks")
     return [round(k * step, 10) for k in range(first, last + 1)]
 
 
@@ -148,6 +153,14 @@ def spectra_figure(
     if not xlim:
         xlim = (min(s.min_wave for s in spectra), max(s.max_wave for s in spectra))
     x0, x1 = float(xlim[0]), float(xlim[1])
+    if x0 == x1:  # widen, as matplotlib's `nonsingular` does
+        x0, x1 = (-0.05, 0.05) if x0 == 0 else (x0 - 0.05 * abs(x0), x1 + 0.05 * abs(x1))
+    alpha = float(alpha) if alpha else None
+    if alpha is not None and not 0 <= alpha <= 1:
+        raise ValueError(f"alpha must be between 0 and 1, not {alpha}")
+    linewidth = None if linewidth is None else float(linewidth)
+    if linewidth is not None and linewidth < 0:
+        raise ValueError(f"linewidth must not be negative, not {linewidth}")
     y0, y1 = (0, 1.07) if twitter else (-0.005, 1.025)
 
     W, H = figsize[0] * 72, figsize[1] * 72
@@ -195,8 +208,8 @@ def spectra_figure(
     for spec in spectra:
         pts = [(X(x), Y(y)) for x, y in spec.data]
         if fill:
-            face = to_rgba(color or spec.color(), float(alpha) if alpha else 0.5)
-            edge = 1.0 if linewidth is None else float(linewidth)
+            face = to_rgba(color or spec.color(), alpha or 0.5)
+            edge = 1.0 if linewidth is None else linewidth
             base = Y(0)
             outline = [(pts[0][0], base), *pts, *((x, base) for x, _ in reversed(pts))]
             edge_color = face if edge else None
@@ -206,8 +219,8 @@ def spectra_figure(
                 )
             )
         else:
-            stroke = to_rgba(spec.color(), float(alpha) if alpha else 1)
-            lw = 1.5 if linewidth is None else float(linewidth)
+            stroke = to_rgba(spec.color(), alpha or 1)
+            lw = 1.5 if linewidth is None else linewidth
             shapes.append(
                 Shape(pts, stroke=stroke, width=lw, cap="square", clip=clip, css_class="spectrum")
             )
@@ -556,7 +569,8 @@ def _draw_shapes(canvas: Image.Image, fig: Figure, px: float) -> None:
     for s in fig.shapes:
         # pixel coordinates (y down), then supersampled with Pillow's pixel centers
         points = [(x * px, y * px) for x, y in s.points]
-        width = s.width * px
+        # strokes wider than the canvas all look alike (and Pillow's cost grows with width)
+        width = min(s.width * px, 2 * sum(canvas.size))
         if s.stroke and not s.fill:
             points = _snap(points, width)
         bounds = (0, 0, *canvas.size)
@@ -614,15 +628,18 @@ def render_raster(fig: Figure, dpi: float = DPI) -> Image.Image:
         canvas.paste(background, (0, 0, *size))  # pyright: ignore[reportArgumentType]
     _draw_shapes(canvas, fig, px)
 
+    masks: dict[RGBA, Image.Image] = {}  # one per color: texts don't overlap
     for t in fig.texts:
         font = _pil_font(t.size * px)
         in_pixels = Text(t.text, t.x * px, t.y * px, t.size * px, t.color, t.ha, t.va)
+        if t.color not in masks:
+            masks[t.color] = Image.new("L", size, 0)
+        draw = ImageDraw.Draw(masks[t.color])
         for x, y, glyphs in _layout(in_pixels, partial(_measure_hinted, font=font)):
-            mask = Image.new("L", size, 0)
-            draw = ImageDraw.Draw(mask)
             for tok, dx in glyphs:
                 draw.text((x + dx, y), tok, fill=255, font=font, anchor="ls")
-            _paint(canvas, mask, (0, 0), t.color)
+    for color, mask in masks.items():
+        _paint(canvas, mask, (0, 0), color)
     return canvas
 
 
