@@ -1,6 +1,6 @@
 import difflib
 
-from django.db.models import F, Max, Prefetch, Q
+from django.db.models import F, Max, Prefetch
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils.cache import get_conditional_response
@@ -367,27 +367,15 @@ class ProteinRetrieveAPIView(RetrieveAPIView):
 
         (Clients try all of these here: `/api/proteins/2IB5/`, `/api/proteins/R9NL8/`.)
         """
-        if "\x00" in key:  # (postgres rejects it)
-            raise NotFound(f"No protein matches {key!r}")
-        queryset = self.filter_queryset(self.get_queryset())
-        lookups = (
-            Q(uuid__iexact=key),
-            Q(name__iexact=key) | Q(aliases__icontains=key),
-            Q(pdb__contains=[key.upper()]),
-        )
-        for lookup in lookups:
-            # (a name lookup's `icontains` only narrows: the alias must match exactly)
-            candidates = pm.Protein.objects.filter(lookup).only(*pm.PROTEIN_NAME_FIELDS)
-            ids = [p.id for p in candidates if pm.protein_is_named(p, key)]
-            matches = list(queryset.filter(id__in=ids)[:3])
-            if len(matches) == 1:
-                return matches[0]
-            if matches:
-                slugs = ", ".join(sorted(p.slug for p in matches))
-                raise NotFound(
-                    f"{key!r} matches more than one protein ({slugs}): "
-                    f"request one by slug, or list them with ?pdb={key}"
-                )
+        matches = pm.find_proteins(key, self.filter_queryset(self.get_queryset()))
+        if len(matches) == 1:
+            return matches[0]
+        if matches:
+            slugs = ", ".join(sorted(p.slug for p in matches))
+            raise NotFound(
+                f"{key!r} matches more than one protein ({slugs}): "
+                f"request one by slug, or list them with ?pdb={key}"
+            )
         raise NotFound(f"No protein matches {key!r} (as a slug, FPbase ID, name, alias or PDB ID)")
 
 

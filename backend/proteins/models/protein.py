@@ -4,6 +4,7 @@ import datetime
 import io
 import json
 import os
+import re
 import sys
 import unicodedata
 from collections import Counter
@@ -634,6 +635,42 @@ def protein_is_named(protein: Protein, key: str) -> bool:
         *(alias.lower() for alias in protein.aliases or []),
         *(pdb.lower() for pdb in protein.pdb or []),
     )
+
+
+def _squash(name: str) -> str:
+    """`name` lowercased, without spaces or punctuation: "Azami-Green" -> "azamigreen"."""
+    return re.sub(r"[\W_]+", "", name.lower())
+
+
+def find_proteins(key: str, queryset: models.QuerySet[Protein]) -> list[Protein]:
+    """The proteins in `queryset` that `key` names (up to 3, so callers can see ambiguity).
+
+    `key` may be a slug in any case, an FPbase ID, a name or alias, a PDB ID, or a name
+    or alias with different spaces and punctuation.  The first of these that matches
+    anything decides.
+    """
+    if "\x00" in key:  # (postgres rejects it)
+        return []
+    lookups = (
+        Q(slug=key.lower()) | Q(uuid__iexact=key),
+        Q(name__iexact=key) | Q(aliases__icontains=key),
+        Q(pdb__contains=[key.upper()]),
+    )
+    for lookup in lookups:
+        # (a name lookup's `icontains` only narrows: the alias must match exactly)
+        candidates = Protein.objects.filter(lookup).only(*PROTEIN_NAME_FIELDS)
+        ids = [p.id for p in candidates if protein_is_named(p, key)]
+        if matches := list(queryset.filter(id__in=ids)[:3]):
+            return matches
+    if not (squashed := _squash(key)):
+        return []
+    rows = Protein.objects.values_list("id", "name", "slug", "aliases")
+    ids = [
+        id_
+        for id_, name, slug, aliases in rows
+        if squashed in {_squash(n) for n in (name, slug, *(aliases or []))}
+    ]
+    return list(queryset.filter(id__in=ids)[:3])
 
 
 class State(FluorState):  # TODO: rename to ProteinState

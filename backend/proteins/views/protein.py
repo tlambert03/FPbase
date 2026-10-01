@@ -16,20 +16,20 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_admins, mail_managers
 from django.db import transaction
-from django.db.models import Case, Count, F, Func, Prefetch, Q, Value, When
+from django.db.models import Case, Count, F, Prefetch, Q, When
 from django.forms.models import BaseInlineFormSet, modelformset_factory
 from django.http import (
     Http404,
     HttpResponse,
     HttpResponseBadRequest,
     HttpResponseNotAllowed,
+    HttpResponsePermanentRedirect,
     HttpResponseRedirect,
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import escape, format_html, strip_tags
 from django.utils.safestring import mark_safe
-from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_POST
 from django.views.decorators.vary import vary_on_cookie
@@ -57,6 +57,7 @@ from proteins.models import (
     Spectrum,
     State,
     StateTransition,
+    find_proteins,
 )
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
@@ -220,29 +221,10 @@ class ProteinDetailView(DetailView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
-            from django.contrib.postgres.fields import ArrayField
-            from django.db import models
-
-            name = slugify(self.kwargs.get(self.slug_url_kwarg))
-            aliases_lower = Func(Func(F("aliases"), function="unnest"), function="LOWER")
-            remove_space = Func(aliases_lower, Value(" "), Value("-"), function="replace")
-            final = Func(
-                remove_space,
-                Value("."),
-                Value(""),
-                function="replace",
-                output_field=ArrayField(models.CharField(max_length=200)),
-            )
-            d = dict(Protein.visible.annotate(aka=final).values_list("aka", "id"))
-            if name in d:
-                obj = Protein.visible.get(id=d[name])
-                messages.add_message(
-                    self.request,
-                    messages.INFO,
-                    f"The URL {self.request.get_full_path()} was not found. "
-                    "You have been forwarded here",
-                )
-                return HttpResponseRedirect(obj.get_absolute_url())
+            # e.g. /protein/mCherry/, /protein/2IB5/, /protein/azami-green/
+            matches = find_proteins(self.kwargs[self.slug_url_kwarg], Protein.visible.all())
+            if len(matches) == 1:
+                return HttpResponsePermanentRedirect(matches[0].get_absolute_url())
             raise
 
     def get_context_data(self, **kwargs):

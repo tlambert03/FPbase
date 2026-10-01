@@ -9,7 +9,13 @@ from proteins.models.lineage import Lineage
 from proteins.models.microscope import FilterPlacement, Microscope, OpticalConfig
 from proteins.models.organism import Organism
 from proteins.models.oser import OSERMeasurement
-from proteins.models.protein import PROTEIN_NAME_FIELDS, Protein, State, protein_is_named
+from proteins.models.protein import (
+    PROTEIN_NAME_FIELDS,
+    Protein,
+    State,
+    find_proteins,
+    protein_is_named,
+)
 from proteins.models.snapgene import SnapGenePlasmid
 from proteins.models.spectrum import Camera, Filter, Light, Spectrum
 from proteins.models.transition import StateTransition
@@ -38,5 +44,6 @@ __all__ = [
     "Spectrum",
     "State",
     "StateTransition",
+    "find_proteins",
     "protein_is_named",
 ]

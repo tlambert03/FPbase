@@ -574,3 +574,20 @@ def test_protein_detail_wekwikgene_link_is_hidden_by_default(client):
     """The link is in every copy of the page, for the browser to show to visitors in China."""
     content = client.get(ProteinFactory().get_absolute_url()).content.decode()
     assert '<li class="d-none" data-china-only>Search <a href="https://wekwikgene.' in content
+
+
+@pytest.mark.django_db
+def test_protein_detail_redirects_other_names_to_the_page(client):
+    protein = ProteinFactory(name="AzamiGreen", aliases=["Lucigen Yellow"], pdb=["2IB5"])
+    url = protein.get_absolute_url()
+    for key in ("AzamiGreen", "AZAMIGREEN", "azami-green", "lucigen-yellow", "2ib5"):
+        response = client.get(f"/protein/{key}/")
+        assert response.status_code == 301, key
+        assert response["Location"] == url, key
+
+    # hidden proteins stay hidden; a key naming two proteins picks neither
+    ProteinFactory(name="Secret", status="hidden")
+    ProteinFactory(name="Shared One", pdb=["9ZZZ"])
+    ProteinFactory(name="Shared Two", pdb=["9ZZZ"])
+    for key in ("secret", "9zzz", "no-such-protein", "azami"):
+        assert client.get(f"/protein/{key}/").status_code == 404, key
