@@ -33,7 +33,6 @@ dependencies = [
     'graphene-django>=3.2.3',
     'graphene>=3.2.2',
     'habanero>=2.4.0,<2.9',                         # NOTE: 2.9 swaps httpx for the very new httpx2
-    'matplotlib>=3.7.1',
     'numpy>=1.26.3',
     'Pillow>=10.0.0',
     'psycopg2>=2.9.11; platform_system == "Linux"',

@@ -25,8 +25,9 @@ from model_utils.models import StatusModel, TimeStampedModel
 
 from fpbase.cache_utils import SPECTRA_CACHE_KEY
 from proteins.models.mixins import AdminURLMixin, Authorable, Product
-from proteins.util.helpers import spectra_fig, wave_to_hex
+from proteins.util.helpers import wave_to_hex
 from proteins.util.spectra import interp_linear
+from proteins.util.spectra_plot import spectra_fig
 from references.models import Reference
 
 if TYPE_CHECKING:
@@ -688,7 +689,7 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
         self.y_values = self._encode_y_values(value)
 
     def spectrum_img(self, fmt="svg", **kwargs: Any):
-        """Generate a static image of this spectrum using matplotlib."""
+        """Generate a static image of this spectrum using `proteins.util.spectra_plot`."""
 
         kwargs.setdefault("xlim", (self.min_wave - 10, self.max_wave + 10))
         # Use the existing spectra_fig function with this single spectrum
