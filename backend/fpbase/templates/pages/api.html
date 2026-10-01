@@ -45,7 +45,7 @@ you will now be searching using the protein api.  Scripts receive JSON by defaul
 	<dd class="col-sm-8">Dedicated api for 'basic' (non-switchable) proteins that delivers a flat dictionary of attributes (default state is assumed)</dd>
 
 	<dt class="col-sm-4"><code>{% url 'api:spectra-api' %}</code></dt>
-	<dd class="col-sm-8">Retrieve protein spectra</dd>
+	<dd class="col-sm-8">Retrieve protein spectra.  Filter the proteins, or page through them with <code>limit</code> (at most 200) and <code>offset</code>.</dd>
 	<dt class="col-sm-4"><code>{% url 'api-docs' %}</code></dt>
 	<dd class="col-sm-8">Interactive (Swagger) documentation of every endpoint and parameter; the OpenAPI schema is at <code>{% url 'api-openapi-json' %}</code></dd>
 	<dt class="col-sm-4"><code>/graphql/</code></dt>

@@ -296,7 +296,7 @@ def test_protein_spectra_api_filters(client):
     assert names("name=spectraone") == ["SpectraOne"]
     assert names("name__icontains=spectrat") == ["SpectraThree", "SpectraTwo"]
     assert len(names("limit=2")) == 2
-    assert len(names("")) == 3
+    assert len(names("limit=100")) == 3
     assert names("slug=spectratwo") == ["SpectraTwo"]
     assert client.get("/api/proteins/spectra/?format=json&protein=x").status_code == 400
 
@@ -348,7 +348,7 @@ def test_protein_spectra_api_query_count(client, django_assert_max_num_queries):
     for i in range(4):
         StateFactory(protein=ProteinFactory(name=f"Many{i}"), name="default")
     with django_assert_max_num_queries(8):
-        response = client.get("/api/proteins/spectra/?format=json")
+        response = client.get("/api/proteins/spectra/?format=json&limit=100")
     assert len(response.json()) == 4
     assert all(p["spectra"] for p in response.json())
 
@@ -418,7 +418,7 @@ def test_protein_list_fields_and_include_fields(client):
     assert response.json() == {"slug": "fields", "states": [{"ex_spectrum": data}]}
 
     # the spectra endpoint builds its output from the states: fine without them
-    response = client.get("/api/proteins/spectra/?format=json&fields=name")
+    response = client.get("/api/proteins/spectra/?format=json&fields=name&limit=10")
     assert response.json() == [{"name": "Fields", "spectra": []}]
     # the table endpoint's serializer cannot choose fields: rejected, not ignored
     response = client.get("/api/proteins/table-data/?format=json&fields=name")
@@ -451,3 +451,27 @@ def test_api_schema_and_docs_are_public(client):
     assert {"fields", "include_fields", "page", "page_size", "limit", "offset"} <= parameters
     detail = schema["paths"]["/api/proteins/{slug}/"]["get"]["parameters"]
     assert "PDB ID" in next(p for p in detail if p["name"] == "slug")["description"]
+
+
+@pytest.mark.django_db
+def test_protein_spectra_api_requires_a_filter_or_a_page(client):
+    ProteinFactory(name="Spectral")
+    response = client.get("/api/proteins/spectra/?format=json")
+    assert response.status_code == 400
+    assert "limit" in response.json()["detail"]
+    for query in ("name=Spectral", "limit=10", "page=1", "limit=10&offset=0", "page_size=5"):
+        response = client.get(f"/api/proteins/spectra/?format=json&{query}")
+        assert response.status_code == 200, query
+        assert response.json()[0]["name"] == "Spectral"
+    # a paging param that does not paginate, or an empty filter, is no better
+    for query in (
+        "limit=0",
+        "limit=",
+        "limit=abc",
+        "limit=-1",
+        "offset=0",
+        "name=",
+        "fields=name",
+    ):
+        response = client.get(f"/api/proteins/spectra/?format=json&{query}")
+        assert response.status_code == 400, query

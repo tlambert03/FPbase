@@ -401,6 +401,18 @@ class StatesListAPIView(ListAPIView):
     filterset_class = StateFilter
 
 
+class SpectraPagination(OptionalLimitOffsetPagination):
+    max_limit = 200
+
+
+@extend_schema_view(
+    get=extend_schema(
+        description=(
+            "Proteins' spectra. Filter the proteins (e.g. `name=`), or page through them "
+            "with `limit` (at most 200) and `offset`."
+        )
+    )
+)
 class ProteinSpectraListAPIView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ProteinSpectraSerializer
@@ -408,12 +420,29 @@ class ProteinSpectraListAPIView(ListAPIView):
     # without these, every filtered query returned (and serialized) every spectrum
     filter_backends = (StrictDjangoFilterBackend,)
     filterset_class = ProteinAPIFilter
-    pagination_class = OptionalLimitOffsetPagination
+    pagination_class = SpectraPagination
     throttle_classes = [ExpensiveListAnonThrottle, *api_settings.DEFAULT_THROTTLE_CLASSES]  # pyright: ignore[reportAssignmentType]
 
     @method_decorator(cache_page_by_data_version())
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        # the whole dump (~6 MB of JSON, far more in memory) has crashed the dyno
+        paginator = self.paginator
+        assert paginator is not None
+        given = {k for k, v in request.query_params.items() if v != ""}
+        filters = given - NON_FILTER_PARAMS - set(paginator.query_params)
+        # (a missing or invalid limit means no pagination)
+        if not filters and paginator.get_limit(request) is None:
+            raise ValidationError(
+                {
+                    "detail": "Filter the proteins (e.g. ?name=mCherry), or page through "
+                    f"them with ?limit= (at most {SpectraPagination.max_limit}) and ?offset=.",
+                    "docs": request.build_absolute_uri(reverse("api:api")),
+                }
+            )
+        return super().list(request, *args, **kwargs)
 
 
 class ProteinTableAPIView(ListAPIView):

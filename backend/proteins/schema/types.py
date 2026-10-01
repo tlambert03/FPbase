@@ -410,6 +410,45 @@ class Microscope(DjangoObjectType):
         )
 
 
+class MicroscopeRef(graphene.ObjectType):
+    """The microscope an optical configuration belongs to; query `microscope(id:)` for it."""
+
+    id = graphene.String(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+
+
+class OpticalConfigInfo(graphene.ObjectType):
+    """An optical configuration, as listed.
+
+    For its filters, light and camera (and their spectra), query `opticalConfig(id:)`.
+    """
+
+    id = graphene.ID(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    comments = graphene.String(required=True)
+    # (not MicroscopeInfo: config -> microscope -> configs -> ... repeats every
+    # microscope's config list once per config, a 40 MB response)
+    microscope = graphene.Field(MicroscopeRef)
+
+
+class MicroscopeInfo(graphene.ObjectType):
+    """A microscope, as listed.
+
+    For its optical configurations' filters and spectra, query `microscope(id:)`.
+    """
+
+    # (the same types as on `Microscope`)
+    id = graphene.String(required=True)
+    name = graphene.String(required=True)
+    description = graphene.String(required=True)
+    opticalConfigs = graphene.List(graphene.NonNull(OpticalConfigInfo), required=True)
+
+    def resolve_opticalConfigs(self, info):
+        return self.optical_configs.all()
+
+
 class OpticalConfig(gdo.OptimizedDjangoObjectType):
     filters = graphene.List(FilterPlacement)
     microscope = graphene.Field(Microscope)
