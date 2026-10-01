@@ -451,6 +451,63 @@ def test_protein_table_page_loads(
     expect(page).to_have_url(url)
 
 
+def test_protein_table_sorting(live_server: LiveServer, page: Page) -> None:
+    """Sort direction, string order and missing-value placement of the protein table."""
+    # brightness = ext_coeff * qy / 1000. More than 10 rows, because react-table 8
+    # only samples rows past the 10th to pick the default sort function.
+    rows = [("mAlpha2", 20000, 0.5), ("mAlpha10", 40000, 0.5), ("Beta", 60000, 0.5)]
+    rows += [(f"zeta{i}", 1000 * i, 0.5) for i in range(1, 9)]
+    rows += [("gamma", 80000, None)]  # no brightness
+    for name, ext_coeff, qy in rows:
+        ProteinFactory.create(
+            name=name,
+            default_state__ext_coeff=ext_coeff,
+            default_state__qy=qy,
+            default_state__brightness=ext_coeff * qy / 1000 if qy else None,
+        )
+    zetas = [f"zeta{i}" for i in range(1, 9)]
+    page.goto(f"{live_server.url}{reverse('proteins:table')}")
+
+    table = page.locator("table")
+    names = table.locator("tbody tr td:first-child a")
+    header = table.locator("thead th")
+
+    # default: brightness descending, missing brightness last
+    by_brightness = ["Beta", "mAlpha10", "mAlpha2", *zetas[::-1], "gamma"]
+    expect(names).to_have_text(by_brightness)
+    # strings sort ascending first, case-insensitive with natural number order
+    header.filter(has_text="Name").click()
+    expect(names).to_have_text(["Beta", "gamma", "mAlpha2", "mAlpha10", *zetas])
+    header.filter(has_text="Name").click()
+    expect(names).to_have_text([*zetas[::-1], "mAlpha10", "mAlpha2", "gamma", "Beta"])
+    # numbers sort descending first; a missing value sorts as the lowest
+    header.filter(has_text="Brightness").click()
+    expect(names).to_have_text(by_brightness)
+    header.filter(has_text="Brightness").click()
+    expect(names).to_have_text(["gamma", *zetas, "mAlpha2", "mAlpha10", "Beta"])
+    # shift-click adds a secondary sort
+    sort_icons = table.locator(
+        "thead [data-testid='ArrowUpwardIcon'], thead [data-testid='ArrowDownwardIcon']"
+    )
+    expect(sort_icons).to_have_count(1)
+    header.filter(has_text="Name").click(modifiers=["Shift"])
+    expect(sort_icons).to_have_count(2)
+
+
+def test_protein_table_pagination(live_server: LiveServer, page: Page) -> None:
+    ProteinFactory.create_batch(12)
+    page.goto(f"{live_server.url}{reverse('proteins:table')}")
+    names = page.locator("table tbody tr td:first-child a")
+    expect(page.get_by_text("1\N{EN DASH}12 of 12")).to_be_visible()
+    page.get_by_role("combobox").filter(has_text="25").click()
+    page.get_by_role("option", name="10", exact=True).click()
+    expect(page.get_by_text("1\N{EN DASH}10 of 12")).to_be_visible()
+    expect(names).to_have_count(10)
+    page.locator("button:has([data-testid='ChevronRightIcon'])").click()
+    expect(page.get_by_text("11\N{EN DASH}12 of 12")).to_be_visible()
+    expect(names).to_have_count(2)
+
+
 def test_interactive_chart_page(
     live_server: LiveServer, page: Page, assert_snapshot: Callable
 ) -> None:
@@ -496,7 +553,7 @@ def test_interactive_chart_page(
     expect(chart_svg.locator(".y.axis.left")).to_be_visible()
 
     # Visual snapshot: chart with custom axes
-    if hasattr(assert_snapshot, "NOOP"):
+    if not hasattr(assert_snapshot, "NOOP"):
         page.wait_for_load_state("networkidle")
         assert_snapshot(page)
 
@@ -505,6 +562,41 @@ def test_interactive_chart_page(
     # Click Y-axis radio button for extinction coefficient
     # (Bootstrap 5 uses label with 'for' attribute)
     page.locator("label[for='Yext_coeff']").click()
+
+
+def test_interactive_chart_range_slider_filters(live_server: LiveServer, page: Page) -> None:
+    """Dragging a noUiSlider handle filters the plotted proteins."""
+    for name, ex_max in [("Prot1", 490), ("Prot2", 550)]:
+        ProteinFactory.create(
+            name=name,
+            default_state__ex_max=ex_max,
+            default_state__em_max=ex_max + 30,
+            default_state__ext_coeff=40000,
+            default_state__qy=0.5,
+        )
+    page.goto(f"{live_server.url}{reverse('proteins:ichart')}")
+    points = page.locator("#mainchart g.FP")
+    expect(points).to_have_count(2)
+
+    slider = page.locator("#ex_max")
+    tooltips = slider.locator(".noUi-tooltip")
+    expect(tooltips).to_have_text(["350", "800"])
+    # ext_coeff tooltips use the custom "k" formatter
+    expect(page.locator("#ext_coeff .noUi-tooltip")).to_have_text(["10k", "230k"])
+
+    # drag the lower ex_max handle to ~520 nm (range 350-800)
+    box = slider.bounding_box()
+    assert box
+    handle = slider.locator(".noUi-handle-lower")
+    handle.hover()
+    page.mouse.down()
+    page.mouse.move(box["x"] + box["width"] * (520 - 350) / 450, box["y"] + box["height"] / 2)
+    page.mouse.up()
+
+    lower = int(tooltips.first.inner_text())
+    assert 500 < lower < 540, lower
+    expect(points).to_have_count(1)
+    assert points.first.evaluate("el => el.__data__.name") == "Prot2"
 
 
 @pytest.mark.parametrize(
