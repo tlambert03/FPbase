@@ -22,7 +22,7 @@ class ProteinAutocomplete(autocomplete.Select2QuerySetView):
             Protein.objects.with_spectra()
             if self.request.GET.get("type", "") == "spectra"
             else Protein.objects.all()
-        )
+        ).visible()
         if self.q:
             qs = qs.filter(name__icontains=self.q)
         return qs
@@ -33,7 +33,8 @@ class LineageAutocomplete(autocomplete.Select2QuerySetView):
         # Don't forget to filter out results depending on the visitor !
         # if not self.request.user.is_authenticated:
         #     return State.objects.none()
-        qs = Lineage.objects.all().prefetch_related("protein").order_by("protein__name")
+        qs = Lineage.objects.exclude(protein__status="hidden")
+        qs = qs.prefetch_related("protein").order_by("protein__name")
         if self.q:
             qs = qs.filter(protein__name__icontains=self.q)
         return qs
@@ -44,7 +45,7 @@ class StateAutocomplete(autocomplete.Select2QuerySetView):
         # Don't forget to filter out results depending on the visitor !
         # if not self.request.user.is_authenticated:
         #     return State.objects.none()
-        qs = State.objects.all().order_by("protein__name")
+        qs = State.objects.exclude(protein__status="hidden").order_by("protein__name")
         if self.q:
             qs = qs.filter(protein__name__icontains=self.q)
         return qs

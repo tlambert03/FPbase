@@ -68,7 +68,7 @@ def ga_popular_proteins(
     """
     slug2name: dict[str, str] = {}
     uuid2slug: dict[str, str] = {}
-    for item in Protein.objects.all().values("slug", "name", "uuid"):
+    for item in Protein.visible.values("slug", "name", "uuid"):
         uuid2slug[item["uuid"]] = item["slug"]
         slug2name[item["slug"]] = item["name"]
     request = RunReportRequest(

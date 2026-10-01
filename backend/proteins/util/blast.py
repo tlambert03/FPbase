@@ -55,7 +55,7 @@ def write_fasta(fpath):
         with contextlib.suppress(Exception):
             # for some reason, first write usually throws an exception
             fd.write("")
-        fasta = Protein.objects.all().fasta()
+        fasta = Protein.objects.visible().fasta()
         fasta.seek(0)
         copyfileobj(fasta, fd)
         return fd.name

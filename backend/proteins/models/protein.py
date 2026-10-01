@@ -87,6 +87,10 @@ def ascii_name(name: str) -> str:
 
 
 class _ProteinQuerySet(models.QuerySet):
+    def visible(self):
+        """Without the hidden proteins (like the `Protein.visible` manager)."""
+        return self.exclude(status="hidden")
+
     def fasta(self):
         seqs = list(self.exclude(seq__isnull=True).values("uuid", "name", "seq"))
         for s in seqs:
@@ -113,6 +117,9 @@ class _ProteinManager[T: models.Model](models.Manager):
 
     def get_queryset(self):
         return _ProteinQuerySet(self.model, using=self._db)
+
+    def visible(self):
+        return self.get_queryset().visible()
 
     def with_spectra(self, twoponly=False):
         qs = self.get_queryset().filter(states__spectra__isnull=False).distinct()
@@ -499,6 +506,12 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
 
     def is_visible(self):
         return self.status != "hidden"
+
+    def is_visible_to(self, user) -> bool:
+        """Whether `user` may see this protein: a hidden one is for its creator and staff."""
+        if self.is_visible():
+            return True
+        return user.is_authenticated and (user.is_staff or user.id == self.created_by_id)
 
     def img_url(self):
         if self.has_spectra():

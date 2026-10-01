@@ -28,8 +28,8 @@ def remember_cwd():
 def create_slug_dict():
     from proteins.models import Protein
 
-    slugs = OrderedDict(Protein.objects.all().values_list("name", "slug"))
-    for item in Protein.objects.exclude(aliases=[]).values_list("aliases", "slug"):
+    slugs = OrderedDict(Protein.visible.values_list("name", "slug"))
+    for item in Protein.visible.exclude(aliases=[]).values_list("aliases", "slug"):
         if item[0]:
             for alias in item[0]:
                 slugs.update({alias: item[1]})
@@ -66,11 +66,13 @@ def most_favorited(max_results=20):
     qs = Favorite.objects.for_model(Protein)
     fave_counts = Counter(qs.values_list("target_object_id", flat=True))
     fave_items = dict(fave_counts.most_common(max_results))
-    qs = Protein.objects.filter(id__in=fave_items.keys()).values("id", "name", "slug")
+    qs = Protein.visible.filter(id__in=fave_items.keys()).values("id", "name", "slug")
     D = {q.pop("id"): q for q in qs}
 
     od = OrderedDict()
     for prot_id, count in fave_items.items():
+        if prot_id not in D:  # (hidden, or deleted)
+            continue
         od[prot_id] = D[prot_id]
         od[prot_id]["count"] = count
     return od
@@ -333,6 +335,7 @@ def forster_list():
     # Fetch protein IDs first to reduce memory
     protein_ids = list(
         Protein.objects.with_spectra()
+        .visible()
         .filter(agg=Protein.AggChoices.MONOMER, switch_type=Protein.SwitchingChoices.BASIC)
         .values_list("id", flat=True)
     )

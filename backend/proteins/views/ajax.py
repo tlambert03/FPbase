@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
 from django.db.models import Prefetch
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
@@ -25,7 +26,7 @@ def serialize_comparison(request):
     info = []
     slugs = request.session.get("comparison", [])
     # Prefetch states and their spectra to avoid N+1 queries
-    proteins = Protein.objects.filter(slug__in=slugs).prefetch_related(
+    proteins = Protein.visible.filter(slug__in=slugs).prefetch_related(
         "default_state", "states__spectra"
     )
     for prot in proteins:
@@ -259,24 +260,26 @@ def recursive_node_to_dict(node, widths=None, rootseq=None, validate=False):
 
 @cache_page(60 * 5)
 def get_lineage(request, slug=None, org=None):
+    # (a hidden protein is left out of the tree: its descendants become roots)
+    lineages = Lineage.objects.exclude(protein__status="hidden")
     if org:
-        _ids = list(Lineage.objects.filter(protein__parent_organism=org, parent=None))
+        _ids = list(lineages.filter(protein__parent_organism=org, parent=None))
         ids = []
         for item in _ids:
             ids.extend([i.pk for i in item.get_family()])
         if not ids:
             return JsonResponse({})
     elif slug:
-        item = Lineage.objects.get(protein__slug=slug)
+        item = get_object_or_404(lineages, protein__slug=slug)
         ids = item.get_family()
     else:
-        ids = Lineage.objects.all().values_list("id", flat=True)
+        ids = lineages.values_list("id", flat=True)
     # cache upfront everything we're going to need
     stateprefetch = Prefetch(
         "protein__states", queryset=State.objects.order_by("-is_dark", "em_max")
     )
     root_nodes = (
-        Lineage.objects.filter(id__in=ids)
+        lineages.filter(id__in=ids)
         .select_related("protein", "reference", "protein__default_state")
         .prefetch_related(stateprefetch)
         .get_cached_trees()
