@@ -4,23 +4,17 @@ from contextlib import suppress
 
 from django.conf import settings
 from django.core.cache import cache
-from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import (
-    DateRange,
-    Dimension,
-    Filter,
-    FilterExpression,
-    Metric,
-    RunReportRequest,
-)
+from google.auth.transport.requests import AuthorizedSession
 from google.oauth2.service_account import Credentials
 
 from proteins.models import Protein
 
 PROPERTY_ID = "255212585"
+# REST endpoint of the GA4 Data API (the google-analytics-data SDK pulls in grpc/protobuf)
+RUN_REPORT_URL = f"https://analyticsdata.googleapis.com/v1beta/properties/{PROPERTY_ID}:runReport"
 
 
-def get_client() -> "BetaAnalyticsDataClient":
+def get_client() -> AuthorizedSession:
     """Get a service that communicates to a Google API."""
 
     keyfile_dict = {
@@ -41,7 +35,14 @@ def get_client() -> "BetaAnalyticsDataClient":
     }
     scopes = ["https://www.googleapis.com/auth/analytics.readonly"]
     credentials = Credentials.from_service_account_info(keyfile_dict, scopes=scopes)
-    return BetaAnalyticsDataClient(credentials=credentials)
+    return AuthorizedSession(credentials)
+
+
+def run_report(client: AuthorizedSession, request: dict) -> list[dict]:
+    """Run a GA4 report, returning its rows (`{"dimensionValues": [...], ...}` dicts)."""
+    response = client.post(RUN_REPORT_URL, json=request, timeout=30)
+    response.raise_for_status()
+    return response.json().get("rows", [])  # "rows" is omitted when there are none
 
 
 def cached_ga_popular(max_age=60 * 60 * 24):
@@ -58,9 +59,7 @@ def cached_ga_popular(max_age=60 * 60 * 24):
     return results
 
 
-def ga_popular_proteins(
-    client: BetaAnalyticsDataClient, days: int = 30
-) -> list[tuple[str, str, float]]:
+def ga_popular_proteins(client: AuthorizedSession, days: int = 30) -> list[tuple[str, str, float]]:
     """Return a list of proteins with their page views in the last `days` days.
 
     Returns a list of tuples, each containing: `(protein slug, protein name, view percentage)`
@@ -71,34 +70,32 @@ def ga_popular_proteins(
     for item in Protein.visible.values("slug", "name", "uuid"):
         uuid2slug[item["uuid"]] = item["slug"]
         slug2name[item["slug"]] = item["name"]
-    request = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
-        date_ranges=[DateRange(start_date=f"{days}daysAgo", end_date="today")],
-        dimensions=[Dimension(name="pagePath"), Dimension(name="pageTitle")],
-        metrics=[Metric(name="screenPageViews")],
-        dimension_filter=FilterExpression(
-            filter=Filter(
-                field_name="pagePath",
-                string_filter=Filter.StringFilter(
-                    match_type=Filter.StringFilter.MatchType.FULL_REGEXP,
-                    value=r"^/protein/[^/]+/$",
-                    case_sensitive=False,
-                ),
-            )
-        ),
-    )
-    response = client.run_report(request)
+    request = {
+        "dateRanges": [{"startDate": f"{days}daysAgo", "endDate": "today"}],
+        "dimensions": [{"name": "pagePath"}, {"name": "pageTitle"}],
+        "metrics": [{"name": "screenPageViews"}],
+        "dimensionFilter": {
+            "filter": {
+                "fieldName": "pagePath",
+                "stringFilter": {
+                    "matchType": "FULL_REGEXP",
+                    "value": r"^/protein/[^/]+/$",
+                    "caseSensitive": False,
+                },
+            }
+        },
+    }
 
     slug2count: dict[str, int] = {}
-    for row in response.rows:
+    for row in run_report(client, request):
         with suppress(Exception):
-            page_title = row.dimension_values[1].value
+            page_title = row["dimensionValues"][1]["value"]
             if "not found" in page_title.lower():
                 continue
-            slug = row.dimension_values[0].value.replace("/protein/", "").split("/")[0]
+            slug = row["dimensionValues"][0]["value"].replace("/protein/", "").split("/")[0]
             slug = uuid2slug.get(slug, slug)
             count = slug2count.setdefault(slug, 0)
-            slug2count[slug] = count + int(row.metric_values[0].value)
+            slug2count[slug] = count + int(row["metricValues"][0]["value"])
 
     total_views = sum(slug2count.values())
     with_percent = sorted(
@@ -121,30 +118,27 @@ def cached_ga_spectra_views(max_age=60 * 60 * 24) -> dict[int, int]:
     return results
 
 
-def ga_spectra_views(client: BetaAnalyticsDataClient, days: int = 365) -> dict[int, int]:
+def ga_spectra_views(client: AuthorizedSession, days: int = 365) -> dict[int, int]:
     """Return spectra viewer page views per spectrum ID in the last `days` days.
 
     Counts views of `/spectra/?s=<id>,<id>,...` URLs (typically shared links), crediting
     every spectrum ID in the URL.
     """
-    request = RunReportRequest(
-        property=f"properties/{PROPERTY_ID}",
-        date_ranges=[DateRange(start_date=f"{days}daysAgo", end_date="today")],
-        dimensions=[Dimension(name="pagePathPlusQueryString")],
-        metrics=[Metric(name="screenPageViews")],
-        dimension_filter=FilterExpression(
-            filter=Filter(
-                field_name="pagePathPlusQueryString",
-                string_filter=Filter.StringFilter(
-                    match_type=Filter.StringFilter.MatchType.BEGINS_WITH, value="/spectra/?"
-                ),
-            )
-        ),
-        limit=100_000,
-    )
+    request = {
+        "dateRanges": [{"startDate": f"{days}daysAgo", "endDate": "today"}],
+        "dimensions": [{"name": "pagePathPlusQueryString"}],
+        "metrics": [{"name": "screenPageViews"}],
+        "dimensionFilter": {
+            "filter": {
+                "fieldName": "pagePathPlusQueryString",
+                "stringFilter": {"matchType": "BEGINS_WITH", "value": "/spectra/?"},
+            }
+        },
+        "limit": 100_000,
+    }
     views: Counter[int] = Counter()
-    for row in client.run_report(request).rows:
-        if match := re.search(r"[?&]s=([^&]*)", row.dimension_values[0].value):
+    for row in run_report(client, request):
+        if match := re.search(r"[?&]s=([^&]*)", row["dimensionValues"][0]["value"]):
             for spectrum_id in {int(x) for x in match.group(1).split(",") if x.isdigit()}:
-                views[spectrum_id] += int(row.metric_values[0].value)
+                views[spectrum_id] += int(row["metricValues"][0]["value"])
     return dict(views)
