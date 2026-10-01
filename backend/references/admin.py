@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import reverse
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html_join
 from reversion_compare.admin import CompareVersionAdmin
 
 from proteins.models import Excerpt, Protein
@@ -17,27 +17,23 @@ class AuthorAdmin(admin.ModelAdmin):
     ordering = ("family",)
 
     def num_refs(self, obj):
-        return mark_safe(obj.publications.all().count())
+        return obj.publications.all().count()
 
     @admin.display(description="References")
     def ref_links(self, obj):
         refs = obj.publications.all()
-        links = []
-        for ref in refs:
-            url = reverse("admin:references_reference_change", args=(ref.pk,))
-            link = f'<a href="{url}">{ref}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:references_reference_change", args=(ref.pk,)), ref) for ref in refs
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     @admin.display(description="Proteins")
     def protein_links(self, obj):
         proteins = obj.protein_contributions
-        links = []
-        for prot in proteins:
-            url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = f'<a href="{url}">{prot}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_protein_change", args=(prot.pk,)), prot) for prot in proteins
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related("publications")
@@ -133,42 +129,36 @@ class ReferenceAdmin(CompareVersionAdmin):
     @admin.display(description="Authors")
     def author_links(self, obj):
         authors = obj.authors.all()
-        links = []
-        for author in authors:
-            url = reverse("admin:references_author_change", args=(author.pk,))
-            link = f'<a href="{url}">{author}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:references_author_change", args=(author.pk,)), author)
+            for author in authors
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     @admin.display(description="Primary Proteins")
     def protein_links(self, obj):
         proteins = obj.primary_proteins.all()
-        links = []
-        for prot in proteins:
-            url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = f'<a href="{url}">{prot}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_protein_change", args=(prot.pk,)), prot) for prot in proteins
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     @admin.display(description="Secondary Proteins")
     def secondary_proteins(self, obj):
         primary = obj.primary_proteins.all()
         proteins = obj.proteins.exclude(id__in=primary)
-        links = []
-        for prot in proteins:
-            url = reverse("admin:proteins_protein_change", args=(prot.pk,))
-            link = f'<a href="{url}">{prot}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_protein_change", args=(prot.pk,)), prot) for prot in proteins
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
-        links = []
-        for bm in obj.bleach_measurements.all():
-            url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = f'<a href="{url}">{bm}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,)), bm)
+            for bm in obj.bleach_measurements.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     def save_model(self, request, obj, form, change):
         if not obj.created_by:

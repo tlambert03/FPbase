@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.db.models import Count, Exists, OuterRef
 from django.urls import reverse
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 
 from fpbase.users.models import User
 
@@ -68,8 +68,7 @@ class MyUserAdmin(AuthUserAdmin):
         return ""
 
     def avatar(self, obj):
-        url = f'<img src="{avatar_url(obj)}" />'
-        return mark_safe(url)
+        return format_html('<img src="{}" />', avatar_url(obj))
 
     @admin.display(boolean=True)
     def verified(self, obj):
@@ -77,21 +76,19 @@ class MyUserAdmin(AuthUserAdmin):
 
     @admin.display(description="microscopes")
     def microscopes(self, obj):
-        def _makelink(m):
-            url = reverse("admin:proteins_microscope_change", args=(m.pk,))
-            return f'<a href="{url}">{m.name}</a>'
-
-        links = [_makelink(m) for m in obj.microscopes.all()]
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_microscope_change", args=(m.pk,)), m.name)
+            for m in obj.microscopes.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     @admin.display(description="collections")
     def collections(self, obj):
-        def _makelink(m):
-            url = reverse("proteins:collection-detail", args=(m.pk,))
-            return f'<a href="{url}">{m.name}</a>'
-
-        links = [_makelink(m) for m in obj.proteincollections.all()]
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("proteins:collection-detail", args=(m.pk,)), m.name)
+            for m in obj.proteincollections.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     def social(self, obj):
         return ", ".join([q.provider.title() for q in obj.socialaccount_set.all()])
