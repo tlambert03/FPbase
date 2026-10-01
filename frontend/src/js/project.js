@@ -220,6 +220,7 @@ $(() => {
       .then((d) => {
         populate_comparison_tab(d.comparison_set)
       })
+      .catch(() => {}) // (fetchWithSentry reports what is worth reporting)
   }
 })
 
