@@ -160,7 +160,7 @@ def test_spectrum_submission_preview_manual_data(
 
     svg = auth_page.locator("#spectrum-preview-chart svg")
     expect(svg).to_be_visible()
-    expect(svg.locator("[id^='FillBetweenPolyCollection']")).to_have_count(1)
+    expect(svg.locator("path.spectrum")).to_have_count(1)
 
     # Visual snapshot: preview chart displayed
     if not hasattr(assert_snapshot, "NOOP"):
@@ -275,7 +275,7 @@ def test_spectra_img_pdf_download(live_server: LiveServer, page: Page) -> None:
 
 
 def test_spectra_img_with_kwargs(live_server: LiveServer, page: Page) -> None:
-    """Test spectrum image generation with matplotlib kwargs."""
+    """Test spectrum image generation with URL options."""
     protein = ProteinFactory.create()
     base_url = reverse("proteins:spectra-img", args=(protein.slug, ".svg"))
     url = f"{live_server.url}{base_url}?xlim=350,700&alpha=0.2&grid=true"

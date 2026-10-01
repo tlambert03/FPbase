@@ -33,7 +33,8 @@ from proteins.models.collection import ProteinCollection
 from proteins.models.fluorophore import FluorState, primary_reference_changed
 from proteins.models.mixins import Authorable
 from proteins.models.spectrum import Spectrum
-from proteins.util.helpers import get_base_name, get_color_group, mless, spectra_fig
+from proteins.util.helpers import get_base_name, get_color_group, mless
+from proteins.util.spectra_plot import spectra_fig
 from proteins.validators import validate_no_angle_brackets, validate_uniprot
 from references.models import Reference
 

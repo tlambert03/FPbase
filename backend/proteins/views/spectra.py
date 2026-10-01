@@ -308,7 +308,7 @@ def spectrum_preview(request) -> JsonResponse:
                 status=400,
             )
 
-        # Generate SVG image using existing matplotlib renderer
+        # Generate SVG preview image
         try:
             logger.debug("Generating SVG image...")
             # Use custom parameters for preview: Y-axis labels, proper sizing for web display
