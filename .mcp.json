@@ -35,6 +35,21 @@
                 "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/analytics-mcp-service-account.json",
                 "GOOGLE_PROJECT_ID": "fp-base"
             }
+        },
+        "axiom": {
+            "type": "http",
+            "url": "https://mcp.axiom.co/mcp",
+            "headers": {
+                "Authorization": "Bearer ${AXIOM_TOKEN}",
+                "x-axiom-org-id": "${AXIOM_ORG_ID}"
+            }
+        },
+        "cloudflare": {
+            "type": "http",
+            "url": "https://mcp.cloudflare.com/mcp",
+            "headers": {
+                "Authorization": "Bearer ${CLOUDFLARE_API_TOKEN}"
+            }
         }
     }
 }
