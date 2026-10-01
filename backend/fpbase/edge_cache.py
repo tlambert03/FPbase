@@ -11,7 +11,8 @@ from django.core.cache import cache
 
 from fpbase.tasks import purge_edge_cache
 
-EDGE_MAX_AGE = 60 * 60
+# (a change purges sooner; see also `manage.py invalidate_api_cache`, run on every deploy)
+EDGE_MAX_AGE = 24 * 60 * 60
 BROWSER_MAX_AGE = 60
 # changes committed within this many seconds share one purge (Cloudflare allows 5/min)
 PURGE_DELAY = 10

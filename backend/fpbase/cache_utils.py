@@ -60,9 +60,10 @@ def invalidate_model_version(model_class: type[Model]) -> None:
 
 
 DATA_VERSION_KEY = "data_version"
-# Upper bound on how long a write that sends no signal (`queryset.update()`, raw SQL,
-# a data migration) can go unnoticed by caches keyed on the data version.
-DATA_CACHE_TTL = 60 * 60
+# Upper bound on how long a write that sends no signal (`queryset.update()`, raw SQL)
+# can go unnoticed by caches keyed on the data version.  (Data migrations are covered:
+# `manage.py invalidate_api_cache` runs on every deploy.)
+DATA_CACHE_TTL = 24 * 60 * 60
 
 
 def get_data_version() -> str:

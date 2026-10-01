@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import json
+from io import StringIO
 from unittest import mock
 
 import pytest
 from django.core.cache import cache
+from django.core.management import call_command
 
 from fpbase import edge_cache
 from fpbase.tasks import purge_edge_cache
 from proteins.factories import ProteinFactory
+from proteins.models import Protein
 
 pytestmark = pytest.mark.django_db
 
@@ -44,7 +47,7 @@ def test_off_until_configured(client, apply_async):
 @pytest.mark.usefixtures("enabled")
 def test_cdn_headers(client):
     ProteinFactory(name="Cached")
-    expected = "public, max-age=60, s-maxage=3600"
+    expected = "public, max-age=60, s-maxage=86400"
     assert client.get("/api/proteins/?format=json")["Cache-Control"] == expected
     assert client.get("/api/proteins/cached/?format=json")["Cache-Control"] == expected
 
@@ -92,3 +95,20 @@ def test_purge_request():
         headers={"Authorization": "Bearer secret"},
         timeout=10,
     )
+
+
+@pytest.mark.usefixtures("enabled")
+def test_invalidate_api_cache_command(client, apply_async):
+    ProteinFactory(name="Stale")
+    url = "/api/proteins/?format=json&fields=name"
+    assert client.get(url).json() == [{"name": "Stale"}]
+    Protein.objects.update(name="Fresh")  # (no signal: the cache cannot know)
+    assert client.get(url).json() == [{"name": "Stale"}]
+    apply_async.reset_mock()
+    cache.delete(edge_cache.PURGE_PENDING_KEY)  # (the purge for the factory's save ran)
+
+    out = StringIO()
+    call_command("invalidate_api_cache", stdout=out)
+    assert "purge is queued" in out.getvalue()
+    apply_async.assert_called_once()
+    assert client.get(url).json() == [{"name": "Fresh"}]
