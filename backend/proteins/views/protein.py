@@ -56,6 +56,7 @@ from proteins.models import (
     Protein,
     Spectrum,
     State,
+    StateTransition,
 )
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
@@ -145,8 +146,21 @@ class ProteinDetailView(DetailView):
             "states",
             "excerpts__reference",
             "oser_measurements__reference",
+            Prefetch(
+                "transitions",
+                queryset=StateTransition.objects.select_related("from_state", "to_state"),
+            ),
+            Prefetch(
+                "states__bleach_measurements",
+                queryset=BleachMeasurement.objects.select_related("reference"),
+            ),
         )
-        .select_related("primary_reference")
+        .select_related(
+            "primary_reference",
+            "parent_organism",
+            "lineage__parent__protein",
+            "lineage__root_node__protein",
+        )
     )
 
     def dispatch(self, request, *args, **kwargs):
@@ -248,6 +262,12 @@ class ProteinDetailView(DetailView):
 
         data["spectra_ids"] = ",".join([str(sp.id) for sp in spectra])
         data["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
+
+        # Reuse these results for the template's presence checks and table rendering.
+        data["additional_references"] = list(self.object.additional_references)
+        data["has_bleach_measurements"] = any(
+            state.bleach_measurements.all() for state in self.object.states.all()
+        )
 
         # put links in excerpts
         data["excerpts"] = link_excerpts(
