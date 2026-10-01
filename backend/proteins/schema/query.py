@@ -14,7 +14,8 @@ from proteins.schema import relay, types
 def get_spectrum(id):
     # (not cached here: the GraphQL view caches whole responses)
     return (
-        models.Spectrum.objects.filter(id=id)
+        models.Spectrum.objects.public()
+        .filter(id=id)
         .select_related("owner_fluor", "owner_camera", "owner_filter", "owner_light")
         .first()
     )
@@ -32,7 +33,7 @@ class Query(graphene.ObjectType):
 
     def resolve_all_proteins(self, info, **kwargs):
         # (a connection is not optimized automatically, unlike a list of proteins)
-        return gdo.query(models.Protein.objects.all(), info)
+        return gdo.query(models.Protein.visible.all(), info)
 
     # (the list types leave out filters and spectra: see types.MicroscopeInfo)
     microscopes = graphene.List(types.MicroscopeInfo)
@@ -74,7 +75,7 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_proteins(self, info, **kwargs):
-        return gdo.query(models.Protein.objects.all(), info)
+        return gdo.query(models.Protein.visible.all(), info)
 
     def resolve_protein(self, info, **kwargs):
         # by FPbase ID, slug, or name (or alias): whichever the client has
@@ -91,7 +92,7 @@ class Query(graphene.ObjectType):
             lookup = Q(id__in=ids[:1])
         else:
             return None
-        return gdo.query(models.Protein.objects.filter(lookup), info).first()
+        return gdo.query(models.Protein.visible.filter(lookup), info).first()
 
     # spectra = graphene.List(Spectrum)
     spectra = graphene.List(
@@ -112,9 +113,9 @@ class Query(graphene.ObjectType):
             # Use the optimized get_spectra_list function (no caching for GraphQL)
             return get_spectra_list(**fkwargs)
         elif fkwargs:
-            return models.Spectrum.objects.filter(**fkwargs).values(*requested_fields)
+            return models.Spectrum.objects.public().filter(**fkwargs).values(*requested_fields)
         else:
-            return models.Spectrum.objects.all().values(*requested_fields)
+            return models.Spectrum.objects.public().values(*requested_fields)
 
     def resolve_spectrum(self, info, **kwargs):
         _id = kwargs.get("id")
@@ -129,11 +130,13 @@ class Query(graphene.ObjectType):
     def resolve_states(self, info, **kwargs):
         # (ordered: states have no ordering of their own, and an optimized query
         # returns them in another order than the plain one did)
-        return gdo.query(models.State.objects.order_by("id"), info)
+        states = models.State.objects.exclude(protein__status="hidden")
+        return gdo.query(states.order_by("id"), info)
 
     def resolve_state(self, info, **kwargs):
         _id = kwargs.get("id")
-        return models.State.objects.get(id=_id) if _id is not None else None
+        states = models.State.objects.exclude(protein__status="hidden")
+        return states.get(id=_id) if _id is not None else None
 
     opticalConfigs = graphene.List(types.OpticalConfigInfo)
     opticalConfig = graphene.Field(types.OpticalConfig, id=graphene.Int())

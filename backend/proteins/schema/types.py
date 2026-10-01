@@ -7,6 +7,7 @@ from graphene_django.types import DjangoObjectType
 from graphene_django.utils import bypass_get_queryset
 
 from proteins import models
+from proteins.visibility import hidden_ids
 from references.schema import Reference
 
 
@@ -49,7 +50,8 @@ class Organism(gdo.OptimizedDjangoObjectType):
 
     @gdo.resolver_hints(model_field="proteins")
     def resolve_proteins(self, info):
-        return self.proteins.all()
+        hidden = hidden_ids(info.context).proteins
+        return [protein for protein in self.proteins.all() if protein.id not in hidden]
 
 
 class OSERMeasurement(gdo.OptimizedDjangoObjectType):
