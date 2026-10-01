@@ -222,11 +222,15 @@ def spectrum_submitted_v2(request):
 def spectra_csv(request):
     try:
         idlist = [int(x) for x in request.GET.get("q", "").split(",") if x]
-        spectralist = Spectrum.objects.filter(id__in=idlist).select_related(
-            "owner_fluor",
-            "owner_filter",
-            "owner_light",
-            "owner_camera",
+        spectralist = (
+            Spectrum.objects.public()
+            .filter(id__in=idlist)
+            .select_related(
+                "owner_fluor",
+                "owner_filter",
+                "owner_light",
+                "owner_camera",
+            )
         )
         if spectralist:
             return spectra2csv(spectralist)

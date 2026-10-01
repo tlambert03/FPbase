@@ -127,6 +127,14 @@ class _RollBackRevisionView(Exception):
         self.response = response
 
 
+def _get_protein_or_404(request, slug: str, queryset=Protein.objects) -> Protein:
+    """The protein with this slug, unless it is hidden from the requesting user."""
+    protein = get_object_or_404(queryset, slug=slug)
+    if not protein.is_visible_to(request.user):
+        raise Http404("No protein found matching this query")
+    return protein
+
+
 class ProteinDetailView(DetailView):
     """renders html for single protein page"""
 
@@ -176,11 +184,7 @@ class ProteinDetailView(DetailView):
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
             except Protein.DoesNotExist as e:
                 raise Http404("No protein found matching this query") from e
-        if (
-            obj.status == "hidden"
-            and obj.created_by != self.request.user
-            and not self.request.user.is_staff
-        ):
+        if not obj.is_visible_to(self.request.user):
             raise Http404("No protein found matching this query")
         return obj
 
@@ -215,9 +219,9 @@ class ProteinDetailView(DetailView):
                 function="replace",
                 output_field=ArrayField(models.CharField(max_length=200)),
             )
-            d = dict(Protein.objects.annotate(aka=final).values_list("aka", "id"))
+            d = dict(Protein.visible.annotate(aka=final).values_list("aka", "id"))
             if name in d:
-                obj = Protein.objects.get(id=d[name])
+                obj = Protein.visible.get(id=d[name])
                 messages.add_message(
                     self.request,
                     messages.INFO,
@@ -418,11 +422,7 @@ class ProteinUpdateView(ProteinCreateUpdateMixin, UpdateView):
                 obj = queryset.get(uuid=self.kwargs.get("slug", "").upper())
             except Protein.DoesNotExist as e:
                 raise Http404("No protein found matching this query") from e
-        if (
-            obj.status == "hidden"
-            and obj.created_by != self.request.user
-            and not self.request.user.is_staff
-        ):
+        if not obj.is_visible_to(self.request.user):
             raise Http404("No protein found matching this query")
         return obj
 
@@ -474,7 +474,7 @@ class ActivityView(ListView):
 
 @cache_page(60 * 120)
 def spectra_image(request, slug, **kwargs):
-    protein = get_object_or_404(Protein.objects.select_related("default_state"), slug=slug)
+    protein = _get_protein_or_404(request, slug, Protein.objects.select_related("default_state"))
     try:
         d = {}
         for k, v in request.GET.dict().items():
@@ -523,7 +523,8 @@ class ComparisonView(base.TemplateView):
             ids = kwargs.get("proteins", "").split(",")
             p = Case(*[When(slug=slug, then=pos) for pos, slug in enumerate(ids)])
             prots = (
-                Protein.objects.filter(slug__in=ids)
+                Protein.objects.visible()
+                .filter(slug__in=ids)
                 .prefetch_related("states__spectra")
                 .order_by(p)
             )
@@ -531,7 +532,8 @@ class ComparisonView(base.TemplateView):
             # try to use chronological order
             ids = self.request.session.get("comparison", [])
             prots = (
-                Protein.objects.filter(slug__in=ids)
+                Protein.objects.visible()
+                .filter(slug__in=ids)
                 .prefetch_related("states__spectra")
                 .order_by("primary_reference__year")
             )
@@ -585,16 +587,16 @@ def problems_gaps(request):
         request,
         "problems_gaps.html",
         {
-            "noseqs": Protein.objects.filter(seq__isnull=True).values("name", "slug"),
-            "nostates": Protein.objects.filter(states=None).values("name", "slug"),
-            "noparent": Protein.objects.filter(parent_organism__isnull=True),
+            "noseqs": Protein.visible.filter(seq__isnull=True).values("name", "slug"),
+            "nostates": Protein.visible.filter(states=None).values("name", "slug"),
+            "noparent": Protein.visible.filter(parent_organism__isnull=True),
             "only2p": (
                 State.objects.filter(spectra__subtype="2p")
                 .exclude(spectra__subtype="ex")
                 .distinct("protein")
                 .values("protein__name", "protein__slug")
             ),
-            "nolineage": Protein.objects.filter(lineage=None)
+            "nolineage": Protein.visible.filter(lineage=None)
             .annotate(ns=Count("states__spectra"))
             .order_by("-ns"),
             "request": request,
@@ -614,13 +616,13 @@ def problems_inconsistencies(request):
         operator.or_,
         (Q(name__startswith=item) for item in ["PA", "rs", "mPA", "PS", "mPS"]),
     )
-    switchers = Protein.objects.exclude(name__startswith="mCerulean").filter(titles)
-    switchers = switchers | Protein.objects.filter(names)
+    switchers = Protein.visible.exclude(name__startswith="mCerulean").filter(titles)
+    switchers = switchers | Protein.visible.filter(names)
     switchers = switchers.annotate(ns=Count("states")).filter(ns=1)
 
     gb_mismatch = []
     with_genbank = (
-        Protein.objects.exclude(genbank=None)
+        Protein.visible.exclude(genbank=None)
         .exclude(seq=None)
         .values("slug", "name", "genbank", "seq")
     )
@@ -640,7 +642,7 @@ def problems_inconsistencies(request):
                     )
                 )
     p = list(
-        Protein.objects.annotate(ndark=Count("states", filter=Q(states__is_dark=True)))
+        Protein.visible.annotate(ndark=Count("states", filter=Q(states__is_dark=True)))
         .annotate(nfrom=Count("transitions__from_state", distinct=True))
         .prefetch_related("states", "transitions")
     )
@@ -654,9 +656,13 @@ def problems_inconsistencies(request):
         request,
         "problems_inconsistencies.html",
         {
-            "histags": Protein.objects.filter(seq__icontains="HHHHH").values("name", "slug"),
-            "linprobs": [(node.protein, v) for node, v in check_lineages()[0].items()],
-            "nomet": Protein.objects.exclude(seq__isnull=True).exclude(seq__istartswith="M"),
+            "histags": Protein.visible.filter(seq__icontains="HHHHH").values("name", "slug"),
+            "linprobs": [
+                (node.protein, v)
+                for node, v in check_lineages()[0].items()
+                if node.protein.is_visible()
+            ],
+            "nomet": Protein.visible.exclude(seq__isnull=True).exclude(seq__istartswith="M"),
             "bad_switch": bad_switch,
             "switchers": switchers,
             "request": request,
@@ -810,7 +816,7 @@ def protein_bleach_formsets(request, slug):
     BleachMeasurementFormSet = modelformset_factory(
         BleachMeasurement, BleachMeasurementForm, extra=1, can_delete=True
     )
-    protein = get_object_or_404(Protein, slug=slug)
+    protein = _get_protein_or_404(request, slug)
     qs = BleachMeasurement.objects.filter(state__protein=protein)
     if request.method == "POST":
         formset = BleachMeasurementFormSet(request.POST, queryset=qs)
@@ -891,13 +897,15 @@ class OrganismListView(ListView):
 class OrganismDetailView(DetailView):
     """renders html for single reference page"""
 
-    queryset = Organism.objects.all().prefetch_related("proteins__states")
+    queryset = Organism.objects.all().prefetch_related(
+        Prefetch("proteins", queryset=Protein.visible.prefetch_related("states"))
+    )
 
 
 def spectra_csv(request):
     try:
         idlist = [int(x) for x in request.GET.get("q", "").split(",") if x]
-        spectralist = Spectrum.objects.filter(id__in=idlist)
+        spectralist = Spectrum.objects.public().filter(id__in=idlist)
         if spectralist:
             return spectra2csv(spectralist)
     except Exception:
@@ -945,7 +953,7 @@ def flag_object(request):
 
 
 def protein_history(request, slug):
-    protein = get_object_or_404(Protein, slug=slug)
+    protein = _get_protein_or_404(request, slug)
     return render(
         request,
         "history.html",

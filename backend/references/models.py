@@ -52,7 +52,8 @@ class Author(TimeStampedModel):
 
     @property
     def protein_contributions(self):
-        return {p for ref in self.publications.all() for p in ref.primary_proteins.all()}
+        proteins = (p for ref in self.publications.all() for p in ref.primary_proteins.all())
+        return {p for p in proteins if p.is_visible()}
 
     @property
     def first_authorships(self):
@@ -166,7 +167,8 @@ class Reference(TimeStampedModel):
 
     @property
     def protein_secondary_reference(self):
-        return self.proteins.exclude(id__in=self.primary_proteins.all())
+        proteins = self.proteins.exclude(status="hidden")
+        return proteins.exclude(id__in=self.primary_proteins.all())
 
     def get_citation(self, authorlist):
         try:

@@ -181,7 +181,7 @@ class SpectrumManager(models.Manager):
         qs = self.none()
         A = ("owner_fluor", "owner_filter", "owner_light", "owner_camera")
         for ownerclass in A:
-            qs = qs | self.get_queryset().filter(**{ownerclass + "__slug": slug})
+            qs = qs | self.public().filter(**{ownerclass + "__slug": slug})
         return qs
 
     def find_similar_owners(self, query, threshold=0.4):

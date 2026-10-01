@@ -70,7 +70,7 @@ class CollectionDetail(DetailView):
     queryset = ProteinCollection.objects.all().prefetch_related(
         Prefetch(
             "proteins",
-            queryset=Protein.objects.prefetch_related(
+            queryset=Protein.visible.prefetch_related(
                 Prefetch(
                     "states",
                     queryset=State.objects.prefetch_related(

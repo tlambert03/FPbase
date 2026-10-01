@@ -2,13 +2,14 @@ import reversion
 from dal import autocomplete
 from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
+from django.db.models import Prefetch
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 
 from fpbase.util import is_ajax
-from proteins.models import Excerpt
+from proteins.models import BleachMeasurement, Excerpt, OSERMeasurement, Protein
 from proteins.util.helpers import link_excerpts
 from references.models import Author, Reference
 
@@ -17,20 +18,38 @@ class AuthorDetailView(DetailView):
     """renders html for single author page"""
 
     queryset = Author.objects.all().prefetch_related(
-        "publications", "publications__authors", "publications__primary_proteins"
+        "publications",
+        "publications__authors",
+        Prefetch("publications__primary_proteins", queryset=Protein.visible.all()),
     )
 
 
 class ReferenceListView(ListView):
     """renders html for single reference page"""
 
-    queryset = Reference.objects.all().prefetch_related("authors", "proteins", "primary_proteins")
+    queryset = Reference.objects.all().prefetch_related(
+        "authors",
+        Prefetch("proteins", queryset=Protein.visible.all()),
+        Prefetch("primary_proteins", queryset=Protein.visible.all()),
+    )
 
 
 class ReferenceDetailView(DetailView):
     """renders html for single reference page"""
 
-    queryset = Reference.objects.all().prefetch_related("authors")
+    # (the template lists these relations: not what belongs to a hidden protein)
+    queryset = Reference.objects.all().prefetch_related(
+        "authors",
+        Prefetch("primary_proteins", queryset=Protein.visible.all()),
+        Prefetch(
+            "oser_measurements",
+            queryset=OSERMeasurement.objects.exclude(protein__status="hidden"),
+        ),
+        Prefetch(
+            "bleach_measurements",
+            queryset=BleachMeasurement.objects.exclude(state__protein__status="hidden"),
+        ),
+    )
 
     def get_object(self, queryset=None):
         try:

@@ -11,6 +11,8 @@ from django.urls import reverse
 
 from proteins.factories import ProteinFactory
 from proteins.models import Lineage, OSERMeasurement, Protein, ProteinCollection
+from references.factories import AuthorFactory
+from references.models import ReferenceAuthor
 from tests.test_users.factories import UserFactory
 
 if TYPE_CHECKING:
@@ -69,6 +71,50 @@ def _api_urls(protein: Protein) -> dict[str, str]:
     }
 
 
+def _page_urls(protein: Protein) -> dict[str, str]:
+    state = protein.default_state
+    spectrum = state.spectra.first()
+    collection = ProteinCollection.objects.get()
+    parent = Protein.objects.get(name="VisibleParentFP")
+    reference = protein.primary_reference
+    author = AuthorFactory()
+    ReferenceAuthor.objects.create(reference=reference, author=author, author_idx=0)
+    return {
+        "autocomplete protein": reverse("proteins:protein-autocomplete") + f"?q={NAME[:8]}",
+        "autocomplete state": reverse("proteins:state-autocomplete") + f"?q={NAME[:8]}",
+        "autocomplete lineage": reverse("proteins:lineage-autocomplete") + f"?q={NAME[:8]}",
+        "detail": protein.get_absolute_url(),
+        "detail by alias": f"/protein/{ALIAS}/",
+        "detail by id": f"/protein/{protein.uuid}/",
+        "history": reverse("proteins:protein-history", args=(protein.slug,)),
+        "bleach form": reverse("proteins:protein-bleach-form", args=(protein.slug,)),
+        "spectra image": reverse("proteins:spectra-img", args=(protein.slug, "svg")),
+        "spectra csv": reverse("proteins:spectra_csv") + f"?q={spectrum.id}",
+        "spectra of owner": f"/spectra/{state.slug}",
+        "widget": reverse("proteins:widget-detail", args=(protein.slug,)),
+        "compare": reverse("proteins:compare"),  # (the proteins of the session's list)
+        "lineage json": reverse("proteins:get-lineage", args=(protein.slug,)),
+        "lineage json (parent)": reverse("proteins:get-lineage", args=(parent.slug,)),
+        "lineage json (all)": reverse("proteins:get-lineage"),
+        "lineage json (organism)": reverse(
+            "proteins:get-org-lineage", args=(parent.parent_organism.pk,)
+        ),
+        "parent detail": parent.get_absolute_url(),
+        "organism": reverse("proteins:organism-detail", args=(protein.parent_organism.pk,)),
+        "reference": reference.get_absolute_url(),
+        "reference list": reverse("reference-list"),
+        "author": reverse("references:author-detail", args=(author.pk,)),
+        "collection": collection.get_absolute_url(),
+        "collection json": collection.get_absolute_url() + "?format=json",
+        "collection csv": collection.get_absolute_url() + "?format=csv",
+        "activity": reverse("proteins:activity"),
+        "search by name": reverse("proteins:search") + f"?name__icontains={NAME[:12]}",
+        "fret": reverse("proteins:fret"),
+        "problems gaps": reverse("proteins:problems-gaps"),
+        "problems inconsistencies": reverse("proteins:problems-inconsistencies"),
+    }
+
+
 GRAPHQL = {
     "proteins": "{ proteins { name slug aliases } }",
     "allProteins": "{ allProteins { edges { node { name slug aliases } } } }",
@@ -105,6 +151,21 @@ def test_hidden_protein_is_not_in_rest_api(client: Client, hidden: Protein):
     leaks = {}
     for label, url in _api_urls(hidden).items():
         response = client.get(url)
+        assert response.status_code < 500, (label, url)
+        if found := _leaks(response):
+            leaks[label] = found
+    assert not leaks, f"shown by: {sorted(leaks)}"
+
+
+def test_hidden_protein_is_not_on_site_pages(client: Client, hidden: Protein):
+    client.force_login(UserFactory())  # (some pages are for logged-in users)
+    session = client.session
+    session["comparison"] = [hidden.slug, "visibleparentfp"]
+    session.save()
+    leaks = {}
+    for label, url in _page_urls(hidden).items():
+        # (as the scripts of the site's pages request them)
+        response = client.get(url, headers={"x-requested-with": "XMLHttpRequest"})
         assert response.status_code < 500, (label, url)
         if found := _leaks(response):
             leaks[label] = found
