@@ -12,8 +12,7 @@
     "check": "biome check --write",
     "check:unsafe": "biome check --write --unsafe",
     "lint": "biome lint --write",
-    "typecheck": "pnpm --filter @fpbase/spectra exec tsgo --noEmit",
-    "typecheck:tsc": "pnpm --filter @fpbase/spectra exec tsc --noEmit"
+    "typecheck": "pnpm --filter @fpbase/spectra exec tsc --noEmit"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
