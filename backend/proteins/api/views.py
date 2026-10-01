@@ -429,9 +429,12 @@ class ProteinSpectraListAPIView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         # the whole dump (~6 MB of JSON, far more in memory) has crashed the dyno
-        paging = {*self.paginator.query_params}  # pyright: ignore[reportOptionalMemberAccess]
-        filters = set(request.query_params) - NON_FILTER_PARAMS - paging
-        if not filters and not (paging & set(request.query_params)):
+        paginator = self.paginator
+        assert paginator is not None
+        given = {k for k, v in request.query_params.items() if v != ""}
+        filters = given - NON_FILTER_PARAMS - set(paginator.query_params)
+        # (a missing or invalid limit means no pagination)
+        if not filters and paginator.get_limit(request) is None:
             raise ValidationError(
                 {
                     "detail": "Filter the proteins (e.g. ?name=mCherry), or page through "

@@ -459,7 +459,19 @@ def test_protein_spectra_api_requires_a_filter_or_a_page(client):
     response = client.get("/api/proteins/spectra/?format=json")
     assert response.status_code == 400
     assert "limit" in response.json()["detail"]
-    for query in ("name=Spectral", "limit=10", "page=1", "limit=10&offset=0"):
+    for query in ("name=Spectral", "limit=10", "page=1", "limit=10&offset=0", "page_size=5"):
         response = client.get(f"/api/proteins/spectra/?format=json&{query}")
         assert response.status_code == 200, query
         assert response.json()[0]["name"] == "Spectral"
+    # a paging param that does not paginate, or an empty filter, is no better
+    for query in (
+        "limit=0",
+        "limit=",
+        "limit=abc",
+        "limit=-1",
+        "offset=0",
+        "name=",
+        "fields=name",
+    ):
+        response = client.get(f"/api/proteins/spectra/?format=json&{query}")
+        assert response.status_code == 400, query
