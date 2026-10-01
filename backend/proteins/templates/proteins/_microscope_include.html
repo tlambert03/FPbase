@@ -10,8 +10,8 @@
 
 <div class="microscope-wrapper mt-2"
      data-fpbase-init="microscope"
-     data-scope-spectra='{{ scopespectra|default:"[]"|safe }}'
-     data-scope-config='{{ scopecfg|default:"{}" |safe }}'>
+     data-scope-spectra="{{ scopespectra|default:'[]' }}"
+     data-scope-config="{{ scopecfg|default:'{}' }}">
   <div class="spectra container clearfix mb-2">
     <div id="spectra">
       <div class="svg-container mb-2">
