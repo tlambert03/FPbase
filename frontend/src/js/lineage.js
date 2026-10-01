@@ -3,6 +3,7 @@
 import { max, min } from "d3-array"
 import { cluster, hierarchy, tree } from "d3-hierarchy"
 import { select, selectAll } from "d3-selection"
+import { escapeHtml } from "./search/engine.js"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -305,13 +306,16 @@ export default function LineageChart(conf) {
             }
 
             const largeWindow = window.matchMedia("(min-width: 576px)").matches
+            const name = escapeHtml(d.data.name)
             let dtext
             if (largeWindow) {
-              dtext = `<strong>${d.data.name}</strong><br><span>`
+              dtext = `<strong>${name}</strong><br><span>`
             } else {
-              dtext = `<strong><a href="${d.data.url}">${d.data.name}</a></strong><br><span>`
+              dtext = `<strong><a href="${escapeHtml(d.data.url)}">${name}</a></strong><br><span>`
             }
-            dtext += d.parent ? (d.parent.data.name === "fakeroot" ? "" : d.parent.data.name) : ""
+            if (d.parent && d.parent.data.name !== "fakeroot") {
+              dtext += escapeHtml(d.parent.data.name)
+            }
             if (d.data.mut) {
               let muts = d.data.mut.split("/")
               if (!show_inserts) {
@@ -321,9 +325,9 @@ export default function LineageChart(conf) {
               if (!show_deletions) {
                 muts = muts.filter((m) => (m.includes("del") ? "" : m))
               }
-              dtext += ` &rarr; ${muts.join("/")}`
+              dtext += ` &rarr; ${escapeHtml(muts.join("/"))}`
             }
-            dtext += d.data.ref ? `<br><em>${d.data.ref}</em>` : ""
+            dtext += d.data.ref ? `<br><em>${escapeHtml(d.data.ref)}</em>` : ""
             dtext += "</span>"
 
             tooltip.html(dtext)

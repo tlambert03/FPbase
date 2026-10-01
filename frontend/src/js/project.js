@@ -1,5 +1,6 @@
 import { fetchWithSentry } from "./ajax-sentry"
 import { icon } from "./icons.js"
+import { escapeHtml } from "./search/engine.js"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -127,7 +128,7 @@ function populate_comparison_tab(comparison_set) {
           $("<a>", {
             href: `/protein/${val.slug}`,
             style: `color: ${val.color}`,
-          }).html(val.name)
+          }).text(val.name)
         )
         .append($("<p>").html((exemstring || "") + (ecqystring || "")))
 
@@ -473,13 +474,16 @@ $("#proteinform #id_name").change(function () {
     .then((response) => response.json())
     .then((data) => {
       if (data.is_taken) {
-        const namelink = `<a href="${data.url}" style="text-decoration: underline;">${data.name}</a>`
-        const message = `<strong>${namelink} already exists in the database.</strong>`
+        const namelink = $("<a>", { href: data.url, style: "text-decoration: underline;" })
+        const message = $("<strong>").append(
+          namelink.text(data.name),
+          " already exists in the database."
+        )
         $("#id_name").addClass("is-invalid")
         $("#div_id_name").addClass("has-danger")
 
         if ($("#error_1_id_name").length) {
-          $("#error_1_id_name").html(message)
+          $("#error_1_id_name").empty().append(message)
         } else {
           const span = $("<span/>", {
             id: "error_1_id_name",
@@ -515,11 +519,11 @@ $("#spectrum-submit-form #id_owner").change(function () {
       if (data.similars.length) {
         let str = "<strong>Avoid duplicates.</strong> Similarly named existing spectra: "
         $.each(data.similars, (index, val) => {
-          str = `${str}<span class="text-danger">${val.name}</span>`
+          str = `${str}<span class="text-danger">${escapeHtml(val.name)}</span>`
           if (val.spectra.length) {
             str = `${str} (`
             $.each(val.spectra, (i, s) => {
-              str = str + s
+              str = str + escapeHtml(s)
               if (i !== val.spectra.length - 1) {
                 str = `${str}, `
               }
@@ -932,7 +936,7 @@ $(document).ready(() => {
             const list = $("<ul>").appendTo("#currentmemberships")
             $.each(members, function (_e) {
               const li = $("<li>")
-              $("<a>").html(this[0]).attr("href", this[1]).appendTo(li)
+              $("<a>").text(this[0]).attr("href", this[1]).appendTo(li)
               li.appendTo(list)
             })
           }
