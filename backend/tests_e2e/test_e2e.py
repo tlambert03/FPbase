@@ -996,3 +996,27 @@ def test_lineage_tooltip_shows_names(page: Page, live_server: LiveServer) -> Non
     tooltip = page.locator(".lineage-tooltip")
     expect(tooltip).to_contain_text("Child<i>FP")
     expect(tooltip).to_contain_text("Parent<i>FP")
+
+
+def _wekwikgene_link(page: Page, live_server: LiveServer, trace: str):
+    """The WeKwikGene item of a protein page, once the country lookup has answered `trace`."""
+    page.route("**/cdn-cgi/trace", lambda route: route.fulfill(body=trace))
+    protein = ProteinFactory.create()
+    with page.expect_response("**/cdn-cgi/trace"):
+        page.goto(f"{live_server.url}{protein.get_absolute_url()}")
+    return page.locator("[data-china-only]", has_text="WeKwikGene")
+
+
+def test_wekwikgene_link_hidden_outside_china(page: Page, live_server: LiveServer) -> None:
+    expect(_wekwikgene_link(page, live_server, "h=x\nloc=US\ncolo=EWR\n")).to_be_hidden()
+
+
+def test_wekwikgene_link_shown_for_country(page: Page, live_server: LiveServer) -> None:
+    expect(_wekwikgene_link(page, live_server, "h=x\nloc=CN\ncolo=HKG\n")).to_be_visible()
+
+
+@pytest.mark.browser_context_args(timezone_id="Asia/Shanghai")
+def test_wekwikgene_link_shown_for_time_zone(page: Page, live_server: LiveServer) -> None:
+    protein = ProteinFactory.create()
+    page.goto(f"{live_server.url}{protein.get_absolute_url()}")
+    expect(page.locator("[data-china-only]", has_text="WeKwikGene")).to_be_visible()
