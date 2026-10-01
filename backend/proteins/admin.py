@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.db.models import Count, Prefetch
 from django.forms import TextInput
 from django.urls import reverse
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from mptt.admin import MPTTModelAdmin
 from reversion.admin import VersionAdmin
@@ -51,17 +52,13 @@ class SpectrumOwner:
 
     @admin.display(description="spectra")
     def spectra(self, obj):
-        def _makelink(sp):
+        def _link_args(sp):
             url = reverse("admin:proteins_spectrum_change", args=(sp.pk,))
             pending = " (pending)" if sp.status == Spectrum.STATUS.pending else ""
-            return f'<a href="{url}">{sp.get_subtype_display()}{pending}</a>'
+            return url, sp.get_subtype_display(), pending
 
-        links = []
-        if isinstance(obj, FluorState):
-            [links.append(_makelink(sp)) for sp in obj.spectra.all()]
-        else:
-            links.append(_makelink(obj.spectrum))
-        return mark_safe(", ".join(links))
+        spectra = obj.spectra.all() if isinstance(obj, FluorState) else [obj.spectrum]
+        return format_html_join(", ", '<a href="{}">{}{}</a>', map(_link_args, spectra))
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -150,12 +147,11 @@ class StateInline(FluorStateInline, admin.StackedInline):
 
     @admin.display(description="BleachMeasurements")
     def bleach_links(self, obj):
-        links = []
-        for bm in obj.bleach_measurements.all():
-            url = reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,))
-            link = f'<a href="{url}">{bm}</a>'
-            links.append(link)
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_bleachmeasurement_change", args=(bm.pk,)), bm)
+            for bm in obj.bleach_measurements.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
 
 class DyeStateInline(FluorStateInline, admin.StackedInline):
@@ -207,13 +203,11 @@ class FilterAdmin(SpectrumOwner, VersionAdmin):
 
     @admin.display(description="OC Memberships")
     def configs(self, obj):
-        def _makelink(oc):
-            url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return f'<a href="{url}">{oc}</a>'
-
-        links = []
-        [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_opticalconfig_change", args=(oc.pk,)), oc)
+            for oc in obj.optical_configs.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
 
 @admin.register(Camera)
@@ -336,8 +330,7 @@ class SpectrumAdmin(VersionAdmin):
             model_name = owner._meta.model.__name__.lower()
 
         url = reverse(f"admin:proteins_{model_name}_change", args=(owner.pk,))
-        link = f'<a href="{url}">{owner}</a>'
-        return mark_safe(link)
+        return format_html('<a href="{}">{}</a>', url, owner)
 
     @admin.display(description="Spectrum Preview")
     def spectrum_preview(self, obj: Spectrum) -> str:
@@ -436,7 +429,7 @@ class StateAdmin(CompareVersionAdmin):
     @admin.display(description="Protein")
     def protein_link(self, obj):
         url = reverse("admin:proteins_protein_change", args=([obj.protein.pk]))
-        return mark_safe(f'<a href="{url}">{obj.protein}</a>')
+        return format_html('<a href="{}">{}</a>', url, obj.protein)
 
 
 @admin.register(DyeState)
@@ -479,7 +472,7 @@ class DyeStateAdmin(MultipleSpectraOwner, CompareVersionAdmin):
     @admin.display(description="Dye")
     def dye_link(self, obj):
         url = reverse("admin:proteins_dye_change", args=([obj.dye.pk]))
-        return mark_safe(f'<a href="{url}">{obj.dye}</a>')
+        return format_html('<a href="{}">{}</a>', url, obj.dye)
 
 
 class StateTransitionAdmin(VersionAdmin):
@@ -687,7 +680,7 @@ class OpticalConfigAdmin(admin.ModelAdmin):
     def owner_link(self, obj):
         if obj.microscope and obj.microscope.owner:
             url = reverse("admin:users_user_change", args=([obj.microscope.owner.pk]))
-            return mark_safe(f'<a href="{url}">{obj.microscope.owner}</a>')
+            return format_html('<a href="{}">{}</a>', url, obj.microscope.owner)
 
     def save_model(self, request, obj, form, change):
         obj.save()
@@ -712,7 +705,7 @@ class MicroscopeAdmin(admin.ModelAdmin):
     def owner_link(self, obj):
         if obj.owner:
             url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-            return mark_safe(f'<a href="{url}">{obj.owner}</a>')
+            return format_html('<a href="{}">{}</a>', url, obj.owner)
 
     @admin.display(ordering="oc_count")
     def OCs(self, obj):
@@ -720,13 +713,11 @@ class MicroscopeAdmin(admin.ModelAdmin):
 
     @admin.display(description="Optical Configs")
     def configs(self, obj):
-        def _makelink(oc):
-            url = reverse("admin:proteins_opticalconfig_change", args=(oc.pk,))
-            return f'<a href="{url}">{oc}</a>'
-
-        links = []
-        [links.append(_makelink(oc)) for oc in obj.optical_configs.all()]
-        return mark_safe(", ".join(links))
+        links = (
+            (reverse("admin:proteins_opticalconfig_change", args=(oc.pk,)), oc)
+            for oc in obj.optical_configs.all()
+        )
+        return format_html_join(", ", '<a href="{}">{}</a>', links)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request).annotate(oc_count=Count("optical_configs"))
@@ -753,7 +744,7 @@ class ProteinCollectionAdmin(admin.ModelAdmin):
     @admin.display(description="Owner")
     def owner_link(self, obj):
         url = reverse("admin:users_user_change", args=([obj.owner.pk]))
-        return mark_safe(f'<a href="{url}">{obj.owner}</a>')
+        return format_html('<a href="{}">{}</a>', url, obj.owner)
 
     @admin.display(ordering="proteins_count")
     def numproteins(self, obj):
@@ -874,9 +865,9 @@ class LineageAdmin(MPTTModelAdmin, CompareVersionAdmin):
             try:
                 newseq = obj.parent.protein.seq.mutate(obj.mutation)
                 if newseq != obj.protein.seq:
-                    return mark_safe("⚠️")
+                    return "⚠️"
             except Exception:
-                return mark_safe("❌")
+                return "❌"
         return ""
 
     def errors(self, obj):
