@@ -2,9 +2,9 @@ import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Modal from "@mui/material/Modal"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
 import { components } from "react-select"
+import { makeStyles } from "tss-react/mui"
 import { fetchGraphQL } from "../api/client"
 import { GET_OPTICAL_CONFIG } from "../api/queries"
 import { useOpticalConfigs } from "../hooks/useOpticalConfigs"
@@ -53,7 +53,7 @@ function getModalStyle() {
   }
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     position: "absolute",
     maxWidth: "620px",
@@ -90,7 +90,7 @@ const filterOption = ({ label }, query) => {
 
 const SearchModal = React.memo(function SearchModal({ options, open, setOpen }) {
   const [modalStyle] = useState(getModalStyle)
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const spectraInfo = useSpectraInfo()
   const { data: opticalConfigs, isLoading: isLoadingConfigs } = useOpticalConfigs()

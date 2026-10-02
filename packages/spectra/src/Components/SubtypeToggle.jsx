@@ -2,10 +2,10 @@ import { Typography } from "@mui/material"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
-import { makeStyles } from "@mui/styles"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   toggleButton: {
     height: "38px",
     // [theme.breakpoints.down(960)]: {
@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 
 // THIS IS NOT FINISHED
 const SubtypeToggle = ({ subtypes }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const updateActiveSpectra = useSpectraStore((state) => state.updateActiveSpectra)
   const handleClick = (e) => {
@@ -37,7 +37,7 @@ const SubtypeToggle = ({ subtypes }) => {
 
   return (
     <div style={{ width: "100%", marginTop: 6 }}>
-      <Box display="flex" justifyContent="flex-end" align="center">
+      <Box align="center" sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Typography
           style={{
             color: "#999",

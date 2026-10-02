@@ -88,10 +88,12 @@ export default function TableControls({ proteins, filters, onFilterChange }) {
         placeholder="Search proteins..."
         value={filters.search || ""}
         onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
-        InputProps={{
-          startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
-        }}
         sx={{ minWidth: 250 }}
+        slotProps={{
+          input: {
+            startAdornment: <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />,
+          },
+        }}
       />
 
       <Box sx={{ flexGrow: 1 }} />

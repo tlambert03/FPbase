@@ -45,8 +45,9 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
 
   return (
     <List dense className="settings-list">
-      <Grid container spacing={3}>
-        <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
+      {/* matches the legacy Grid layout (negative container margin, no item padding) */}
+      <Grid container spacing={0} sx={{ mt: -3, ml: -3, width: "calc(100% + 24px)" }}>
+        <Grid style={{ margin: 0, padding: 0 }} size={{ sm: 12, md: 6 }}>
           <ListCheckbox
             onCheckItem={toggleY}
             checked={chartOptions.showY}
@@ -88,7 +89,7 @@ const ChartOptionsForm = memo(function ChartOptionsForm() {
             }
           />
         </Grid>
-        <Grid item sm={12} md={6} style={{ margin: 0, padding: 0 }}>
+        <Grid style={{ margin: 0, padding: 0 }} size={{ sm: 12, md: 6 }}>
           <ListCheckbox
             onCheckItem={toggleScaleEC}
             checked={chartOptions.scaleEC}

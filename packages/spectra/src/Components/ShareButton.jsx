@@ -18,15 +18,15 @@ import MenuItem from "@mui/material/MenuItem"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Zoom from "@mui/material/Zoom"
-import { makeStyles } from "@mui/styles"
 import Highcharts from "highcharts"
 import React, { useCallback, useMemo, useState } from "react"
+import { makeStyles } from "tss-react/mui"
 import { faCopy, faEnvelope } from "../icons"
 import { useSpectraStore } from "../store/spectraStore"
 import { serializeURLParams } from "../utils/urlParams"
 import { FAIcon } from "./FaIcon"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   textField: {
     flexBasis: 200,
     width: "98%",
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
   const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
@@ -116,30 +116,32 @@ function ShareLinkAlert({ open, setOpen }) {
             value={qString}
             fullWidth
             readOnly
-            InputProps={{
-              style: { color: "#669" },
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title="Copied!"
-                    open={tooltipOpen}
-                    disableFocusListener
-                    disableHoverListener
-                    disableTouchListener
-                    placement="top"
-                    TransitionComponent={Zoom}
-                    TransitionProps={{ timeout: { enter: 200, exit: 700 } }}
-                  >
-                    <IconButton
-                      edge="end"
-                      onClick={handleCopyClick}
-                      aria-label="Copy URL to clipboard"
+            slotProps={{
+              input: {
+                style: { color: "#669" },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip
+                      title="Copied!"
+                      open={tooltipOpen}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      placement="top"
+                      slots={{ transition: Zoom }}
+                      slotProps={{ transition: { timeout: { enter: 200, exit: 700 } } }}
                     >
-                      <FAIcon icon={faCopy} style={{}} />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
+                      <IconButton
+                        edge="end"
+                        onClick={handleCopyClick}
+                        aria-label="Copy URL to clipboard"
+                      >
+                        <FAIcon icon={faCopy} style={{}} />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
         </DialogContent>
@@ -163,7 +165,7 @@ const ShareButton = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [shareLinkOpen, setShareLinkOpen] = useState(false)
   const chart = Highcharts.charts[0]
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   function handleShareClick(event) {
     setAnchorEl(event.currentTarget)
@@ -244,6 +246,7 @@ const ShareButton = () => {
         aria-haspopup="true"
         onClick={handleShareClick}
         tabIndex={-1}
+        aria-label="Share"
       >
         <ShareIcon />
       </IconButton>
@@ -281,7 +284,7 @@ const ShareButton = () => {
               </ListItemIcon>
               <ListItemText primary="Download data as CSV" />
             </MenuItem>
-            <Divider light />
+            <Divider sx={{ opacity: "0.6" }} />
             <MenuItem onClick={printChart}>
               <ListItemIcon className={classes.listIcon}>
                 <PrintIcon />

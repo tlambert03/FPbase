@@ -1,9 +1,9 @@
 import Grid from "@mui/material/Grid"
 import Input from "@mui/material/Input"
 import Slider from "@mui/material/Slider"
-import { makeStyles } from "@mui/styles"
+import { makeStyles } from "tss-react/mui"
 
-export const useStyles = makeStyles({
+export const useStyles = makeStyles()({
   root: {
     width: "100%",
   },
@@ -15,7 +15,7 @@ export const useStyles = makeStyles({
 })
 
 const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const handleSliderChange = (_event, newValue) => {
     setValue(newValue)
   }
@@ -31,8 +31,8 @@ const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
   }
   return (
     <div className={classes.root}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs>
+      <Grid container spacing={2} sx={{ alignItems: "center" }}>
+        <Grid size="grow">
           <Slider
             value={+value}
             onChange={handleSliderChange}
@@ -42,7 +42,7 @@ const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
             step={step}
           />
         </Grid>
-        <Grid item>
+        <Grid>
           <Input
             className={classes.input}
             value={value}

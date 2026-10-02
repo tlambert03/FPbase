@@ -10,10 +10,10 @@ import DialogActions from "@mui/material/DialogActions"
 import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import React from "react"
+import { makeStyles } from "tss-react/mui"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     width: "100%",
     "& .MuiPaper-root ": {
@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const WelcomeModal = React.memo(function WelcomeModal({ open, close, ownerInfo }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const counter =
     ownerInfo &&

@@ -15,8 +15,8 @@ import {
   Typography,
 } from "@mui/material"
 import Button from "@mui/material/Button"
-import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
+import { makeStyles } from "tss-react/mui"
 import useSpectralData from "../hooks/useSpectraData"
 import { useSpectraStore } from "../store/spectraStore"
 import { computeOverlap } from "../utils/spectraUtils"
@@ -34,7 +34,7 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const useStyles = makeStyles((_theme) => ({
+const useStyles = makeStyles()((_theme) => ({
   table: {
     marginTop: "10px",
     minWidth: 650,
@@ -78,7 +78,7 @@ const EfficiencyTable = ({ initialTranspose }) => {
   const [rows, setRows] = useState([])
   const [orderBy, setOrderBy] = useState("field")
   const [order, setOrder] = useState("asc")
-  const classes = useStyles()
+  const { classes } = useStyles()
   const spectraData = useSpectralData()
   const setActiveOverlaps = useSpectraStore((state) => state.setActiveOverlaps)
   const spectraStore = useSpectraStore()

@@ -3,11 +3,11 @@ import Paper from "@mui/material/Paper"
 import { useTheme } from "@mui/material/styles"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import Select from "react-select"
+import { makeStyles } from "tss-react/mui"
 import SortableWindowedSelect from "./SortableWindowedSelect"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     flexGrow: 1,
   },
@@ -68,16 +68,18 @@ function Control({ selectProps, innerRef, innerProps, children }) {
   return (
     <TextField
       fullWidth
-      InputProps={{
-        inputComponent,
-        inputProps: {
-          className: selectProps.classes.input,
-          inputRef: innerRef,
-          children,
-          ...innerProps,
+      {...selectProps.TextFieldProps}
+      slotProps={{
+        input: {
+          inputComponent,
+          inputProps: {
+            className: selectProps.classes.input,
+            inputRef: innerRef,
+            children,
+            ...innerProps,
+          },
         },
       }}
-      {...selectProps.TextFieldProps}
     />
   )
 }
@@ -120,7 +122,7 @@ const myComponents = {
 }
 
 function MuiReactSelect({ paginate = true, components, ...otherprops }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const theme = useTheme()
 
   const selectStyles = {

@@ -2,8 +2,8 @@ import { Typography } from "@mui/material"
 import CircularProgress from "@mui/material/CircularProgress"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
-import { makeStyles } from "@mui/styles"
 import React, { useEffect, useMemo, useState } from "react"
+import { makeStyles } from "tss-react/mui"
 import { useMetadataStore } from "../store/metadataStore"
 import { useSpectraStore } from "../store/spectraStore"
 import { isTouchDevice } from "../util"
@@ -15,7 +15,7 @@ import SpectrumSelectorGroup from "./SpectrumSelectorGroup"
 
 const ISTOUCH = isTouchDevice()
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   tabHeader: {
     marginBottom: 12,
     // marginLeft: 60,
@@ -87,7 +87,7 @@ function selectorSorter(a, b) {
 }
 
 const OwnersContainer = React.memo(function OwnersContainer({ ownerInfo, spectraInfo }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [tab, setTab] = useState(0)
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)

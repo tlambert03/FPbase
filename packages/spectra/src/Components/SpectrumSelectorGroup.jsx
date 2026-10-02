@@ -2,13 +2,13 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import Box from "@mui/material/Box"
 import IconButton from "@mui/material/IconButton"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import React, { useCallback, useMemo } from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 import { categoryIcon } from "./FaIcon"
 import SpectrumSelector from "./SpectrumSelector"
 
-export const useStyles = makeStyles((theme) => ({
+export const useStyles = makeStyles()((theme) => ({
   deleteButton: {
     padding: "6px 6px",
     marginRight: 2,
@@ -48,7 +48,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
   // Active spectra to check if custom items exist
   activeSpectra = [],
 }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const allOwners = useMemo(() => selectors.map(({ owner }) => owner), [selectors])
 
   // Convert to Set for O(1) lookup in SpectrumSelector (performance optimization)
@@ -130,7 +130,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 {categoryNames[selector.category]}
               </Typography>
             )}
-            <Box display="flex" alignItems="center" className={classes.root}>
+            <Box className={classes.root} sx={{ display: "flex", alignItems: "center" }}>
               {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
                 style: {
                   position: "relative",
@@ -139,7 +139,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                   marginRight: 10,
                 },
               })}
-              <Box flexGrow={1}>
+              <Box sx={{ flexGrow: 1 }}>
                 <SpectrumSelector
                   key={selector.id}
                   // this line restricts the options to similar categories
