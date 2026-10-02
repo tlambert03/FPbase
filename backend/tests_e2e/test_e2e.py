@@ -854,6 +854,24 @@ def test_protein_detail_egfp(
     assert_snapshot(page, mask_elements=["#protein-structure .col-12.col-md-6.order-2.order-md-1"])
 
 
+def test_protein_page_chart_range_input_is_isolated(page: Page, live_server: LiveServer) -> None:
+    """The protein page chart's x-range inputs work without touching the main viewer state."""
+    egfp = create_egfp()
+    page.goto(f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}")
+    page.locator(".highcharts-series").first.wait_for(state="attached")
+    min_input = page.locator("#spectra-viewer-container input").first
+    min_input.fill("400")
+    min_input.press("Enter")
+
+    expect(min_input).to_have_value("400")
+    axis_min = (
+        "() => (window._Highcharts || window.Highcharts).charts.filter(Boolean)[0].xAxis[0].min"
+    )
+    page.wait_for_function(f"() => Math.round(({axis_min})()) === 400")
+    stored = page.evaluate("() => sessionStorage.getItem('fpbase-spectra-storage')")
+    assert stored is None or '"extremes":[400' not in stored
+
+
 def test_favorite_button_interaction(
     auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:
