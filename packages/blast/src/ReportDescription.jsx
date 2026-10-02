@@ -4,7 +4,7 @@ import TableBody from "@mui/material/TableBody"
 import TableCell from "@mui/material/TableCell"
 import TableHead from "@mui/material/TableHead"
 import TableRow from "@mui/material/TableRow"
-import { makeStyles } from "@mui/styles"
+import { makeStyles } from "tss-react/mui"
 
 function fpbaseLink(accession) {
   return (
@@ -14,7 +14,7 @@ function fpbaseLink(accession) {
   )
 }
 
-const useStyles = makeStyles((_theme) => ({
+const useStyles = makeStyles()((_theme) => ({
   table: {
     marginTop: "10px",
     minWidth: 650,
@@ -36,7 +36,7 @@ function BlastReportDescription({ report, onClick }) {
     }
   })
 
-  const classes = useStyles()
+  const { classes } = useStyles()
   return (
     <Paper style={{ overflowX: "scroll" }}>
       <Table className={classes.table} size="small">

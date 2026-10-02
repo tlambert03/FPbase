@@ -5,15 +5,15 @@ import Paper from "@mui/material/Paper"
 import Snackbar from "@mui/material/Snackbar"
 import Tab from "@mui/material/Tab"
 import Tabs from "@mui/material/Tabs"
-import { makeStyles } from "@mui/styles"
 import React, { useEffect, useState } from "react"
+import { makeStyles } from "tss-react/mui"
 
 const $ = window.jQuery
 
 import BlastReportAlignments from "./ReportAlignments.jsx"
 import BlastReportDescription from "./ReportDescription.jsx"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paperRoot: {
     width: "100%",
     marginTop: "23px",
@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const NoHitsMessage = ({ open, handleClose }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -94,7 +94,7 @@ function BlastReport({ report }) {
     setAlgnItem(event.target.getAttribute("href"))
   }
 
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const [open, setOpen] = React.useState(true)
   function closeSnackbar(_event, reason) {

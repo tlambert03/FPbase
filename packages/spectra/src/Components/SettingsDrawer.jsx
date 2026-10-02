@@ -4,13 +4,13 @@ import SettingsIcon from "@mui/icons-material/Settings"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
 import SwipeableDrawer from "@mui/material/SwipeableDrawer"
-import { makeStyles } from "@mui/styles"
 import React, { useEffect } from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 import OwnerOptionsForm from "./OwnerOptionsForm"
 import ChartOptionsForm from "./SpectraViewer/ChartOptionsForm"
 
-export const useStyles = makeStyles((theme) => ({
+export const useStyles = makeStyles()((theme) => ({
   root: {
     width: "auto",
     padding: 30,
@@ -22,7 +22,7 @@ export const useStyles = makeStyles((theme) => ({
 }))
 
 const SettingsDrawer = () => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [drawerOpen, setDrawerOpen] = React.useState(false)
   const clearAllSpectra = useSpectraStore((state) => state.clearAllSpectra)
 

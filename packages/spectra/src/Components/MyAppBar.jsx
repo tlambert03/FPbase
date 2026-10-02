@@ -7,14 +7,14 @@ import FormControlLabel from "@mui/material/FormControlLabel"
 import Switch from "@mui/material/Switch"
 import Toolbar from "@mui/material/Toolbar"
 import Tooltip from "@mui/material/Tooltip"
-import { makeStyles } from "@mui/styles"
 import React, { memo, useCallback } from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 import SearchModal from "./SearchModal"
 import SettingsDrawer from "./SettingsDrawer"
 import ShareButton from "./ShareButton"
 
-export const useStyles = makeStyles((theme) => ({
+export const useStyles = makeStyles()((theme) => ({
   text: {
     padding: theme.spacing(2, 2, 0),
   },
@@ -57,7 +57,7 @@ export const useStyles = makeStyles((theme) => ({
 }))
 
 const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [searchOpen, setSearchOpen] = React.useState(false)
   const handleClick = () => setSearchOpen(true)
 

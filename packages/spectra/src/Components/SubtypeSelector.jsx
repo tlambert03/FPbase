@@ -2,11 +2,11 @@ import Visibility from "@mui/icons-material/Visibility"
 import Box from "@mui/material/Box"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
-import { makeStyles } from "@mui/styles"
 import React from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   toggleButton: {
     paddingLeft: "11px",
     paddingRight: "11px",
@@ -32,7 +32,7 @@ function subtypeSorter(a, b) {
 }
 
 const SubtypeSelector = React.memo(function SubtypeSelector({ subtypes, skip }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
   const hiddenSpectra = useSpectraStore((state) => state.hiddenSpectra)

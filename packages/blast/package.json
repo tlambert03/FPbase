@@ -14,8 +14,8 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
-    "@mui/styles": "^5.18.0",
-    "js-cookie": "^3.0.8"
+    "js-cookie": "^3.0.8",
+    "tss-react": "^4.9.21"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.1",

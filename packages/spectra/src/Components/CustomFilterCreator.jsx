@@ -3,12 +3,12 @@ import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import React from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
-export const useStyles = makeStyles({
+export const useStyles = makeStyles()({
   label: {
     fontSize: "small",
     color: "#444",
@@ -16,7 +16,7 @@ export const useStyles = makeStyles({
 })
 
 const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   // Read params directly from store (single source of truth)
   const params = useSpectraStore((state) => state.customFilters[id])

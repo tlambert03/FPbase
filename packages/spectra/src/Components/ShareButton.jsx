@@ -18,15 +18,15 @@ import MenuItem from "@mui/material/MenuItem"
 import TextField from "@mui/material/TextField"
 import Tooltip from "@mui/material/Tooltip"
 import Zoom from "@mui/material/Zoom"
-import { makeStyles } from "@mui/styles"
 import Highcharts from "highcharts"
 import React, { useCallback, useMemo, useState } from "react"
+import { makeStyles } from "tss-react/mui"
 import { faCopy, faEnvelope } from "../icons"
 import { useSpectraStore } from "../store/spectraStore"
 import { serializeURLParams } from "../utils/urlParams"
 import { FAIcon } from "./FaIcon"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   textField: {
     flexBasis: 200,
     width: "98%",
@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function ShareLinkAlert({ open, setOpen }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const activeSpectra = useSpectraStore((state) => state.activeSpectra)
   const activeOverlaps = useSpectraStore((state) => state.activeOverlaps)
@@ -163,7 +163,7 @@ const ShareButton = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [shareLinkOpen, setShareLinkOpen] = useState(false)
   const chart = Highcharts.charts[0]
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   function handleShareClick(event) {
     setAnchorEl(event.currentTarget)

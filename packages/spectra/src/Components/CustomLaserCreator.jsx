@@ -4,12 +4,12 @@ import Box from "@mui/material/Box"
 import Checkbox from "@mui/material/Checkbox"
 import FormControlLabel from "@mui/material/FormControlLabel"
 import Typography from "@mui/material/Typography"
-import { makeStyles } from "@mui/styles"
 import { memo, useEffect } from "react"
+import { makeStyles } from "tss-react/mui"
 import { useSpectraStore } from "../store/spectraStore"
 import InputSlider from "./InputSlider"
 
-const useStyles = makeStyles({
+const useStyles = makeStyles()({
   label: {
     fontSize: "small",
     color: "#444",
@@ -18,7 +18,7 @@ const useStyles = makeStyles({
 
 // id is stable like "$cl1"
 const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExNorm, clearNorm }) {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   // Read params directly from store (single source of truth)
   const params = useSpectraStore((state) => state.customLasers[id])
