@@ -119,16 +119,8 @@ const SpectrumSelector = React.memo(function SpectrumSelector({
   )
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-      }}
-    >
-      <Box
-        sx={{
-          flexGrow: 1,
-        }}
-      >
+    <Box sx={{ display: "flex" }}>
+      <Box sx={{ flexGrow: 1 }}>
         <SortableWindowedSelect
           isClearable
           showIcon={showCategoryIcon}

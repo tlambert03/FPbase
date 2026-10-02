@@ -42,12 +42,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
         borderRadius: 4,
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-        }}
-      >
+      <Box sx={{ display: "flex", flexWrap: "wrap" }}>
         <Typography style={{ margin: "8px 10px 3px" }}>Custom Filter</Typography>
         <ToggleButtonGroup
           size="small"
@@ -67,11 +62,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           </Tooltip>
         </ToggleButtonGroup>
 
-        <Box
-          sx={{
-            flexGrow: 2,
-          }}
-        >
+        <Box sx={{ flexGrow: 2 }}>
           <div style={{ margin: "0 12px", minWidth: 180 }}>
             <Typography className={classes.label}>
               {type === "BP" ? "Center Wavelength" : "Edge"}
@@ -85,11 +76,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
           </div>
         </Box>
         {type === "BP" && (
-          <Box
-            sx={{
-              flexGrow: 1,
-            }}
-          >
+          <Box sx={{ flexGrow: 1 }}>
             <div
               style={{
                 margin: "0 10px",
@@ -108,11 +95,7 @@ const CustomFilterCreator = React.memo(function CustomFilterCreator({ id }) {
             </div>
           </Box>
         )}
-        <Box
-          sx={{
-            flexGrow: 1,
-          }}
-        >
+        <Box sx={{ flexGrow: 1 }}>
           <div
             style={{
               margin: "0 10px",

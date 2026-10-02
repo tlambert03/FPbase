@@ -128,12 +128,8 @@ function ShareLinkAlert({ open, setOpen }) {
                       disableHoverListener
                       disableTouchListener
                       placement="top"
-                      slots={{
-                        transition: Zoom,
-                      }}
-                      slotProps={{
-                        transition: { timeout: { enter: 200, exit: 700 } },
-                      }}
+                      slots={{ transition: Zoom }}
+                      slotProps={{ transition: { timeout: { enter: 200, exit: 700 } } }}
                     >
                       <IconButton
                         edge="end"
@@ -288,11 +284,7 @@ const ShareButton = () => {
               </ListItemIcon>
               <ListItemText primary="Download data as CSV" />
             </MenuItem>
-            <Divider
-              sx={{
-                opacity: "0.6",
-              }}
-            />
+            <Divider sx={{ opacity: "0.6" }} />
             <MenuItem onClick={printChart}>
               <ListItemIcon className={classes.listIcon}>
                 <PrintIcon />

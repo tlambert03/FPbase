@@ -68,12 +68,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
     <div>
       {customLasers.sort().map((laser) => (
         <div style={{ width: "100%", margin: "4px 0" }} key={laser}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             {categoryIcon("CL", "rgba(0,0,50,0.4)", {
               style: {
                 position: "relative",
@@ -83,11 +78,7 @@ const CustomLaserGroup = React.memo(function CustomLaserGroup({
                 marginRight: 10,
               },
             })}
-            <Box
-              sx={{
-                flexGrow: 1,
-              }}
-            >
+            <Box sx={{ flexGrow: 1 }}>
               <CustomLaserCreator
                 key={laser}
                 id={laser}

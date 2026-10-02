@@ -550,22 +550,12 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
           alignItems: "center",
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            color: "text.secondary",
-          }}
-        >
+        <Typography variant="body2" sx={{ color: "text.secondary" }}>
           {displayText}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "text.secondary",
-              }}
-            >
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Rows per page:
             </Typography>
             <Select
@@ -586,12 +576,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
               <MenuItem value={100}>100</MenuItem>
             </Select>
           </Box>
-          <Typography
-            variant="body2"
-            sx={{
-              color: "text.secondary",
-            }}
-          >
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
             {startRow}–{endRow} of {filteredData.length}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>

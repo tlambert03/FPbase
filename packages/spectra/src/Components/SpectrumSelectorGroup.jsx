@@ -130,13 +130,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                 {categoryNames[selector.category]}
               </Typography>
             )}
-            <Box
-              className={classes.root}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <Box className={classes.root} sx={{ display: "flex", alignItems: "center" }}>
               {categoryIcon(selector.category, "rgba(0,0,50,0.4)", {
                 style: {
                   position: "relative",
@@ -145,11 +139,7 @@ const SpectrumSelectorGroup = React.memo(function SpectrumSelectorGroup({
                   marginRight: 10,
                 },
               })}
-              <Box
-                sx={{
-                  flexGrow: 1,
-                }}
-              >
+              <Box sx={{ flexGrow: 1 }}>
                 <SpectrumSelector
                   key={selector.id}
                   // this line restricts the options to similar categories

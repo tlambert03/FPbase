@@ -50,18 +50,9 @@ const CustomLaserCreator = memo(function CustomLaserCreator({ id, normID, setExN
         borderRadius: 4,
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-        }}
-      >
+      <Box sx={{ display: "flex", flexWrap: "wrap" }}>
         <Typography style={{ margin: "8px 10px 3px" }}>Laser</Typography>
-        <Box
-          sx={{
-            flexGrow: 2,
-          }}
-        >
+        <Box sx={{ flexGrow: 2 }}>
           <div style={{ margin: "0 12px", minWidth: 200 }}>
             <Typography className={classes.label}>Wavelength</Typography>
             <InputSlider

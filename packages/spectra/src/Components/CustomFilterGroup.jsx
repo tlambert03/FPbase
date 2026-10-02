@@ -58,12 +58,7 @@ const CustomFilterGroup = ({ activeSpectra, showAddButton = true }) => {
     <div>
       {customFilters.sort().map((filter) => (
         <div style={{ width: "100%", margin: "4px 0" }} key={filter}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             {categoryIcon("CF", "rgba(0,0,50,0.4)", {
               style: {
                 position: "relative",
@@ -73,11 +68,7 @@ const CustomFilterGroup = ({ activeSpectra, showAddButton = true }) => {
                 marginRight: 10,
               },
             })}
-            <Box
-              sx={{
-                flexGrow: 1,
-              }}
-            >
+            <Box sx={{ flexGrow: 1 }}>
               <CustomFilterCreator key={filter} id={filter} />
             </Box>
             <Box>
