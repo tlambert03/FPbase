@@ -186,6 +186,9 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_LOCATION,
+        # each deploy starts with an empty cache: a cached page names the asset files
+        # of the build that rendered it, and those are gone after a deploy
+        "KEY_PREFIX": HEROKU_SLUG_COMMIT or "",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "IGNORE_EXCEPTIONS": True,  # mimics memcache behavior.

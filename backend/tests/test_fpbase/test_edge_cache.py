@@ -98,6 +98,18 @@ def test_purge_request():
 
 
 @pytest.mark.usefixtures("enabled")
+def test_purge_request_with_pages():
+    with mock.patch("fpbase.tasks.requests.post") as post:
+        post.return_value.ok = True
+        purge_edge_cache(pages=True)
+    prefixes, files = (c.kwargs["json"] for c in post.call_args_list)
+    assert "www.example.org/protein/" in prefixes["prefixes"]
+    assert "www.example.org/api/" in prefixes["prefixes"]
+    # (not a prefix purge of the whole host, which would drop the static files too)
+    assert files == {"files": ["https://www.example.org/"]}
+
+
+@pytest.mark.usefixtures("enabled")
 def test_invalidate_api_cache_command(client, apply_async):
     ProteinFactory(name="Stale")
     url = "/api/proteins/?format=json&fields=name"
@@ -109,6 +121,7 @@ def test_invalidate_api_cache_command(client, apply_async):
 
     out = StringIO()
     call_command("invalidate_api_cache", stdout=out)
-    assert "purge is queued" in out.getvalue()
-    apply_async.assert_called_once()
+    assert "purges are queued" in out.getvalue()
+    # the API purge, and a later one that includes the pages
+    apply_async.assert_called_with(kwargs={"pages": True}, countdown=120)
     assert client.get(url).json() == [{"name": "Fresh"}]
