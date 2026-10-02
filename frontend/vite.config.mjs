@@ -12,6 +12,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig(({ mode }) => {
   const isDev = mode === "development"
   const isTestBuild = process.env.TEST_BUILD === "1"
+  // Heroku sets SOURCE_VERSION to the commit being built. (HEROKU_SLUG_COMMIT is
+  // runtime dyno metadata: during a build it still holds the previous release.)
+  const release = process.env.SOURCE_VERSION
 
   return {
     // Match Django STATIC_URL
@@ -110,7 +113,7 @@ export default defineConfig(({ mode }) => {
           org: "talley-lambert",
           project: "fpbase",
           authToken: process.env.SENTRY_AUTH_TOKEN,
-          release: process.env.HEROKU_SLUG_COMMIT,
+          release: { name: release },
           telemetry: false,
 
           // Tree-shake optional Sentry code to reduce bundle size
@@ -150,7 +153,7 @@ export default defineConfig(({ mode }) => {
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),
       "process.env.SENTRY_DSN": JSON.stringify(process.env.SENTRY_DSN || ""),
-      "process.env.HEROKU_SLUG_COMMIT": JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ""),
+      "process.env.HEROKU_SLUG_COMMIT": JSON.stringify(release || ""),
     },
 
     // Optimize dependencies
