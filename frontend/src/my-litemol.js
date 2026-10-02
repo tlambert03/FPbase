@@ -8,10 +8,11 @@ import { fetchWithSentry } from "./js/ajax-sentry"
 
 import "./css/litemol/LiteMol-plugin-blue.css"
 
-// Import UMD bundle - it sets window.LiteMol global
-import "./js/pdb/LiteMol-plugin"
+// UMD bundle: in a build it sees the bundler's CJS `module` and exports LiteMol;
+// the dev server serves it untransformed, so it sets `window.LiteMol` instead
+import * as LiteMolUMD from "./js/pdb/LiteMol-plugin"
 
-const LiteMol = window.LiteMol
+const LiteMol = LiteMolUMD.default ?? window.LiteMol
 
 // Mark this bundle for Sentry context
 window.FPBASE = window.FPBASE || {}

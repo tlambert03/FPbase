@@ -15,26 +15,24 @@
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
     "@mui/styles": "^5.18.0",
-    "@tanstack/react-query": "^5.102.8",
-    "highcharts": "^12.6.0",
-    "highcharts-react-official": "^3.2.3",
+    "@tanstack/react-query": "^5.103.0",
+    "highcharts": "^12.6.2",
     "react-jsx-highcharts": "^5.0.4",
     "react-select": "^5.10.2",
-    "react-window": "^2.3.0",
+    "react-window": "^2.3.1",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@tanstack/react-query-devtools": "^5.102.8",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "@typescript/native-preview": "7.0.0-dev.20251103.1",
-    "@vitejs/plugin-react": "^5.2.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.6"
+    "@tanstack/react-query-devtools": "^5.103.0",
+    "@types/node": "^24.13.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
   },
   "peerDependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

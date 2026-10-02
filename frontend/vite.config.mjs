@@ -2,6 +2,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import react from "@vitejs/plugin-react"
+import autoprefixer from "autoprefixer"
+import cssnano from "cssnano"
 import { visualizer } from "rollup-plugin-visualizer"
 import { defineConfig } from "vite"
 
@@ -30,13 +32,13 @@ export default defineConfig(({ mode }) => {
       sourcemap: isTestBuild ? "inline" : true,
 
       // Minification: disabled for test builds to preserve function names and line numbers
-      minify: isTestBuild ? false : "esbuild",
+      minify: !isTestBuild,
 
       // Chunk size warnings (increased for large vendor chunks)
       chunkSizeWarningLimit: 1000, // 1MB (we have large MUI/Highcharts chunks)
 
       // Multi-page app configuration
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           main: path.resolve(__dirname, "src/index.js"),
           d3Charts: path.resolve(__dirname, "src/d3-charts.js"), // D3 + chart components (lazy-loaded)
@@ -46,7 +48,7 @@ export default defineConfig(({ mode }) => {
           simpleSpectraViewer: path.resolve(__dirname, "src/simple-spectra-viewer.js"),
           microscope: path.resolve(__dirname, "src/microscope.js"), // Legacy script with CDN deps (d3 v3, nvd3)
           microscopeForm: path.resolve(__dirname, "src/microscope-form.js"),
-          blast: path.resolve(__dirname, "src/blast-app.js"),
+          blast: path.resolve(__dirname, "src/blast-app.jsx"),
           proteinTable: path.resolve(__dirname, "src/protein-table.js"),
           scopeReport: path.resolve(__dirname, "src/scope-report.js"),
           fret: path.resolve(__dirname, "src/fret.js"),
@@ -72,21 +74,34 @@ export default defineConfig(({ mode }) => {
     },
 
     resolve: {
-      alias: {
-        "@fpbase/spectra": path.resolve(__dirname, "../packages/spectra/src/index.tsx"),
-        "@fpbase/blast": path.resolve(__dirname, "../packages/blast/src/index.js"),
-        "@fpbase/protein-table": path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
+      alias: [
+        {
+          find: "@fpbase/spectra",
+          replacement: path.resolve(__dirname, "../packages/spectra/src/index.tsx"),
+        },
+        {
+          find: "@fpbase/blast",
+          replacement: path.resolve(__dirname, "../packages/blast/src/index.jsx"),
+        },
+        {
+          find: "@fpbase/protein-table",
+          replacement: path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
+        },
+        // MUI 5 per-icon paths (e.g. @mui/icons-material/Close) are CJS with `__esModule`.
+        // Vite 8 resolves a default import of those from our `"type": "module"` packages
+        // to the whole `module.exports` object, so point them at MUI's ESM copies.
+        {
+          find: /^@mui\/icons-material\/(?!esm\/)(.+)$/,
+          replacement: "@mui/icons-material/esm/$1",
+        },
         // jQuery loaded from CDN - no alias needed
-      },
+      ],
     },
 
     // Plugins
     plugins: [
-      // React with Fast Refresh
-      react({
-        // Include .js files for JSX processing (not just .jsx)
-        include: /\.(jsx|js|tsx|ts)$/,
-      }),
+      // React with Fast Refresh (also handles JSX in .js files)
+      react(),
 
       // Sentry source map upload (production only, and only if auth token is set)
       !isDev &&
@@ -122,7 +137,7 @@ export default defineConfig(({ mode }) => {
     // CSS configuration
     css: {
       postcss: {
-        plugins: [require("autoprefixer"), require("cssnano")],
+        plugins: [autoprefixer, cssnano],
       },
       preprocessorOptions: {
         scss: {
@@ -138,26 +153,21 @@ export default defineConfig(({ mode }) => {
       "process.env.HEROKU_SLUG_COMMIT": JSON.stringify(process.env.HEROKU_SLUG_COMMIT || ""),
     },
 
-    // Configure esbuild to handle JSX/TSX in .js, .jsx, .ts, and .tsx files
-    esbuild: {
-      loader: "tsx",
-      include: /src\/.*\.[jt]sx?$/,
-      exclude: [],
-    },
-
     // Optimize dependencies
     optimizeDeps: {
       // Exclude jQuery - loaded from CDN
       exclude: ["jquery"],
       include: ["process/browser"],
-      esbuildOptions: {
+      rolldownOptions: {
         // Handle JSX/TSX in .js and .ts files during dependency scanning
-        loader: {
+        moduleTypes: {
           ".js": "jsx",
           ".ts": "tsx",
         },
-        define: {
-          global: "globalThis",
+        transform: {
+          define: {
+            global: "globalThis",
+          },
         },
       },
     },

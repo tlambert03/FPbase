@@ -16,7 +16,10 @@
 	}
 	p {
 		margin: 3px 0;
-		padding:0 inherit;
+		padding-top: 0;
+		padding-bottom: 0;
+		padding-left: inherit;
+		padding-right: inherit;
 		font-size: .8em;
 		a {
 			color: $info;

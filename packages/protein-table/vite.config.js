@@ -9,7 +9,7 @@ export default defineConfig({
       entry: "src/index.jsx",
       formats: ["es"],
     },
-    rollupOptions: { external },
+    rolldownOptions: { external },
   },
   server: {
     proxy: {

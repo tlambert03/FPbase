@@ -12,7 +12,7 @@ This repo is a Django web app for <https://www.fpbase.org> with:
 
 - `uv` for all python dependencies (defined in `pyproject.toml`)
 - `pnpm` for all JS dependencies (defined in `package.json`, with additional `package.json` files in frontend/ and packages/*)
-- `vite` as the frontend build tool (configured in `frontend/vite.config.ts`)
+- `vite` as the frontend build tool (configured in `frontend/vite.config.mjs`)
 - `biome` for JS/TS linting and formatting (configured in `biome.json`)
 - `prek` (modern replacement of pre-commit) for git hooks (configured in `.pre-commit-config.yaml`).
 - `pytest` for Python testing, which covers both backend and frontend (end-to-end tests using Playwright)
