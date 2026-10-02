@@ -891,17 +891,26 @@ def bleach_comparison(request, pk=None):
 
 
 class OrganismListView(ListView):
-    """renders html for single reference page"""
+    """renders html for the list of all organisms"""
 
-    queryset = Organism.objects.annotate(num_prot=Count("proteins"))
+    queryset = Organism.objects.annotate(num_prot=Count("proteins")).select_related("photo")
 
 
 class OrganismDetailView(DetailView):
-    """renders html for single reference page"""
+    """renders html for single organism page"""
 
-    queryset = Organism.objects.all().prefetch_related(
-        Prefetch("proteins", queryset=Protein.visible.prefetch_related("states"))
+    queryset = (
+        Organism.objects.all()
+        .select_related("photo")
+        .prefetch_related(
+            Prefetch("proteins", queryset=Protein.visible.prefetch_related("states"))
+        )
     )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["photo"] = getattr(self.object, "photo", None)
+        return context
 
 
 def spectra_csv(request):

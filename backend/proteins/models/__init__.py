@@ -7,7 +7,7 @@ from proteins.models.fluorescence_measurement import FluorescenceMeasurement
 from proteins.models.fluorophore import FluorState
 from proteins.models.lineage import Lineage
 from proteins.models.microscope import FilterPlacement, Microscope, OpticalConfig
-from proteins.models.organism import Organism
+from proteins.models.organism import Organism, OrganismPhoto
 from proteins.models.oser import OSERMeasurement
 from proteins.models.protein import (
     PROTEIN_NAME_FIELDS,
@@ -38,6 +38,7 @@ __all__ = [
     "OcFluorEff",
     "OpticalConfig",
     "Organism",
+    "OrganismPhoto",
     "Protein",
     "ProteinCollection",
     "SnapGenePlasmid",
