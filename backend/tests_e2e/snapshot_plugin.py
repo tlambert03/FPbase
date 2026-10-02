@@ -177,6 +177,18 @@ def assert_snapshot(pytestconfig: pytest.Config, request: pytest.FixtureRequest)
                 else []
             )
 
+            # wait for smooth scrolls (scrollIntoView, jQuery animate) to settle
+            img_or_page.wait_for_function(
+                """() => new Promise((resolve) => {
+                    let y = window.scrollY, still = 0
+                    const tick = () => {
+                        still = window.scrollY === y ? still + 1 : 0
+                        y = window.scrollY
+                        still >= 10 ? resolve(true) : requestAnimationFrame(tick)
+                    }
+                    requestAnimationFrame(tick)
+                })"""
+            )
             img = img_or_page.screenshot(
                 animations="disabled",
                 type="png",

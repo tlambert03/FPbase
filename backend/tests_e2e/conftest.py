@@ -28,10 +28,12 @@ import base64
 import fcntl
 import json
 import os
+import random
 import re
 import subprocess
 import sys
 import textwrap
+import zlib
 from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
@@ -39,6 +41,8 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Self, cast
 
 import django.conf
+import factory
+import factory.random
 import pytest
 import sourcemap
 import sourcemap.objects
@@ -176,6 +180,27 @@ def _frontend_assets_need_rebuild(manifest_file) -> bool:
 
 # Frontend assets are built in pytest_configure hook (runs before Django import)
 # No fixture needed here since assets are guaranteed to exist before workers start
+
+
+def _all_subclasses(cls: type) -> list[type]:
+    subs = cls.__subclasses__()
+    return subs + [s for sub in subs for s in _all_subclasses(sub)]
+
+
+@pytest.fixture(autouse=True)
+def _deterministic_test_data(request: FixtureRequest) -> None:
+    """Make factory data independent of test order and xdist worker.
+
+    Factory names (`TestFluorophore{n}`), random values and FPbase IDs otherwise
+    depend on which tests ran earlier in the same process, which makes visual
+    snapshots differ between runs.
+    """
+    seed = zlib.crc32(request.node.nodeid.encode())
+    random.seed(seed)
+    factory.random.reseed_random(seed)
+    for f in _all_subclasses(factory.base.BaseFactory):
+        if not f._meta.abstract:
+            f.reset_sequence(force=True)
 
 
 @pytest.fixture

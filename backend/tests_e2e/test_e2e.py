@@ -144,9 +144,14 @@ def test_spectrum_submission_preview_manual_data(
 
     # Switch to manual data tab and enter data
     auth_page.locator("#manual-tab").click()
+    expect(auth_page.locator("#manual-panel")).to_have_class(re.compile(r"\bshow\b"))
     data_field = auth_page.locator("#id_data")
     expect(data_field).to_be_visible()
     data_field.fill("[[500,0.1],[505,0.5],[510,0.8],[515,0.6],[520,0.3]]")
+    if not uses_select2:
+        # leaving the owner field triggers an async duplicate-name check that
+        # rewrites its help text
+        expect(auth_page.get_by_text("Owner of the spectrum")).to_be_visible()
 
     # Visual snapshot: form filled but before preview
     assert_snapshot(auth_page)
@@ -237,6 +242,8 @@ def test_spectrum_submission_tab_switching(
 
     # Visual snapshot: manual tab active with data
     expect(auth_page.get_by_text("File Upload")).not_to_be_visible()
+    # Bootstrap adds `show` (opacity) after the pane is displayed
+    expect(auth_page.locator("#manual-panel")).to_have_class(re.compile(r"\bshow\b"))
     assert_snapshot(auth_page)
 
     # Switch back to file tab
@@ -249,6 +256,7 @@ def test_spectrum_submission_tab_switching(
 
     # Visual snapshot: file tab active
     expect(auth_page.get_by_text("File Upload")).to_be_visible()
+    expect(auth_page.locator("#file-panel")).to_have_class(re.compile(r"\bshow\b"))
     assert_snapshot(auth_page)
 
 
