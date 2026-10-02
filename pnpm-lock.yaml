@@ -212,6 +212,9 @@ importers:
       highcharts:
         specifier: ^13.1.1
         version: 13.1.1
+      highcharts-react-official:
+        specifier: ^3.2.3
+        version: 3.2.3(highcharts@13.1.1)(react@19.3.0)
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -1810,6 +1813,12 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  highcharts-react-official@3.2.3:
+    resolution: {integrity: sha512-2gL8bVGe6Pf75tSe6IB5Ucd0nIOJX7ZrpttQBZVrjN2J9StdVZ12aOinXHIOFvlc6EzP8CbN13WS8NUq+9mptA==}
+    peerDependencies:
+      highcharts: '>=6.0.0'
+      react: '>=16.8.0'
 
   highcharts@13.1.1:
     resolution: {integrity: sha512-k/smhxCgaqHDsuy9ZCWs8FJNTPrbzc8BmMA4M/8f9JMwv9HgmNZjulyWwZ9q9ly6AzHpskL9mhlW8vgsSqnstg==}
@@ -4070,6 +4079,11 @@ snapshots:
   hasown@2.0.4:
     dependencies:
       function-bind: 1.1.2
+
+  highcharts-react-official@3.2.3(highcharts@13.1.1)(react@19.3.0):
+    dependencies:
+      highcharts: 13.1.1
+      react: 19.3.0
 
   highcharts@13.1.1: {}
 
