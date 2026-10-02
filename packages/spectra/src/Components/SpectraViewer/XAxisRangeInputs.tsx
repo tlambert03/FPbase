@@ -11,6 +11,8 @@ interface XAxisRangeInputsProps {
   enabled?: boolean
   containerId?: string
   extremes?: [number | null, number | null] | null
+  /** Where to send new extremes; defaults to the spectra store */
+  onExtremesChange?: (extremes: [number | null, number | null] | null) => void
 }
 
 /**
@@ -22,10 +24,18 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
   enabled = true,
   containerId = "spectra-viewer-container",
   extremes: extremesProp,
+  onExtremesChange,
 }) => {
   const axis = useAxis()
   const storeExtremes = useSpectraStore((state) => state.chartOptions.extremes)
   const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+  const setExtremes = useCallback(
+    (newExtremes: [number | null, number | null] | null): void => {
+      if (onExtremesChange) onExtremesChange(newExtremes)
+      else updateChartOptions({ extremes: newExtremes })
+    },
+    [onExtremesChange, updateChartOptions]
+  )
 
   // Use provided extremes prop if available (for SimpleSpectraViewer with provideState)
   // Otherwise fall back to store extremes (for main app)
@@ -220,7 +230,7 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
             ? [null, extremes[1]]
             : [extremes[0], null]
           : null
-        updateChartOptions({ extremes: newExtremes })
+        setExtremes(newExtremes)
         return
       }
 
@@ -238,9 +248,9 @@ export const XAxisRangeInputs: React.FC<XAxisRangeInputsProps> = ({
       const newExtremes: [number | null, number | null] = isMin
         ? [roundedValue, extremes?.[1] ?? null]
         : [extremes?.[0] ?? null, roundedValue]
-      updateChartOptions({ extremes: newExtremes })
+      setExtremes(newExtremes)
     },
-    [extremes, updateChartOptions]
+    [extremes, setExtremes]
   )
 
   // Handle min input change

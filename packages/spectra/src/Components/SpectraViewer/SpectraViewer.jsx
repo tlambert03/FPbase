@@ -55,9 +55,17 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
   const activeOverlaps = provideState?.activeOverlaps ?? storeActiveOverlaps
   const hiddenSpectra = provideState?.hiddenSpectra ?? storeHiddenSpectra
 
+  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
+
+  // With provided state (protein pages, embeds) the viewer is isolated from the persisted
+  // store: zoom extremes live in local state instead of being written to the store
+  const isolated = provideState != null
+  const [localExtremes, setLocalExtremes] = useState(provideState?.chartOptions?.extremes ?? null)
+  const setExtremes = isolated ? setLocalExtremes : (extremes) => updateChartOptions({ extremes })
+
   // Merge provided chartOptions with defaults to ensure all required fields are present
-  const chartOptions = provideState?.chartOptions
-    ? { ...defaultChartOptions, ...provideState.chartOptions }
+  const chartOptions = isolated
+    ? { ...defaultChartOptions, ...provideState.chartOptions, extremes: localExtremes }
     : storeChartOptions
 
   // Always call useSpectraData hook before any returns (Rules of Hooks)
@@ -66,7 +74,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
   // Safely extract normWave from exNorm array, handling non-array values
   // exNorm should be [normWave, normID] but may be corrupted/malformed
   let normWave
-  if (provideState?.chartOptions) {
+  if (isolated) {
     // If state is provided, don't use exNorm from store
     normWave = undefined
   } else if (Array.isArray(storeExNorm)) {
@@ -83,8 +91,6 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
     },
     gridLineWidth: chartOptions.showGrid ? 1 : 0,
   }
-
-  const updateChartOptions = useSpectraStore((state) => state.updateChartOptions)
 
   const xAxis = {
     ..._xAxis,
@@ -115,7 +121,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
         // Handle reset case: both min and max are null
         if (min === null && max === null) {
           if (chartOptions.extremes !== null) {
-            updateChartOptions({ extremes: null })
+            setExtremes(null)
           }
           return
         }
@@ -128,7 +134,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
           Math.abs(min - dataMin) <= tolerance && Math.abs(max - dataMax) <= tolerance
         if (isFullDataRange) {
           if (chartOptions.extremes !== null) {
-            updateChartOptions({ extremes: null })
+            setExtremes(null)
           }
           return
         }
@@ -142,9 +148,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
         const currentMax = chartOptions.extremes?.[1]
 
         if (currentMin !== newMin || currentMax !== newMax) {
-          updateChartOptions({
-            extremes: [newMin ?? null, newMax ?? null],
-          })
+          setExtremes([newMin ?? null, newMax ?? null])
         }
       },
     },
@@ -165,6 +169,7 @@ const BaseSpectraViewerContainer = React.memo(function BaseSpectraViewerContaine
       exNorm={+normWave}
       ownerInfo={ownerInfo}
       hidden={hiddenSpectra}
+      onExtremesChange={isolated ? setLocalExtremes : undefined}
     />
   )
 })
@@ -178,6 +183,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   chartOptions,
   ownerInfo,
   hidden,
+  onExtremesChange,
 }) {
   const windowWidth = useWindowWidth()
   const numSpectra = data.length
@@ -372,6 +378,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
           <XAxisRangeInputs
             enabled={chartOptions.showX && numSpectra > 0}
             extremes={chartOptions.extremes}
+            onExtremesChange={onExtremesChange}
           />
         </AxisContext.Provider>
       )}
