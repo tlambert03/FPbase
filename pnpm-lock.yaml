@@ -215,9 +215,6 @@ importers:
       react-dom:
         specifier: ^19.3.0
         version: 19.3.0(react@19.3.0)
-      react-jsx-highcharts:
-        specifier: ^5.0.4
-        version: 5.0.4(highcharts@12.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-select:
         specifier: ^5.10.2
         version: 5.10.2(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2304,13 +2301,6 @@ packages:
   react-is@19.2.8:
     resolution: {integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==}
 
-  react-jsx-highcharts@5.0.4:
-    resolution: {integrity: sha512-48q5yiI5t8SWc4eWIkJYAh/GiK4kn4QhmLHvcRAce2EGVBA7+ixK3vC2JV/rr+4Xa+POOoy1AruBAFcUhPlc5g==}
-    peerDependencies:
-      highcharts: ^9.1.2 || ^10.0.0 || ^11.0.0 || ^12.0.1 || ^13.0.0
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
-
   react-select@5.10.2:
     resolution: {integrity: sha512-Z33nHdEFWq9tfnfVXaiM12rbJmk+QjFEztWLtmXqQhz6Al4UZZ9xc0wiatmGtUOCCnHN0WizL3tCMYRENX4rVQ==}
     peerDependencies:
@@ -2571,10 +2561,6 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
-
-  uuid@11.1.1:
-    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
-    hasBin: true
 
   vite@8.3.0:
     resolution: {integrity: sha512-lhZBVvEHefgE+HQZC9O7EBJgCU/nVzFNl7vkS4RE0APtWLP02/8QVIkQtzBxPquh7lq5/78NHipTj7ODQ6XuyQ==}
@@ -4440,13 +4426,6 @@ snapshots:
 
   react-is@19.2.8: {}
 
-  react-jsx-highcharts@5.0.4(highcharts@12.6.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
-    dependencies:
-      highcharts: 12.6.2
-      react: 19.3.0
-      react-dom: 19.3.0(react@19.3.0)
-      uuid: 11.1.1
-
   react-select@5.10.2(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       '@babel/runtime': 7.29.7
@@ -4764,8 +4743,6 @@ snapshots:
       react: 19.3.0
 
   util-deprecate@1.0.2: {}
-
-  uuid@11.1.1: {}
 
   vite@8.3.0(@types/node@24.13.5)(esbuild@0.28.2)(jiti@2.6.1)(sass@1.104.0)(terser@5.39.0):
     dependencies:

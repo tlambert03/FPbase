@@ -4,8 +4,8 @@ import Highcharts from "highcharts"
 import type React from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { useAxis } from "react-jsx-highcharts"
 import { useSpectraStore } from "../../store/spectraStore"
+import { useAxis } from "./chartComponents"
 
 interface XAxisRangeInputsProps {
   enabled?: boolean

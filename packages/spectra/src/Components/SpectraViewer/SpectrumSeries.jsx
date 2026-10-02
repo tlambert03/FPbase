@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react"
-import { Series } from "react-jsx-highcharts"
 import { useSpectrum } from "../../hooks/useSpectraQueries"
 import PALETTES from "../../palettes"
+import { Series } from "./chartComponents"
 
 const OD = (num) => (num <= 0 ? 10 : -Math.log10(num))
 
