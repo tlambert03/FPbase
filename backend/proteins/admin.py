@@ -26,6 +26,7 @@ from proteins.models import (
     Microscope,
     OpticalConfig,
     Organism,
+    OrganismPhoto,
     OSERMeasurement,
     Protein,
     ProteinCollection,
@@ -499,8 +500,24 @@ class StateTransitionInline(admin.TabularInline):
         return field
 
 
+class OrganismPhotoInline(admin.StackedInline):
+    model = OrganismPhoto
+    extra = 0
+    fields = (
+        "commons_file",
+        "image",
+        ("width", "height"),
+        "author",
+        ("license", "license_url"),
+        "source_url",
+        ("pictured", "pictured_note"),
+        "alt",
+    )
+
+
 @admin.register(Organism)
 class OrganismAdmin(CompareVersionAdmin):
+    inlines = (OrganismPhotoInline,)
     list_select_related = ("created_by", "updated_by")
     list_display = (
         "scientific_name",

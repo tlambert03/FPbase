@@ -5,34 +5,94 @@
 {% block title %}{{ object }} in the Fluorescent Protein Database {% endblock %}
 {% block meta-description %}Fluorescent proteins derived from {{ object.scientific_name }} at FPbase{% endblock %}
 
+{% block twitter_title %}{{ object }} at FPbase{% endblock twitter_title %}
+{% block twitter_description %}Fluorescent proteins derived from {{ object.scientific_name }} at FPbase{% endblock twitter_description %}
+{% block twitter_image %}{% if photo %}{{ photo.src }}{% else %}{{ block.super }}{% endif %}{% endblock twitter_image %}
+
+{% block extrahead %}
+{% if photo.is_commons %}<link rel="preconnect" href="https://upload.wikimedia.org">{% endif %}
+{% endblock extrahead %}
+
+{% block container-class %}container organism-page{% endblock %}
+
 {% block content %}
+{% with proteins=object.proteins.all %}
+<header class="organism-header">
+  <h1 class="organism-name">{% if object.italicize %}<em>{{ object }}</em>{% else %}{{ object }}{% endif %}</h1>
+  {% if object.common_name or object.division %}
+  <p class="organism-subtitle">
+    {{ object.common_name }}{% if object.common_name and object.division %} <span aria-hidden="true">·</span> {% endif %}{{ object.division }}
+  </p>
+  {% endif %}
+</header>
 
-			<h1 class="name text-center mb-4">{{ object }}</h1>
+<div class="row organism-summary {% if not photo %}justify-content-center{% endif %}">
+  {% if photo %}
+  <div class="col-md-6 col-lg-5 mb-4">
+    <figure class="organism-photo">
+      <div class="organism-photo-frame">
+        <img src="{{ photo.src }}"
+          {% if photo.srcset %}srcset="{{ photo.srcset }}" sizes="(min-width: 1200px) 450px, (min-width: 768px) 45vw, calc(100vw - 2rem)"{% endif %}
+          {% if photo.src_size %}width="{{ photo.src_size.0 }}" height="{{ photo.src_size.1 }}"{% endif %}
+          alt="{{ photo.alt_text }}" fetchpriority="high" decoding="async">
+      </div>
+      <figcaption class="organism-photo-caption">
+        {% if photo.pictured %}<span class="organism-pictured">Pictured: <em>{{ photo.pictured }}</em>{% if photo.pictured_note %} ({{ photo.pictured_note }}){% endif %}</span>{% endif %}
+        {% include "proteins/_organism_photo_credit.html" with photo=photo %}
+      </figcaption>
+    </figure>
+  </div>
+  {% endif %}
 
-			<a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener">{% icon "external-link" %} View on Pubmed Taxonomy Browser</a>
+  <div class="{% if photo %}col-md-6 col-lg-7{% else %}col-md-8 col-lg-6{% endif %} mb-4">
+    <dl class="organism-facts{% if not photo %} is-standalone{% endif %}">
+      <div>
+        <dt>Proteins in FPbase</dt>
+        <dd class="organism-count">{{ proteins|length }}</dd>
+      </div>
+      {% if object.common_name %}
+      <div>
+        <dt>Common name</dt>
+        <dd>{{ object.common_name }}</dd>
+      </div>
+      {% endif %}
+      {% if object.rank %}
+      <div>
+        <dt>Rank</dt>
+        <dd>{{ object.rank }}</dd>
+      </div>
+      {% endif %}
+      {% if object.division %}
+      <div>
+        <dt>Division</dt>
+        <dd>{{ object.division }}</dd>
+      </div>
+      {% endif %}
+      <div>
+        <dt>NCBI Taxonomy ID</dt>
+        <dd>
+          <a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{ object.id }}" target="_blank" rel="noopener">{{ object.id }} {% icon "external-link" %}</a>
+        </dd>
+      </div>
+    </dl>
+    <a href="{% url 'proteins:organism-list' %}" class="organism-back small">&larr; All organisms</a>
+  </div>
+</div>
 
-			<div class="row mt-2">
-				<dt class="col-sm-3">scientific_name</dt>
-				<dd class="col-sm-9"><em>{{ object.scientific_name }}</em></dd>
-				<dt class="col-sm-3">division</dt>
-				<dd class="col-sm-9"><em>{{ object.division }}</em></dd>
-				{% if object.common_name %}
-				    <dt class="col-sm-3">common_name</dt>
-				    <dd class="col-sm-9"><em>{{ object.common_name | default:''}}</em></dd>
-				{% endif %}
-			</div>
+<section class="organism-section organism-lineage-section d-none">
+  <h2 class="organism-section-title">Lineages derived from {% if object.italicize %}<em>{{ object }}</em>{% else %}{{ object }}{% endif %}</h2>
+  <div class="lineage mb-0"></div>
+</section>
 
-      <a href="{% url 'proteins:organism-list' %}" class='text-info'>See other organisms in the database</a>
-
-      <div class="lineage mb-0" data-slug='{{protein.slug}}'></div>
-
-      <h5 class='pt-3'><strong>Proteins derived from {{ object }}</strong></h5>
-			{% with proteins=object.proteins.all removebutton=False %}
-        <div class="table-responsive mt-2">
-			    {% include '_proteintable.html' %}
-        </div>
-			{% endwith %}
-
+<section class="organism-section">
+  <h2 class="organism-section-title">Proteins derived from {% if object.italicize %}<em>{{ object }}</em>{% else %}{{ object }}{% endif %}</h2>
+  <div class="table-responsive">
+    {% with removebutton=False %}
+    {% include '_proteintable.html' %}
+    {% endwith %}
+  </div>
+</section>
+{% endwith %}
 {% endblock content %}
 
 {% block javascript %}
@@ -57,7 +117,7 @@
             .then((response) => response.json())
             .then((data) => {
               if(!$.isEmptyObject(data)){
-                $('<h5>', {class: 'pt-3'}).html('<strong>Lineages derived from {{ object }}</strong>').insertBefore(el)
+                $('.organism-lineage-section').removeClass('d-none')
                 var chart = LineageChart({
                   withToolbar: true,
                   withSearch: true,
@@ -69,12 +129,14 @@
             })
             .catch((error) => {
               console.error("Failed to load lineage data:", error);
+              $('.organism-lineage-section').removeClass('d-none')
               $(el).html('<div class="alert alert-danger">Failed to load lineage data. Please refresh the page.</div>');
             });
         });
       })
       .catch(function(error){
         console.error("Error loading D3 charts:", error);
+        $('.organism-lineage-section').removeClass('d-none')
         $('.lineage').html('<div class="alert alert-danger">Failed to load lineage viewer. Please refresh the page.</div>');
       });
   }
