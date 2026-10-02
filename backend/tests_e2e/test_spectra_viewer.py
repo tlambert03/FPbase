@@ -113,6 +113,9 @@ def test_spectra_viewer_add_from_spacebar(
         # Wait for chart to fully render
         spectra_viewer.locator(".highcharts-series").first.wait_for(state="attached")
         spectra_viewer.wait_for_load_state("networkidle")
+        # the clicked button's hover tooltip would otherwise show up depending on timing
+        spectra_viewer.mouse.move(0, 0)
+        expect(spectra_viewer.get_by_role("tooltip")).not_to_be_attached()
         # Mask legend as it has minor rendering variations
         assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
