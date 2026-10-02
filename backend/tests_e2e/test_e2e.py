@@ -494,12 +494,10 @@ def test_protein_table_sorting(live_server: LiveServer, page: Page) -> None:
     header.filter(has_text="Brightness").click()
     expect(names).to_have_text(["gamma", *zetas, "mAlpha2", "mAlpha10", "Beta"])
     # shift-click adds a secondary sort
-    sort_icons = table.locator(
-        "thead [data-testid='ArrowUpwardIcon'], thead [data-testid='ArrowDownwardIcon']"
-    )
-    expect(sort_icons).to_have_count(1)
+    sorted_headers = table.locator("thead th[aria-sort]")
+    expect(sorted_headers).to_have_count(1)
     header.filter(has_text="Name").click(modifiers=["Shift"])
-    expect(sort_icons).to_have_count(2)
+    expect(sorted_headers).to_have_count(2)
 
 
 def test_protein_table_pagination(live_server: LiveServer, page: Page) -> None:
@@ -511,7 +509,7 @@ def test_protein_table_pagination(live_server: LiveServer, page: Page) -> None:
     page.get_by_role("option", name="10", exact=True).click()
     expect(page.get_by_text("1\N{EN DASH}10 of 12")).to_be_visible()
     expect(names).to_have_count(10)
-    page.locator("button:has([data-testid='ChevronRightIcon'])").click()
+    page.get_by_role("button", name="Next page").click()
     expect(page.get_by_text("11\N{EN DASH}12 of 12")).to_be_visible()
     expect(names).to_have_count(2)
 

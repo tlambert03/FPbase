@@ -68,7 +68,9 @@ const SettingsDrawer = () => {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onOpen={() => setDrawerOpen(true)}
-        BackdropProps={{ style: { backgroundColor: "rgba(0,0,0,0.2)" } }}
+        slotProps={{
+          backdrop: { style: { backgroundColor: "rgba(0,0,0,0.2)" } },
+        }}
       >
         <div className={classes.root} role="presentation">
           <ChartOptionsForm />

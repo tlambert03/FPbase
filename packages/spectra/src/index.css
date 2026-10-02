@@ -71,9 +71,9 @@ code {
 }
 
 .efficiency-table .MuiButton-outlinedPrimary .MuiButton-label,
-.efficiency-table .MuiButton-containedPrimary .MuiButton-label,
+.efficiency-table .MuiButton-contained.MuiButton-colorPrimary .MuiButton-label,
 .efficiency-table .MuiButton-outlinedSecondary .MuiButton-label,
-.efficiency-table .MuiButton-containedSecondary .MuiButton-label {
+.efficiency-table .MuiButton-contained.MuiButton-colorSecondary .MuiButton-label {
   opacity: 1;
 }
 

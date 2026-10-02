@@ -31,8 +31,14 @@ const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
   }
   return (
     <div className={classes.root}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          alignItems: "center",
+        }}
+      >
+        <Grid size="grow">
           <Slider
             value={+value}
             onChange={handleSliderChange}
@@ -42,7 +48,7 @@ const InputSlider = ({ value, setValue, min = 300, max = 999, step = 1 }) => {
             step={step}
           />
         </Grid>
-        <Grid item>
+        <Grid>
           <Input
             className={classes.input}
             value={value}

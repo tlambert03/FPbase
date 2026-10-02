@@ -74,7 +74,7 @@ const MyAppBar = memo(function MyAppBar({ spectraOptions, clearForm, openHelp })
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
           <SettingsDrawer />
-          <IconButton color="inherit" onClick={openHelp}>
+          <IconButton color="inherit" onClick={openHelp} aria-label="Help">
             <HelpIcon />
           </IconButton>
           <Tooltip title="Click [or spacebar] for Quick Entry" enterDelay={700} leaveDelay={200}>

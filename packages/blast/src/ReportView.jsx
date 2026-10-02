@@ -40,9 +40,6 @@ const NoHitsMessage = ({ open, handleClose }) => {
         open={open}
         autoHideDuration={20000}
         onClose={handleClose}
-        ContentProps={{
-          "aria-describedby": "message-id",
-        }}
         message={
           <span id="message-id">
             <Typography key="undo" color="secondary" size="small" onClick={handleClose}>
@@ -63,6 +60,11 @@ const NoHitsMessage = ({ open, handleClose }) => {
             <CloseIcon />
           </IconButton>,
         ]}
+        slotProps={{
+          content: {
+            "aria-describedby": "message-id",
+          },
+        }}
       />
     </div>
   )

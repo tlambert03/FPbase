@@ -116,30 +116,36 @@ function ShareLinkAlert({ open, setOpen }) {
             value={qString}
             fullWidth
             readOnly
-            InputProps={{
-              style: { color: "#669" },
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title="Copied!"
-                    open={tooltipOpen}
-                    disableFocusListener
-                    disableHoverListener
-                    disableTouchListener
-                    placement="top"
-                    TransitionComponent={Zoom}
-                    TransitionProps={{ timeout: { enter: 200, exit: 700 } }}
-                  >
-                    <IconButton
-                      edge="end"
-                      onClick={handleCopyClick}
-                      aria-label="Copy URL to clipboard"
+            slotProps={{
+              input: {
+                style: { color: "#669" },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Tooltip
+                      title="Copied!"
+                      open={tooltipOpen}
+                      disableFocusListener
+                      disableHoverListener
+                      disableTouchListener
+                      placement="top"
+                      slots={{
+                        transition: Zoom,
+                      }}
+                      slotProps={{
+                        transition: { timeout: { enter: 200, exit: 700 } },
+                      }}
                     >
-                      <FAIcon icon={faCopy} style={{}} />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
+                      <IconButton
+                        edge="end"
+                        onClick={handleCopyClick}
+                        aria-label="Copy URL to clipboard"
+                      >
+                        <FAIcon icon={faCopy} style={{}} />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
         </DialogContent>
@@ -244,6 +250,7 @@ const ShareButton = () => {
         aria-haspopup="true"
         onClick={handleShareClick}
         tabIndex={-1}
+        aria-label="Share"
       >
         <ShareIcon />
       </IconButton>
@@ -281,7 +288,11 @@ const ShareButton = () => {
               </ListItemIcon>
               <ListItemText primary="Download data as CSV" />
             </MenuItem>
-            <Divider light />
+            <Divider
+              sx={{
+                opacity: "0.6",
+              }}
+            />
             <MenuItem onClick={printChart}>
               <ListItemIcon className={classes.listIcon}>
                 <PrintIcon />

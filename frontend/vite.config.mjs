@@ -87,13 +87,6 @@ export default defineConfig(({ mode }) => {
           find: "@fpbase/protein-table",
           replacement: path.resolve(__dirname, "../packages/protein-table/src/index.jsx"),
         },
-        // MUI 5 per-icon paths (e.g. @mui/icons-material/Close) are CJS with `__esModule`.
-        // Vite 8 resolves a default import of those from our `"type": "module"` packages
-        // to the whole `module.exports` object, so point them at MUI's ESM copies.
-        {
-          find: /^@mui\/icons-material\/(?!esm\/)(.+)$/,
-          replacement: "@mui/icons-material/esm/$1",
-        },
         // jQuery loaded from CDN - no alias needed
       ],
     },

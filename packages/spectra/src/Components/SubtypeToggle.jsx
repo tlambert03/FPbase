@@ -37,7 +37,13 @@ const SubtypeToggle = ({ subtypes }) => {
 
   return (
     <div style={{ width: "100%", marginTop: 6 }}>
-      <Box display="flex" justifyContent="flex-end" align="center">
+      <Box
+        align="center"
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+        }}
+      >
         <Typography
           style={{
             color: "#999",

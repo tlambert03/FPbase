@@ -68,16 +68,18 @@ function Control({ selectProps, innerRef, innerProps, children }) {
   return (
     <TextField
       fullWidth
-      InputProps={{
-        inputComponent,
-        inputProps: {
-          className: selectProps.classes.input,
-          inputRef: innerRef,
-          children,
-          ...innerProps,
+      {...selectProps.TextFieldProps}
+      slotProps={{
+        input: {
+          inputComponent,
+          inputProps: {
+            className: selectProps.classes.input,
+            inputRef: innerRef,
+            children,
+            ...innerProps,
+          },
         },
       }}
-      {...selectProps.TextFieldProps}
     />
   )
 }

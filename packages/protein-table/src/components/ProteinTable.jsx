@@ -3,7 +3,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward"
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft"
 import ChevronRightIcon from "@mui/icons-material/ChevronRight"
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined"
 import {
   alpha,
   Box,
@@ -108,7 +108,7 @@ function ColumnHeader({ children, glossaryKey }) {
           e.currentTarget.style.opacity = 0.5
         }}
       >
-        <HelpOutlineIcon fontSize="inherit" />
+        <HelpOutlineOutlinedIcon fontSize="inherit" />
       </a>
     </Box>
   )
@@ -467,6 +467,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
                         : {},
                     }}
                     onClick={header.column.getToggleSortingHandler()}
+                    sortDirection={header.column.getIsSorted() || false}
                   >
                     <Box
                       sx={{
@@ -549,12 +550,22 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
           alignItems: "center",
         }}
       >
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+          }}
+        >
           {displayText}
         </Typography>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.secondary",
+              }}
+            >
               Rows per page:
             </Typography>
             <Select
@@ -575,13 +586,19 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
               <MenuItem value={100}>100</MenuItem>
             </Select>
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+            }}
+          >
             {startRow}–{endRow} of {filteredData.length}
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <IconButton
               onClick={() => handleChangePage(pagination.pageIndex - 1)}
               disabled={!canPreviousPage}
+              aria-label="Previous page"
               size="small"
             >
               <ChevronLeftIcon />
@@ -589,6 +606,7 @@ export default function ProteinTable({ proteins, filters, totalCount }) {
             <IconButton
               onClick={() => handleChangePage(pagination.pageIndex + 1)}
               disabled={!canNextPage}
+              aria-label="Next page"
               size="small"
             >
               <ChevronRightIcon />

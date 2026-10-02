@@ -16,13 +16,31 @@ function ReportSelect({ reports, binary, index, onChange }) {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Grid container spacing={2} alignItems="center">
-        <Grid item xs={12} sm={3} md={2}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          alignItems: "center",
+        }}
+      >
+        <Grid
+          size={{
+            xs: 12,
+            sm: 3,
+            md: 2,
+          }}
+        >
           <Typography variant="body1" sx={{ fontWeight: "bold", color: "#5b616b" }}>
             Results for:
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={9} md={10}>
+        <Grid
+          size={{
+            xs: 12,
+            sm: 9,
+            md: 10,
+          }}
+        >
           <FormControl fullWidth>
             <InputLabel id="report-select-label">Select Report</InputLabel>
             <Select
