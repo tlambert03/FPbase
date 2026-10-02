@@ -1,5 +1,6 @@
 import Highcharts from "highcharts"
-import React, { memo, useEffect } from "react"
+import { HighchartsReact } from "highcharts-react-official"
+import React, { memo, useEffect, useMemo, useRef, useState } from "react"
 import "highcharts/modules/exporting"
 import "highcharts/modules/offline-exporting"
 import "highcharts/modules/pattern-fill"
@@ -7,22 +8,14 @@ import "highcharts/modules/export-data"
 import LinearProgress from "@mui/material/LinearProgress"
 import { defaultChartOptions } from "../../defaults"
 import useSpectraData from "../../hooks/useSpectraData"
+import { useSpectraBatch } from "../../hooks/useSpectraQueries"
 import { useSpectraStore } from "../../store/spectraStore"
 import useWindowWidth from "../useWindowWidth"
+import { AxisContext } from "./axisContext"
 import DEFAULT_OPTIONS from "./ChartOptions"
-import {
-  Chart,
-  Credits,
-  HighchartsChart,
-  Legend,
-  Tooltip,
-  useAxis,
-  XAxis,
-  YAxis,
-} from "./chartComponents"
 import fixLogScale from "./fixLogScale"
 import NoData from "./NoData"
-import SpectrumSeries from "./SpectrumSeries"
+import { exNormSpectrumId, spectrumSeriesOptions } from "./SpectrumSeries"
 import { XAxisRangeInputs } from "./XAxisRangeInputs"
 
 fixLogScale(Highcharts)
@@ -208,6 +201,122 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   // Note: legendHeight is already accounted for by Highcharts internally
   // Adding it here causes reflow issues when toggling series visibility
 
+  const exNormIds = useMemo(
+    () => [...new Set(data.map((s) => exNormSpectrumId(s, ownerInfo, exNorm)).filter(Boolean))],
+    [data, ownerInfo, exNorm]
+  )
+  const { data: exNormSpectra } = useSpectraBatch(exNormIds)
+
+  const series = useMemo(() => {
+    const exById = Object.fromEntries(exNormSpectra.map((s) => [String(s.id), s]))
+    const toSeries = (spectrum, yAxis, withExNorm) =>
+      spectrumSeriesOptions(
+        spectrum,
+        { ...chartOptions, exNorm: withExNorm ? exNorm : undefined },
+        {
+          exSpectrum: withExNorm ? exById[exNormSpectrumId(spectrum, ownerInfo, exNorm)] : null,
+          ownerIndex: spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1,
+          visible: !hidden.includes(spectrum.id),
+          yAxis,
+        }
+      )
+    const valid = (s) => s?.id && s.data
+    return [
+      ...nonExData.filter(valid).map((s) => toSeries(s, "yAx1", true)),
+      ...exData.filter(valid).map((s) => toSeries(s, "yAx2", false)),
+    ]
+  }, [data, chartOptions, exNorm, ownerInfo, hidden, exNormSpectra])
+
+  const hideCredits = numSpectra < 1 || chartOptions.simpleMode
+  const options = {
+    chart: { ..._chart, height },
+    title: { text: null },
+    subtitle: { text: null },
+    plotOptions: _plotOptions,
+    navigation: _navigation,
+    exporting: _exporting,
+    lang: { noData: "" },
+    accessibility: { enabled: false },
+    legend: { ..._legend, enabled: _legend.enabled ?? true },
+    tooltip: { ...tooltip, enabled: tooltip.enabled ?? true },
+    credits: {
+      enabled: true,
+      text: "fpbase.org",
+      href: "https://www.fpbase.org/spectra",
+      position: { y: -45 },
+      style: { display: hideCredits ? "none" : "block" },
+    },
+    yAxis: [
+      // the first Yaxis is for everything besides excitation data
+      {
+        id: "yAx1",
+        title: { text: null },
+        ...yAxis,
+        reversed: chartOptions.logScale,
+        max: chartOptions.logScale ? 6 : 1,
+        min: 0,
+        gridLineWidth: chartOptions.showGrid && numSpectra > 0 ? 1 : 0,
+        endOnTick: chartOptions.scaleEC,
+        labels: { ...yAxis.labels, enabled: yAxis.labels.enabled && numSpectra > 0 },
+      },
+      // a second axis for ex data, which may need to be scaled by EC
+      {
+        id: "yAx2",
+        ...yAxis,
+        title: {
+          text: exData.length > 0 && chartOptions.scaleEC ? "Extinction Coefficient" : null,
+          style: { fontSize: "0.65rem" },
+        },
+        labels: {
+          ...yAxis.labels,
+          enabled: chartOptions.scaleEC,
+          style: { fontWeight: 600, fontSize: "0.65rem" },
+        },
+        opposite: true,
+        gridLineWidth: chartOptions.scaleEC && chartOptions.showGrid,
+        maxPadding: 0.0,
+        reversed: chartOptions.logScale,
+        max: chartOptions.scaleEC ? null : chartOptions.logScale ? 6 : 1,
+        min: 0,
+        endOnTick: chartOptions.scaleEC,
+      },
+    ],
+    xAxis: [
+      {
+        id: "xAxis",
+        ...xAxis,
+        title: { text: "Wavelength", style: { display: "none" } },
+        lineWidth: numSpectra > 0 ? 1 : 0,
+      },
+    ],
+    series,
+  }
+
+  // read the chart from the ref, not `callback`: exporting builds temporary chart copies
+  // and runs the original chart's callback for them too
+  const chartRef = useRef(null)
+  const [chart, setChart] = useState(null)
+  useEffect(() => {
+    setChart(chartRef.current?.chart ?? null)
+  }, [])
+  const xAxisContext = useMemo(
+    () => (chart ? { object: chart.get("xAxis"), id: "xAxis" } : null),
+    [chart]
+  )
+
+  // keep the credits clear of the axis titles
+  useEffect(() => {
+    if (!chart) return
+    const shiftCredits = () => {
+      const yShift = chart.get("xAxis").axisTitleMargin
+      chart.credits?.update({
+        position: { y: -25 - yShift, x: -25 - chart.get("yAx2").axisTitleMargin },
+      })
+    }
+    shiftCredits()
+    return Highcharts.addEvent(chart, "redraw", shiftCredits)
+  }, [chart])
+
   return (
     <div
       id="spectra-viewer-container"
@@ -252,116 +361,23 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
         ecNorm={chartOptions.scaleEC}
         qyNorm={chartOptions.scaleQY}
       />
-      <HighchartsChart
-        plotOptions={_plotOptions}
-        navigation={_navigation}
-        exporting={_exporting}
-        lang={{ noData: "" }}
-        accessibility={{ enabled: false }}
-      >
-        <Chart {..._chart} height={height} />
-        <Legend {..._legend} />
-        <Tooltip {...tooltip} />
-        {/* the first Yaxis is for everything besides excitation data */}
-        <YAxis
-          id="yAx1"
-          {...yAxis}
-          reversed={chartOptions.logScale}
-          max={chartOptions.logScale ? 6 : 1}
-          min={0}
-          gridLineWidth={chartOptions.showGrid && numSpectra > 0 ? 1 : 0}
-          endOnTick={chartOptions.scaleEC}
-          labels={{
-            ...yAxis.labels,
-            enabled: yAxis.labels.enabled && numSpectra > 0,
-          }}
-        >
-          {nonExData
-            .filter((spectrum) => spectrum?.id && spectrum.data)
-            .map((spectrum) => (
-              <SpectrumSeries
-                exNorm={exNorm}
-                spectrum={spectrum}
-                key={spectrum.id}
-                visible={!hidden.includes(spectrum.id)}
-                ownerInfo={ownerInfo}
-                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
-                {...chartOptions}
-              />
-            ))}
-        </YAxis>
-        {/* a second axis for ex data, which may need to be scaled by EC */}
-        <YAxis
-          id="yAx2"
-          {...yAxis}
-          labels={{
-            ...yAxis.labels,
-            enabled: chartOptions.scaleEC,
-            style: { fontWeight: 600, fontSize: "0.65rem" },
-          }}
-          opposite
-          gridLineWidth={chartOptions.scaleEC && chartOptions.showGrid}
-          maxPadding={0.0}
-          reversed={chartOptions.logScale}
-          max={chartOptions.scaleEC ? null : chartOptions.logScale ? 6 : 1}
-          min={0}
-          endOnTick={chartOptions.scaleEC}
-        >
-          {exData.length > 0 && chartOptions.scaleEC && (
-            <YAxis.Title style={{ fontSize: "0.65rem" }}>Extinction Coefficient</YAxis.Title>
-          )}
-          {exData
-            .filter((spectrum) => spectrum?.id && spectrum.data)
-            .map((spectrum) => (
-              <SpectrumSeries
-                spectrum={spectrum}
-                key={spectrum.id}
-                visible={!hidden.includes(spectrum.id)}
-                ownerIndex={spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1}
-                {...chartOptions}
-              />
-            ))}
-          <MyCredits hide={numSpectra < 1 || chartOptions.simpleMode} />
-        </YAxis>
-
-        <XAxis {...xAxis} lineWidth={numSpectra > 0 ? 1 : 0} id="xAxis">
-          <XAxis.Title style={{ display: "none" }}>Wavelength</XAxis.Title>
+      <HighchartsReact
+        highcharts={Highcharts}
+        options={options}
+        ref={chartRef}
+        containerProps={{ className: "chart" }}
+      />
+      {xAxisContext && (
+        <AxisContext.Provider value={xAxisContext}>
           <XAxisRangeInputs
             enabled={chartOptions.showX && numSpectra > 0}
             extremes={chartOptions.extremes}
           />
-        </XAxis>
-      </HighchartsChart>
+        </AxisContext.Provider>
+      )}
     </div>
   )
 })
-
-const MyCredits = function MyCredits({ hide }) {
-  const axis = useAxis()
-
-  useEffect(() => {
-    if (!axis || !axis.object) return
-
-    function shiftCredits() {
-      const yShift = axis.object.chart.get("xAxis").axisTitleMargin
-      axis.object.chart.credits.update({
-        position: { y: -25 - yShift, x: -25 - axis.object.axisTitleMargin },
-      })
-    }
-    Highcharts.addEvent(axis.object.chart, "redraw", shiftCredits)
-    shiftCredits()
-  }, [axis])
-
-  return (
-    <Credits
-      position={{ y: -45 }}
-      href="https://www.fpbase.org/spectra"
-      style={{ display: hide ? "none" : "block" }}
-    >
-      fpbase.org
-    </Credits>
-  )
-}
 
 const ExNormNotice = memo(function ExNormNotice({ exNorm, ecNorm, qyNorm, ownerInfo = {} }) {
   const exNormed = ecNorm && Object.keys(ownerInfo).length > 0

@@ -5,7 +5,7 @@ import type React from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useSpectraStore } from "../../store/spectraStore"
-import { useAxis } from "./chartComponents"
+import { useAxis } from "./axisContext"
 
 interface XAxisRangeInputsProps {
   enabled?: boolean
