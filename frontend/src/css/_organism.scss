@@ -1,0 +1,298 @@
+// organism list and detail pages
+// ------------------------------
+
+.organism-header {
+  text-align: center;
+  margin: 0.5rem 0 2rem;
+}
+
+.organism-name {
+  color: lighten($primary, 10%);
+  font-weight: 300;
+  font-size: 2.6rem;
+  word-wrap: break-word;
+  margin-bottom: 0.25rem;
+
+  @include media-breakpoint-down(md) {
+    font-size: 2rem;
+  }
+}
+
+.organism-subtitle {
+  color: $gray-600;
+  font-family: Raleway, sans-serif;
+  font-size: 1.05rem;
+  margin-bottom: 0;
+}
+
+// detail page: photo
+.organism-photo {
+  margin: 0;
+}
+
+// photos keep their own shape: landscape ones fill the column, tall ones stop at a
+// max height (aligned left, with the caption)
+.organism-photo-frame {
+  display: flex;
+
+  img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 28rem;
+    border-radius: 0.4rem;
+    box-shadow: 0 2px 12px rgba($black, 0.15);
+    background: $gray-200;
+
+    @include media-breakpoint-down(md) {
+      max-height: 70vh;
+    }
+  }
+}
+
+.organism-photo-caption {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: $gray-700;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba($gray-700, 0.4);
+    text-underline-offset: 2px;
+
+    &:hover {
+      color: $primary;
+      text-decoration-color: currentColor;
+    }
+  }
+}
+
+.organism-pictured {
+  display: block;
+  font-weight: 600;
+}
+
+// detail page: facts
+.organism-facts {
+  margin: 0 0 1rem;
+
+  > div {
+    display: flex;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid $gray-200;
+
+    &:first-child {
+      padding-top: 0;
+    }
+  }
+
+  dt {
+    flex: 0 0 9.5rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $gray-600;
+    padding-top: 0.2rem;
+  }
+
+  dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  .organism-count {
+    font-size: 1.6rem;
+    line-height: 1;
+    font-weight: 300;
+    color: lighten($primary, 10%);
+  }
+
+  &.is-standalone {
+    padding: 1.25rem 1.5rem;
+    border: 1px solid $gray-200;
+    border-radius: 0.4rem;
+    background: $gray-100;
+  }
+}
+
+.organism-back {
+  color: $gray-600;
+}
+
+.organism-section {
+  margin-top: 1.5rem;
+}
+
+.organism-section-title {
+  color: lighten($primary, 10%);
+  font-weight: 400;
+  font-size: 1.3rem;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid $gray-200;
+}
+
+// list page
+.organism-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.organism-toolbar-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1 1 22rem;
+  max-width: 32rem;
+
+  // phones: filter gets its own row; sort and the view toggle share the next one
+  @include media-breakpoint-down(sm) {
+    display: contents;
+
+    input {
+      flex: 1 1 100%;
+    }
+  }
+
+}
+
+.organism-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+
+  label {
+    font-size: 0.8125rem;
+    color: $gray-600;
+    white-space: nowrap;
+  }
+
+  .form-select {
+    width: 9.5rem;
+  }
+}
+
+.organism-count-status:empty {
+  display: none;
+}
+
+.organism-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+
+  @include media-breakpoint-down(sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+.organism-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.organism-card-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 0.4rem;
+  overflow: hidden;
+  background: $white;
+  border: 1px solid $gray-200;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: inherit;
+    box-shadow: 0 4px 14px rgba($black, 0.12);
+    transform: translateY(-2px);
+
+    .organism-card-name {
+      color: $primary;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &:focus-visible {
+      transform: none;
+    }
+  }
+}
+
+.organism-card-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: $gray-200;
+}
+
+.organism-card-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Raleway, sans-serif;
+  font-weight: 200;
+  font-size: 3.5rem;
+  color: rgba($primary, 0.55);
+  background: linear-gradient(135deg, rgba($primary, 0.06), rgba($primary, 0.16));
+}
+
+.organism-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem 0.7rem;
+}
+
+.organism-card-name {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.organism-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: $gray-600;
+}
+
+.organism-card-count {
+  white-space: nowrap;
+  font-weight: 600;
+  color: $gray-700;
+}
+
+.organism-grid-credits {
+  margin: 2rem 0 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: $gray-600;
+}

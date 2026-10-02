@@ -1,60 +1,191 @@
 {% extends "base.html" %}
+{% load fpbase_tags %}
 {% load static i18n favit_tags %}
 
 {% block title %}Parental Organisms in the Fluorescent Protein Database {% endblock %}
 {% block meta-description %}A list of all organisms from which proteins cataloged at FPbase have been derived{% endblock %}
 
 {% block extrahead %}
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css"/>
+<link rel="preconnect" href="https://upload.wikimedia.org">
 {% endblock extrahead %}
+
+{% block container-class %}container organism-page{% endblock %}
 
 {% block content %}
 
-			<h1 class="name text-center mb-4">FPbase Organisms</h1>
+<header class="organism-header">
+  <h1 class="organism-name">Organisms</h1>
+  <p class="organism-subtitle">The {{ object_list|length }} species and other taxa that the fluorescent proteins in FPbase come from</p>
+</header>
 
+<div class="organism-toolbar">
+  <div class="organism-toolbar-filters">
+    <label class="visually-hidden" for="organism-filter">Filter organisms</label>
+    <input type="search" id="organism-filter" class="form-control form-control-sm" placeholder="Filter by name or division" autocomplete="off">
+    <div class="organism-sort">
+      <label for="organism-sort">Sort by</label>
+      <select id="organism-sort" class="form-select form-select-sm">
+        <option value="proteins">Most proteins</option>
+        <option value="name">Name (A–Z)</option>
+        <option value="division">Division</option>
+      </select>
+    </div>
+  </div>
+  <div class="btn-group btn-group-sm" role="group" aria-label="View">
+    <button type="button" class="btn btn-outline-secondary active" data-view="grid" aria-pressed="true">{% icon "grid" %} Photos</button>
+    <button type="button" class="btn btn-outline-secondary" data-view="table" aria-pressed="false">{% icon "table" %} Table</button>
+  </div>
+</div>
+<p class="organism-count-status small text-muted" aria-live="polite"></p>
 
-      <table class="table table-striped" id="org-table" style="width: 100%;">
-        <thead>
-          <tr class="table-header">
-            <th class="text-nowrap">NCBI ID</th>
-            <th>Name</th>
-            <th>Division</th>
-            <th>#Proteins<span class="d-none d-md-block"> in FPbase</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for object in object_list  %}
-          <tr>
-          <td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener" class='text-info'>{{object.id}}</a></td>
-          <td><a href="{{ object.get_absolute_url }}">{{ object.scientific_name }}</a></td>
-          <td>{{ object.division }}</td>
-          <td>{{ object.num_prot }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div id="organism-grid" class="organism-grid">
+  {% for object in object_list %}
+  <article class="organism-card" data-name="{{ object.scientific_name|lower }}" data-division="{{ object.division|lower }}" data-search="{{ object.scientific_name|lower }} {{ object.common_name|lower }} {{ object.division|lower }}" data-proteins="{{ object.num_prot }}">
+    <a href="{{ object.get_absolute_url }}" class="organism-card-link">
+      {% if object.photo %}
+      <img class="organism-card-img" src="{{ object.photo.thumb_src }}"
+        {% if object.photo.thumb_size %}width="{{ object.photo.thumb_size.0 }}" height="{{ object.photo.thumb_size.1 }}"{% endif %}
+        alt="" title="{{ object.photo.short_credit }}" loading="lazy" decoding="async">
+      {% else %}
+      <span class="organism-card-img organism-card-placeholder" aria-hidden="true">{{ object.scientific_name|first|upper }}</span>
+      {% endif %}
+      <span class="organism-card-body">
+        <span class="organism-card-name">{% if object.italicize %}<em>{{ object.scientific_name }}</em>{% else %}{{ object.scientific_name }}{% endif %}</span>
+        <span class="organism-card-meta">
+          <span>{{ object.division }}</span>
+          <span class="organism-card-count">{{ object.num_prot }} protein{{ object.num_prot|pluralize }}</span>
+        </span>
+      </span>
+    </a>
+  </article>
+  {% endfor %}
+</div>
+<p id="organism-empty" class="text-center text-muted py-5 d-none">No organisms match that filter.</p>
+<p class="organism-grid-credits">
+  Photos from Wikimedia Commons and other sources, used under their free licenses.
+  Each organism's page credits its photographer and license.
+</p>
 
+<div id="organism-table-wrap" class="d-none">
+  <table class="table table-striped" id="org-table" style="width: 100%;">
+    <thead>
+      <tr class="table-header">
+        <th class="text-nowrap">NCBI ID</th>
+        <th>Name</th>
+        <th>Division</th>
+        <th>#Proteins<span class="d-none d-md-block"> in FPbase</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for object in object_list %}
+      <tr>
+        <td><a href="https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id={{object.id}}" target="_blank" rel="noopener" class='text-info'>{{object.id}}</a></td>
+        <td><a href="{{ object.get_absolute_url }}">{{ object.scientific_name }}</a></td>
+        <td>{{ object.division }}</td>
+        <td>{{ object.num_prot }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% endblock content %}
 
 {% block javascript %}
+<script>
+(function () {
+  const DT_CSS = "https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.css";
+  const DT_JS = "https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js";
+  const grid = document.getElementById("organism-grid");
+  const tableWrap = document.getElementById("organism-table-wrap");
+  const filterInput = document.getElementById("organism-filter");
+  const sortSelect = document.getElementById("organism-sort");
+  const status = document.querySelector(".organism-count-status");
+  const empty = document.getElementById("organism-empty");
+  const cards = Array.from(grid.children);
+  const filters = document.querySelector(".organism-toolbar-filters");
+  const credits = document.querySelector(".organism-grid-credits");
+  let tableReady = null;
 
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-html5-1.5.4/fc-3.2.5/datatables.min.js"></script>
+  function loadDataTables() {
+    if (tableReady) return tableReady;
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = DT_CSS;
+    document.head.appendChild(css);
+    tableReady = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = DT_JS;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    }).then(() => {
+      $("#org-table").DataTable({
+        scrollX: true,
+        pageLength: 50,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        order: [[3, "desc"]],
+      });
+    });
+    return tableReady;
+  }
 
-<script type="text/javascript">
+  function applyFilter() {
+    const q = filterInput.value.trim().toLowerCase();
+    let shown = 0;
+    for (const card of cards) {
+      const match = !q || card.dataset.search.includes(q);
+      card.hidden = !match;
+      if (match) shown++;
+    }
+    empty.classList.toggle("d-none", shown > 0);
+    status.textContent = q ? `${shown} of ${cards.length} organisms` : "";
+  }
 
+  function applySort() {
+    const key = sortSelect.value;
+    const sorted = [...cards].sort((a, b) => {
+      if (key === "proteins") {
+        return b.dataset.proteins - a.dataset.proteins || a.dataset.name.localeCompare(b.dataset.name);
+      }
+      return a.dataset[key].localeCompare(b.dataset[key]) || a.dataset.name.localeCompare(b.dataset.name);
+    });
+    grid.append(...sorted);
+  }
 
-///////////DATA TABLE
+  function setView(view) {
+    const isTable = view === "table";
+    grid.classList.toggle("d-none", isTable);
+    credits.classList.toggle("d-none", isTable);
+    tableWrap.classList.toggle("d-none", !isTable);
+    filters.classList.toggle("invisible", isTable);
+    status.classList.toggle("d-none", isTable);
+    empty.classList.toggle("d-none", isTable || !cards.every((c) => c.hidden));
+    for (const btn of document.querySelectorAll("[data-view]")) {
+      const active = btn.dataset.view === view;
+      btn.classList.toggle("active", active);
+      btn.setAttribute("aria-pressed", String(active));
+    }
+    if (isTable) {
+      loadDataTables().then(() => $("#org-table").DataTable().columns.adjust());
+    }
+    try {
+      localStorage.setItem("fpbase-organism-view", view);
+    } catch (e) {}
+  }
 
-$(function() {
-  $('#org-table').DataTable({
-    "scrollX": true,
-    "pageLength": 50,
-    "iDisplayLength": -1,
-    "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100,"All"] ],
-    "order": [[ 3, 'desc' ]],
-  });
+  filterInput.addEventListener("input", applyFilter);
+  sortSelect.addEventListener("change", applySort);
+  for (const btn of document.querySelectorAll("[data-view]")) {
+    btn.addEventListener("click", () => setView(btn.dataset.view));
+  }
 
-});
+  applySort();
+  let saved = null;
+  try {
+    saved = localStorage.getItem("fpbase-organism-view");
+  } catch (e) {}
+  if (saved === "table") setView("table");
+})();
 </script>
 {% endblock javascript %}

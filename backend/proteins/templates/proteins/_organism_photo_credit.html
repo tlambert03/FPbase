@@ -1,0 +1,15 @@
+{# Attribution for an OrganismPhoto, following Wikimedia Commons' reuse guidance (title, author, source, license). #}
+<span class="organism-credit">
+  Photo:
+  {% if photo.title %}“{% if photo.credit_source_url %}<a href="{{ photo.credit_source_url }}" target="_blank" rel="noopener">{{ photo.title }}</a>{% else %}{{ photo.title }}{% endif %}” by{% endif %}
+  {{ photo.author }}
+  <span aria-hidden="true">·</span>
+  <span class="text-nowrap">{% if photo.license_url %}<a href="{{ photo.license_url }}" rel="license noopener" target="_blank">{{ photo.license }}</a>{% else %}{{ photo.license }}{% endif %}</span>
+  {% if photo.is_commons %}
+  <span aria-hidden="true">·</span>
+  <span class="text-nowrap">via Wikimedia Commons</span>
+  {% elif photo.credit_source_url and not photo.title %}
+  <span aria-hidden="true">·</span>
+  <a href="{{ photo.credit_source_url }}" target="_blank" rel="noopener">source</a>
+  {% endif %}
+</span>
