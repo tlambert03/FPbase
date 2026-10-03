@@ -1557,23 +1557,10 @@ window.initMicroscope = () => {
       return pathlist.reduce((acc, cur) => {
         if (acc) {
           const product = spectral_product(acc, cur.values)
-          // If spectral_product returns empty (no overlap or data issue),
-          // keep the accumulator to avoid losing all data
+          // If spectral_product returns empty (no overlap, e.g. a filter beyond the
+          // camera's QE range), keep the accumulator to avoid losing all data
           if (product.length === 0) {
-            const msg = `Failed to combine spectrum: ${cur.key || "unknown"}`
-            console.error(msg, { cur })
-            // Log to Sentry for debugging
-            if (window.Sentry) {
-              window.Sentry.captureMessage(msg, {
-                level: "warning",
-                extra: {
-                  spectrum_key: cur.key,
-                  spectrum_slug: cur.slug,
-                  accumulator_length: acc.length,
-                  current_values_length: cur.values?.length,
-                },
-              })
-            }
+            console.warn(`No overlap when combining spectrum: ${cur.key || "unknown"}`)
             return acc
           }
           return product

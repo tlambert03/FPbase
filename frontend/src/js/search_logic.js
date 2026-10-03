@@ -250,7 +250,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
         filter = splits.slice(0, splits.length - 1).join("__")
         operator = splits[splits.length - 1]
       }
-      if (filter && operator) {
+      // (saved or linked searches may name a filter that no longer exists)
+      if (filter && operator && filter in fields) {
         addRow("#query_builder", filter, operator)
       }
     }
