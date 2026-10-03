@@ -15,6 +15,14 @@ import * as Sentry from "@sentry/browser"
 
 let sentryInitialized = false
 
+// crawlers, AI agents and automated browsers; keep in sync with BOT_UA in backend/fpbase/tracing.py
+const BOT_UA =
+  /bot|crawl|spider|slurp|scrap|headless|phantom|preview|facebookexternalhit|claude|chatgpt|copilot|perplexity/i
+
+function isBot() {
+  return navigator.webdriver || BOT_UA.test(navigator.userAgent)
+}
+
 // Cloudflare redirects every request for http:// or fpbase.org to https://www.fpbase.org,
 // so a page at any other fpbase.org origin is a saved copy replayed by a crawler: its
 // same-origin requests get redirected cross-origin and fail (FPBASE-6BB).
@@ -46,7 +54,8 @@ export function initSentry() {
         ],
         replaysSessionSampleRate: 0, // Don't record normal sessions
         replaysOnErrorSampleRate: 1.0, // Record all error sessions
-        tracesSampleRate: 0.05, // Capture 5% of transactions for performance monitoring
+        // trace 10% of human page loads; the backend follows this decision for API calls
+        tracesSampler: ({ inheritOrSampleWith }) => (isBot() ? 0 : inheritOrSampleWith(0.1)),
         tracePropagationTargets: [
           "localhost",
           /^\//, // Relative URLs (same-origin API calls)

@@ -20,6 +20,8 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.scrubber import EventScrubber
 
+from fpbase.tracing import traces_sampler
+
 from .base import *  # noqa
 
 # SECRET CONFIGURATION
@@ -214,7 +216,7 @@ SENTRY_DSN = env("SENTRY_DSN")
 sentry_sdk.init(
     dsn=SENTRY_DSN,
     integrations=[
-        DjangoIntegration(),
+        DjangoIntegration(cache_spans=True),  # cache hit/miss + latency per call
         CeleryIntegration(),
         # Disable LoggingIntegration to prevent duplicate events and ugly JSON titles
         # We use structlog-sentry's SentryProcessor instead (configured in base.py)
@@ -224,6 +226,7 @@ sentry_sdk.init(
     event_scrubber=EventScrubber(denylist=SENTRY_DENYLIST, recursive=True, send_default_pii=True),
     release=HEROKU_SLUG_COMMIT,
     traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),  # 10% of all requests
+    traces_sampler=traces_sampler,  # skips bots and static files
     profiles_sample_rate=env.float(
         "SENTRY_PROFILES_SAMPLE_RATE", default=0.05
     ),  # 5% of traced requests
