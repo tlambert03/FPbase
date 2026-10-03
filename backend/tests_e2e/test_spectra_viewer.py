@@ -218,6 +218,9 @@ def test_qy_ec_scaling_invertibility(spectra_viewer: Page) -> None:
     Regression test for bug where toggling QY/EC scaling multiple times
     would compound transformations instead of applying them idempotently.
     """
+    # the viewer listens for Space only once it has rendered
+    tab_wrapper = spectra_viewer.locator(".tab-wrapper")
+    expect(tab_wrapper.get_by_text("Type to search...")).to_be_visible()
 
     spectra_viewer.keyboard.press("Space")
     modal = spectra_viewer.get_by_role("presentation").filter(has_text="Quick Entry")

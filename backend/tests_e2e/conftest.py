@@ -33,12 +33,13 @@ import re
 import subprocess
 import sys
 import textwrap
+import threading
 import zlib
 from collections import defaultdict
 from contextlib import suppress
 from pathlib import Path
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Self, cast
+from typing import TYPE_CHECKING, Self
 
 import django.conf
 import factory
@@ -49,6 +50,7 @@ import sourcemap.objects
 from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.backends.db import SessionStore
+from django.core.signals import request_finished, request_started
 from playwright.sync_api import Page
 from sourcemap import loads as load_sourcemap
 
@@ -203,6 +205,60 @@ def _deterministic_test_data(request: FixtureRequest) -> None:
             f.reset_sequence(force=True)
 
 
+class _InFlightRequests:
+    """Counts requests the live server is still handling."""
+
+    def __init__(self) -> None:
+        self.count = 0
+        self.changed = threading.Condition()
+
+    def started(self, **kwargs) -> None:
+        with self.changed:
+            self.count += 1
+
+    def finished(self, **kwargs) -> None:
+        with self.changed:
+            self.count -= 1
+            self.changed.notify_all()
+
+
+_in_flight = _InFlightRequests()
+request_started.connect(_in_flight.started, dispatch_uid="e2e_in_flight_started")
+request_finished.connect(_in_flight.finished, dispatch_uid="e2e_in_flight_finished")
+
+
+@pytest.fixture(autouse=True)
+def _live_server_idle_before_flush(transactional_db: None) -> Iterator[None]:
+    """Let the live server finish its requests before the tables are truncated.
+
+    A test may end while the server is still answering the browser (e.g. after
+    pressing Enter to navigate). The TRUNCATE that ends every test then
+    deadlocks with that request's queries. Requesting `transactional_db` makes
+    this teardown run before the flush, and after the page has closed.
+    """
+    yield
+    with _in_flight.changed:
+        _in_flight.changed.wait_for(lambda: _in_flight.count == 0, timeout=30)
+
+
+def _stub_google_fonts(context: BrowserContext) -> None:
+    """Answer Google Fonts stylesheet requests with an empty stylesheet.
+
+    Every page imports one, and the page's load event (which `page.goto` waits
+    for) never fires while that request hangs.
+    """
+    context.route(
+        re.compile(r"^https://fonts\.googleapis\.com/"),
+        lambda route: route.fulfill(status=200, content_type="text/css", body=""),
+    )
+
+
+@pytest.fixture
+def context(context: BrowserContext) -> BrowserContext:
+    _stub_google_fonts(context)
+    return context
+
+
 @pytest.fixture
 def page(page: Page) -> Iterator[Page]:
     """Configure Playwright page fixture with FPbase defaults.
@@ -327,9 +383,9 @@ class console_errors_raised:
     def __exit__(self, exc_type, exc_value, traceback) -> None:
         # only assert if the test did not already error
         if self._fixture_request is not None:
-            # check if this test had an error already
-            report = cast("pytest.TestReport", self._fixture_request.node.rep_call)
-            if report.failed:
+            # check if this test had an error already (no call report if setup failed)
+            report = getattr(self._fixture_request.node, "rep_call", None)
+            if report is None or report.failed:
                 return
 
         self.assert_no_errors()
@@ -450,6 +506,7 @@ def auth_session_cookie(auth_user: AbstractUser) -> dict[str, str]:
 def auth_context(browser: Browser, auth_session_cookie: dict) -> Iterator[BrowserContext]:
     """Browser context with authenticated session."""
     context = browser.new_context(storage_state={"cookies": [auth_session_cookie]})
+    _stub_google_fonts(context)
     yield context
     context.close()
 
