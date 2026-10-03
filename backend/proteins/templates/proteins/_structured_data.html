@@ -15,47 +15,59 @@
      "FLUORESCENCE"
   ],
   "variableMeasured": [
-    {% if protein.default_state %}
+    {% if protein.default_state %}{% with state=protein.default_state %}
+    {% if state.ex_max is not None %}
     {
       "@type": "PropertyValue",
       "name": "Excitation Maximum",
-      "value": {{  protein.default_state.ex_max|default:"null" }},
+      "value": {{ state.ex_max }},
       "unitCode": "C45"
     },
+    {% endif %}
+    {% if state.em_max is not None %}
     {
       "@type": "PropertyValue",
       "name": "Emission Maximum",
-      "value": {{  protein.default_state.em_max|default:"null" }},
+      "value": {{ state.em_max }},
       "unitCode": "C45"
     },
+    {% endif %}
+    {% if state.ext_coeff is not None %}
     {
       "@type": "PropertyValue",
       "sameAs": "https://en.wikipedia.org/wiki/Molar_attenuation_coefficient",
       "name": "Extinction Coefficient",
-      "value": {{  protein.default_state.ext_coeff|default:'null' }},
+      "value": {{ state.ext_coeff }},
       "unitText": "M-1 cm-1"
     },
+    {% endif %}
+    {% if state.qy is not None %}
     {
       "@type": "PropertyValue",
       "sameAs": "https://en.wikipedia.org/wiki/Quantum_yield",
       "name": "Quantum Yield",
-      "value": {{  protein.default_state.qy|default:"null" }}
+      "value": {{ state.qy }}
     },
+    {% endif %}
+    {% if state.lifetime is not None %}
     {
       "@type": "PropertyValue",
       "sameAs": "https://en.wikipedia.org/wiki/Fluorescence#Lifetime",
       "name": "Fluorescence Lifetime",
-      "value": {{ protein.default_state.lifetime|default:'null' }},
+      "value": {{ state.lifetime }},
       "unitText": "ns"
     },
+    {% endif %}
+    {% if state.pka is not None %}
     {
       "@type": "PropertyValue",
       "sameAs": "https://en.wikipedia.org/wiki/Acid_dissociation_constant",
       "name": "Acid dissociation constant",
-      "value": {{ protein.default_state.pka|default:'null'}},
+      "value": {{ state.pka }},
       "unitText": "pKA"
     },
     {% endif %}
+    {% endwith %}{% endif %}
     {% if protein.seq %}
     {
       "@type": "PropertyValue",

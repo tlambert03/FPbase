@@ -98,3 +98,14 @@ def test_fasta_is_ascii_for_unicode_names() -> None:
     fasta.encode("ascii")  # raises UnicodeEncodeError on regression
     for name in names:
         assert ascii_name(name) in fasta
+
+
+@pytest.mark.django_db
+def test_default_state_skips_state_without_em_max() -> None:
+    protein = Protein.objects.create(name="TwoStates")
+    State.objects.create(protein=protein, name="no em", ex_max=590)
+    red = State.objects.create(protein=protein, name="red", ex_max=580, em_max=610)
+
+    protein.default_state = None
+    assert protein.set_default_state()
+    assert protein.default_state == red

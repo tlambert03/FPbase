@@ -338,12 +338,6 @@ class StateForm(forms.ModelForm):
             raise forms.ValidationError("Must provide Ex Max for non-dark state")
         return ex_max
 
-    def clean_em_max(self):
-        em_max = self.cleaned_data.get("em_max")
-        if not self.cleaned_data["is_dark"] and not em_max:
-            raise forms.ValidationError("Must provide Em Max for non-dark state")
-        return em_max
-
     class Meta:
         model = State
         fields = (
@@ -367,6 +361,9 @@ class StateForm(forms.ModelForm):
             "ex_max": "Excitation Max (nm)",
             "em_max": "Emission Max (nm)",
             "pka": "pKa",
+        }
+        help_texts = {
+            "em_max": "Leave blank if not reported (e.g. for chromoproteins)",
         }
 
 

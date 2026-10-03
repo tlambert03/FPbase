@@ -18,7 +18,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.urls import reverse
 from django.utils.text import slugify
 from model_utils import Choices
@@ -463,7 +463,11 @@ class Protein(Authorable, StatusModel, TimeStampedModel):
                 self.default_state = self.states.first()
             # otherwise use farthest red non-dark state
             elif self.states.count() > 1:
-                self.default_state = self.states.exclude(is_dark=True).order_by("-em_max").first()
+                self.default_state = (
+                    self.states.exclude(is_dark=True)
+                    .order_by(F("em_max").desc(nulls_last=True))
+                    .first()
+                )
             return True
         return False
 
