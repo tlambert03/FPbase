@@ -608,3 +608,19 @@ def test_remove_all_spectra(spectra_viewer: Page) -> None:
     expect(zoom_button).not_to_be_visible()
     series_paths = spectra_viewer.locator(".highcharts-series-group path.highcharts-area")
     expect(series_paths).to_have_count(0)
+
+
+def test_exnorm_with_emission_spectrum_only(live_server: LiveServer, page: Page) -> None:
+    """Excitation normalization works when the owner's ex spectrum isn't loaded yet.
+
+    Regression test for FPBASE-73Z: a still-loading ex spectrum crashed the chart.
+    """
+    egfp = create_egfp()
+    em_id = egfp.default_state.em_spectrum.id
+
+    url = f"{live_server.url}{reverse('proteins:spectra')}?s={em_id},$cl1_488&ex=488,$cl1"
+    page.goto(url)
+
+    expect(page.locator(".highcharts-container")).to_be_visible()
+    expect(page.locator(".highcharts-series").first).to_be_attached()
+    expect(page.get_by_text("something unexpected happened")).not_to_be_attached()

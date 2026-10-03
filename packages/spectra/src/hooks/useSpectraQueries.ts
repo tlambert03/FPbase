@@ -53,8 +53,8 @@ export function useSpectraBatch(ids: string[]) {
       staleTime: 5 * 60 * 1000, // 5 minutes
     })),
     combine: (results) => {
-      // Extract all non-null spectrum data
-      const data = results.map((result) => result.data).filter((s): s is Spectrum => s !== null)
+      // Extract loaded spectra (`data` is undefined while a query is pending)
+      const data = results.map((result) => result.data).filter((s): s is Spectrum => s != null)
 
       // Return a stable object shape matching useQuery's return type
       // This ensures proper re-renders when the data changes
