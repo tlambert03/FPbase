@@ -167,13 +167,23 @@ class TestStateForm(TestCase):
         valid = form.is_valid()
         self.assertTrue(valid, "Form is not valid")
 
-    def test_nondark_state_exemmax_required(self):
+    def test_nondark_state_ex_max_required(self):
         form = StateForm({"name": "default", "is_dark": False, "protein": self.t.id})
         valid = form.is_valid()
         self.assertFalse(valid)
-        self.assertTrue(len(form.errors) == 2)
-        self.assertTrue("ex_max" in form.errors)
-        self.assertTrue("em_max" in form.errors)
+        self.assertEqual(list(form.errors), ["ex_max"])
+
+    def test_nondark_state_without_em_max(self):
+        # e.g. chromoproteins, where only the absorbance max and EC are reported
+        form = StateForm(
+            {"name": "chromo", "ex_max": "588", "ext_coeff": "87600", "protein": self.t.id}
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        state = form.save()
+        state.refresh_from_db()
+        self.assertEqual(state.ex_max, 588)
+        self.assertEqual(state.ext_coeff, 87600)
+        self.assertIsNone(state.em_max)
 
 
 class TestCollectionForm(TestCase):

@@ -48,6 +48,20 @@ def test_protein_detail_structured_data(client, protein: Protein):
     assert dataset["description"].startswith(NAME)
 
 
+def test_structured_data_leaves_out_missing_values(client):
+    protein = ProteinFactory(name="chromo")
+    state = protein.default_state
+    state.em_max = state.qy = None
+    state.save()
+    content = client.get(protein.get_absolute_url()).content.decode()
+    blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', content, re.DOTALL)
+    dataset = next(d for d in map(json.loads, blocks) if d["@type"] == "Dataset")
+    measured = {v["name"]: v["value"] for v in dataset["variableMeasured"]}
+    assert measured["Excitation Maximum"] == protein.default_state.ex_max
+    assert "Emission Maximum" not in measured
+    assert "Quantum Yield" not in measured
+
+
 def test_activity(client, protein: Protein):
     _assert_name_escaped(client.get(reverse("proteins:activity")).content.decode())
 
