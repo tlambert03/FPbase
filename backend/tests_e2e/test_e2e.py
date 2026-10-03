@@ -872,6 +872,26 @@ def test_protein_page_chart_range_input_is_isolated(page: Page, live_server: Liv
     assert stored is None or '"extremes":[400' not in stored
 
 
+def test_protein_page_legend_hidden_series_survives_zoom(
+    page: Page, live_server: LiveServer
+) -> None:
+    """A series hidden from the protein page chart's legend stays hidden after a range change."""
+    egfp = create_egfp()
+    page.goto(f"{live_server.url}{reverse('proteins:protein-detail', args=(egfp.slug,))}")
+    page.locator(".highcharts-series").first.wait_for(state="attached")
+    chart = "(window._Highcharts || window.Highcharts).charts.filter(Boolean)[0]"
+    n_visible = f"() => {chart}.series.filter((s) => s.visible).length"
+    before = page.evaluate(n_visible)
+    page.locator(".highcharts-legend-item", has_text=re.compile(r" EM$")).locator("text").click()
+    page.wait_for_function(f"() => ({n_visible})() === {before - 1}")
+
+    min_input = page.locator("#spectra-viewer-container input").first
+    min_input.fill("400")
+    min_input.press("Enter")
+    page.wait_for_function(f"() => Math.round({chart}.xAxis[0].min) === 400")
+    assert page.evaluate(n_visible) == before - 1
+
+
 def test_favorite_button_interaction(
     auth_user: AbstractUser, auth_page: Page, live_server: LiveServer, assert_snapshot: Callable
 ) -> None:

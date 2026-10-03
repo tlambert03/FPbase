@@ -624,3 +624,26 @@ def test_exnorm_with_emission_spectrum_only(live_server: LiveServer, page: Page)
     expect(page.locator(".highcharts-container")).to_be_visible()
     expect(page.locator(".highcharts-series").first).to_be_attached()
     expect(page.get_by_text("something unexpected happened")).not_to_be_attached()
+
+
+_CHART = "(window._Highcharts || window.Highcharts).charts.filter(Boolean)[0]"
+_N_VISIBLE = f"() => {_CHART}.series.filter((s) => s.visible).length"
+
+
+def test_legend_hidden_series_stays_hidden_after_setting_change(
+    live_server: LiveServer, page: Page
+) -> None:
+    """A series hidden from the legend stays hidden when the chart re-renders."""
+    egfp = create_egfp()
+    ex_id = egfp.default_state.ex_spectrum.id
+    em_id = egfp.default_state.em_spectrum.id
+    page.goto(f"{live_server.url}{reverse('proteins:spectra')}?s={ex_id},{em_id}")
+    page.locator(".highcharts-series").first.wait_for(state="attached")
+    page.locator(".highcharts-legend-item", has_text=re.compile(r" EM$")).locator("text").click()
+    page.wait_for_function(f"() => ({_N_VISIBLE})() === 1")
+
+    grid = f"() => {_CHART}.yAxis[0].options.gridLineWidth"
+    before = page.evaluate(grid)
+    page.keyboard.press("KeyG")  # toggle grid lines
+    page.wait_for_function(f"() => ({grid})() !== {before}")
+    assert page.evaluate(_N_VISIBLE) == 1
