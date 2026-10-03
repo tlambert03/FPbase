@@ -213,6 +213,22 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
   )
   const { data: exNormSpectra } = useSpectraBatch(exNormIds)
 
+  // Visibility chosen by legend clicks, by series id. The whole options object is re-applied
+  // on every render, so without this a re-render would undo the click. A choice is dropped
+  // when that spectrum's `hidden` state changes.
+  const [legendVisible, setLegendVisible] = useState({})
+  const prevHidden = useRef(hidden)
+  useEffect(() => {
+    const was = prevHidden.current
+    prevHidden.current = hidden
+    setLegendVisible((current) => {
+      const kept = Object.fromEntries(
+        Object.entries(current).filter(([id]) => was.includes(id) === hidden.includes(id))
+      )
+      return Object.keys(kept).length === Object.keys(current).length ? current : kept
+    })
+  }, [hidden])
+
   const series = useMemo(() => {
     const exById = Object.fromEntries(exNormSpectra.map((s) => [String(s.id), s]))
     const toSeries = (spectrum, yAxis, withExNorm) =>
@@ -222,7 +238,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
         {
           exSpectrum: withExNorm ? exById[exNormSpectrumId(spectrum, ownerInfo, exNorm)] : null,
           ownerIndex: spectrum.owner?.slug ? owners.indexOf(spectrum.owner.slug) : -1,
-          visible: !hidden.includes(spectrum.id),
+          visible: legendVisible[String(spectrum.id)] ?? !hidden.includes(spectrum.id),
           yAxis,
         }
       )
@@ -231,7 +247,7 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
       ...nonExData.filter(valid).map((s) => toSeries(s, "yAx1", true)),
       ...exData.filter(valid).map((s) => toSeries(s, "yAx2", false)),
     ]
-  }, [data, chartOptions, exNorm, ownerInfo, hidden, exNormSpectra])
+  }, [data, chartOptions, exNorm, ownerInfo, hidden, exNormSpectra, legendVisible])
 
   const hideCredits = numSpectra < 1 || chartOptions.simpleMode
   const options = {
@@ -243,7 +259,16 @@ export const BaseSpectraViewer = memo(function BaseSpectraViewer({
     exporting: _exporting,
     lang: { noData: "" },
     accessibility: { enabled: false },
-    legend: { ..._legend, enabled: _legend.enabled ?? true },
+    legend: {
+      ..._legend,
+      enabled: _legend.enabled ?? true,
+      events: {
+        // runs before Highcharts' default toggle, which still happens
+        itemClick: ({ legendItem }) => {
+          setLegendVisible((v) => ({ ...v, [legendItem.options.id]: !legendItem.visible }))
+        },
+      },
+    },
     tooltip: { ...tooltip, enabled: tooltip.enabled ?? true },
     credits: {
       enabled: true,
