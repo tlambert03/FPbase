@@ -60,7 +60,9 @@ export const DEFAULTS = {
 }
 
 const ALPHA_THEN_DIGIT = /^([a-z]+)(\d.*)$/
-const LETTER_DIGIT_BOUNDARY = /(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])/
+// no lookbehind: Safari before 16.4 can't parse it, and fails the whole bundle
+const LETTER_DIGIT_BOUNDARY = /([a-z])(?=\d)|(\d)(?=[a-z])/g
+const splitLettersFromDigits = (t) => t.replace(LETTER_DIGIT_BOUNDARY, "$1$2 ").split(" ")
 
 // match type of query token `t` against indexed word `w`
 function matchWord(t, w, isId, o) {
@@ -122,7 +124,7 @@ export class SearchIndex {
     let hits = this._search(tokens, false)
     if (!hits.length) {
       // letters glued to digits ("alexa488" -> "alexa 488")
-      const split = tokens.flatMap((t) => t.split(LETTER_DIGIT_BOUNDARY))
+      const split = tokens.flatMap(splitLettersFromDigits)
       if (split.length > tokens.length) hits = this._search(split, false)
     }
     if (!hits.length && this.o.fallback) hits = this._search(tokens, true)
