@@ -60,6 +60,13 @@ def test_spectra_viewer_add_from_input(spectra_viewer: Page, assert_snapshot: Ca
         assert_snapshot(spectra_viewer, mask_elements=[".highcharts-legend"])
 
 
+def test_protein_in_viewer_links_to_its_page(spectra_viewer: Page) -> None:
+    _add_egfp_to_viewer(spectra_viewer)
+    link = spectra_viewer.locator(".tab-wrapper a[href='/protein/egfp']")
+    expect(link).to_be_visible()
+    expect(link).to_have_attribute("target", "_blank")
+
+
 def test_spectra_viewer_queries_graphql_with_get(spectra_viewer: Page) -> None:
     """Spectrum queries are GETs, which the CDN can cache (a POST never is)."""
     with spectra_viewer.expect_request(lambda r: "/graphql/" in r.url) as request_info:

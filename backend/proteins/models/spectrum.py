@@ -14,7 +14,7 @@ from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Case, CharField, F, IntegerField, QuerySet, Value, When
+from django.db.models import Case, CharField, F, IntegerField, QuerySet, When
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.urls import reverse
@@ -108,10 +108,15 @@ def get_spectra_list(query_set: QuerySet | None = None, **filters: str) -> list[
                 "name",
                 fluor=F("owner_fluor__owner_name"),
             ),
-            # Fluorophore doesn't have URL, others do
+            # Products and dyes link to the vendor. A protein's "url" is its slug: the
+            # spectra viewer turns that into a link to the protein page.
             owner_url=owner_case(
                 "url",
-                fluor=Value(""),  # Fluorophore has no URL field
+                fluor=Case(
+                    When(category=Spectrum.PROTEIN, then=F("owner_fluor__owner_slug")),
+                    default=F("owner_fluor__dyestate__dye__url"),
+                    output_field=CharField(),
+                ),
             ),
         )
         .order_by("owner_name")
