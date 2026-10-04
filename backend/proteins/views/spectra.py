@@ -19,7 +19,7 @@ from django.views.generic import CreateView
 
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.forms import SpectrumForm
-from proteins.forms.spectrum_v2 import SpectrumFormV2
+from proteins.forms.spectrum_v2 import SpectrumFormV2, known_manufacturers
 from proteins.models import Protein, Spectrum, State
 from proteins.models.fluorophore import FluorState
 from proteins.util.spectra import spectra2csv
@@ -204,6 +204,7 @@ class SpectrumCreateViewV2(CreateView):
         context = super().get_context_data(**kwargs)
         if hasattr(self, "protein"):
             context["protein"] = self.protein
+        context["manufacturers"] = known_manufacturers()
         return context
 
 
