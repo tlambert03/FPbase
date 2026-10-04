@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import TYPE_CHECKING, TypedDict
 
 from django import forms
@@ -12,7 +13,7 @@ from django.db.models import F
 from django.utils.text import slugify
 
 from proteins.extrest.entrez import is_valid_doi
-from proteins.models import Dye, DyeState, FluorState, Spectrum, State
+from proteins.models import Camera, Dye, DyeState, Filter, FluorState, Light, Spectrum, State
 from references.models import Reference
 
 if TYPE_CHECKING:
@@ -43,10 +44,33 @@ class SpectrumJSONData(TypedDict):
     ph: float | None
     solvent: str | None
     peak_wave: int | None
+    manufacturer: str | None  # filters, cameras and lights only
+    part: str | None  # filters, cameras and lights only
 
 
 MAX_SPECTRA_PER_SUBMISSION = 20
 MAX_DATA_POINTS_PER_SPECTRUM = 2000
+PRODUCT_CATEGORIES = (Spectrum.FILTER, Spectrum.CAMERA, Spectrum.LIGHT)
+
+
+def known_manufacturers() -> list[str]:
+    """Manufacturer spellings already used by filters, cameras and lights."""
+    names: set[str] = set()
+    for model in (Filter, Camera, Light):
+        names.update(model.objects.exclude(manufacturer="").values_list("manufacturer", flat=True))
+    return sorted(names, key=str.lower)
+
+
+def _product_manufacturer(manufacturer: str, owner_name: str) -> str:
+    """An existing spelling of `manufacturer`, or the one `owner_name` starts with."""
+    known = known_manufacturers()
+    if manufacturer:
+        return next((m for m in known if m.lower() == manufacturer.lower()), manufacturer)
+    # "Chroma ET525/50m" -> "Chroma"; longest first, so "Leica Microsystems" beats "Leica"
+    for m in sorted(known, key=len, reverse=True):
+        if re.match(rf"{re.escape(m)}(\b|[\s_-])", owner_name, re.IGNORECASE):
+            return m
+    return ""
 
 
 def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
@@ -115,6 +139,13 @@ def _validate_spectrum_json(raw: str | bytes) -> list[SpectrumJSONData]:
         # Validate owner
         if "owner" not in spec or not spec.get("owner", "").strip():
             raise forms.ValidationError(f"Spectrum {i + 1} is missing owner.")
+        spec["owner"] = " ".join(spec["owner"].split())
+
+        for field in ("manufacturer", "part"):
+            value = " ".join(str(spec.get(field) or "").split())
+            if len(value) > 128:
+                raise forms.ValidationError(f"Spectrum {i + 1}: {field} is too long.")
+            spec[field] = value if spec["category"] in PRODUCT_CATEGORIES else None
 
     # Check for duplicate spectra within this submission
     # Use (category, owner, subtype) as the unique key
@@ -251,13 +282,22 @@ class SpectrumFormV2(forms.Form):
 
         return cleaned_data
 
-    def _get_or_create_owner(self, category: str, owner_name: str, owner_slug: str | None = None):
+    def _get_or_create_owner(
+        self,
+        category: str,
+        owner_name: str,
+        owner_slug: str | None = None,
+        manufacturer: str = "",
+        part: str = "",
+    ):
         """Get or create owner objects based on category.
 
         Args:
             category: The spectrum category (protein, dye, filter, etc.)
             owner_name: Display name of the owner
             owner_slug: For proteins, this is the Protein.slug from Select2 autocomplete
+            manufacturer: For filters, cameras and lights
+            part: For filters, cameras and lights
 
         Returns:
             Tuple of (owner_fluor, owner_filter, owner_camera, owner_light)
@@ -295,7 +335,11 @@ class SpectrumFormV2(forms.Form):
             owner_model = apps.get_model("proteins", model_name)
             owner_obj, created = owner_model.objects.get_or_create(
                 name=owner_name,
-                defaults={"created_by": self.user},
+                defaults={
+                    "created_by": self.user,
+                    "manufacturer": _product_manufacturer(manufacturer, owner_name),
+                    "part": part,
+                },
             )
             if not created and self.user:
                 owner_obj.updated_by = self.user
@@ -334,7 +378,11 @@ class SpectrumFormV2(forms.Form):
             owner_slug = spec_data.get("owner_slug")
 
             owner_fluor, owner_filter, owner_camera, owner_light = self._get_or_create_owner(
-                category, owner_name, owner_slug
+                category,
+                owner_name,
+                owner_slug,
+                spec_data.get("manufacturer") or "",
+                spec_data.get("part") or "",
             )
 
             spectrum = Spectrum(

@@ -113,6 +113,11 @@
     <input type="hidden" name="spectra_json" id="id_spectra_json"
            value="{{ form.spectra_json.value|default:'[]' }}">
 
+    <!-- Suggestions for the manufacturer field of filters, cameras and lights -->
+    <datalist id="manufacturer-options">
+      {% for name in manufacturers %}<option value="{{ name }}">{% endfor %}
+    </datalist>
+
     <!-- Confirmation -->
     <div class="mb-4" id="confirmation-section" style="display: none;">
       <div class="form-check">

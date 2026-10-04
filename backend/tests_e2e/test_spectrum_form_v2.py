@@ -594,6 +594,27 @@ def test_submit_filter_percentage_data_normalized_to_fraction(
     assert max_val > 0.9, f"Expected max near 0.99, got {max_val}"
 
 
+def test_submit_filter_with_manufacturer_and_part(
+    spectrum_form_page: Page, percentage_filter_csv_file: Path
+) -> None:
+    page = spectrum_form_page
+    _upload_csv(page, percentage_filter_csv_file)
+    _select_columns(page, wavelength_col=0, data_cols=[1])
+    card = page.locator(".spectrum-card").first
+    expect(card.locator('[id^="manufacturer-input-"]')).to_be_hidden()
+
+    _fill_spectrum_card(page, category="f", subtype="bp", owner="E2E Product Filter")
+    card.locator('[id^="manufacturer-input-"]').fill("Semrock")
+    card.locator('[id^="part-input-"]').fill("FF01-630/20")
+    _fill_source(page, "E2E Product Filter Source")
+    page.locator("#id_confirmation").check()
+    page.locator("#submit-btn").click()
+    expect(page).to_have_url(re.compile(r".*/spectra/submitted/"))
+
+    filt = Spectrum.objects.all_objects().get(source="E2E Product Filter Source").owner_filter
+    assert (filt.manufacturer, filt.part) == ("Semrock", "FF01-630/20")
+
+
 def test_submit_light_spectrum(spectrum_form_page: Page, sample_csv_file: Path) -> None:
     """Submit a light source spectrum (exercises light category handling)."""
     page = spectrum_form_page

@@ -29,6 +29,8 @@ import { createSpectrumChart } from "./spectrum-chart.js"
  * @property {string|null} solvent - Solvent name (for fluorophore categories only)
  * @property {number|null} peak_wave - Peak wavelength in nm
  * @property {string} column_name - Original column name from CSV
+ * @property {string|null} manufacturer - Manufacturer (filter/camera/light only)
+ * @property {string|null} part - Part number (filter/camera/light only)
  */
 
 /**
@@ -48,6 +50,8 @@ import { createSpectrumChart } from "./spectrum-chart.js"
  * @property {number|null} manualPeakWave - User-selected peak wavelength
  * @property {boolean} hasExactMatch - Whether an exact match exists in database
  * @property {string|null} ownerSlug - Protein.slug for protein category (from autocomplete)
+ * @property {string} manufacturer - Manufacturer (filter/camera/light only)
+ * @property {string} part - Part number (filter/camera/light only)
  */
 
 // ============================================================================
@@ -101,6 +105,9 @@ const AUTOCOMPLETE_URLS = { p: "/autocomplete-protein/" }
 /** Categories that show pH/Solvent fields */
 const FLUOR_CATEGORIES = new Set(["d", "p"])
 
+/** Categories that show Manufacturer/Part fields */
+const PRODUCT_CATEGORIES = new Set(["f", "c", "l"])
+
 /** Categories that should NOT be normalized (data is percentage-based) */
 const NO_NORMALIZE_CATEGORIES = new Set(["f", "c"])
 
@@ -119,12 +126,13 @@ const SCALE_UNITS = {
 /**
  * Determine display/behavior flags for a given category.
  * @param {string} category - Category code
- * @returns {{shouldNormalize: boolean, showFluor: boolean, useAutocomplete: boolean}}
+ * @returns {{shouldNormalize: boolean, showFluor: boolean, showProduct: boolean, useAutocomplete: boolean}}
  */
 function getCategoryFlags(category) {
   return {
     shouldNormalize: !!category && !NO_NORMALIZE_CATEGORIES.has(category),
     showFluor: FLUOR_CATEGORIES.has(category),
+    showProduct: PRODUCT_CATEGORIES.has(category),
     useAutocomplete: category in AUTOCOMPLETE_URLS,
   }
 }
@@ -298,6 +306,8 @@ function createSpectrumObject(columnName, rawData) {
     scaleFactor: null,
     ph: null,
     solvent: "",
+    manufacturer: "",
+    part: "",
     manualPeakWave: null,
     hasExactMatch: false,
   }
@@ -330,7 +340,11 @@ function createSpectrumCard(el, state, spectrum, index) {
   return card
 }
 
-function buildCardHTML(spectrum, index, { shouldNormalize, showFluor, useAutocomplete }) {
+function buildCardHTML(
+  spectrum,
+  index,
+  { shouldNormalize, showFluor, showProduct, useAutocomplete }
+) {
   const categoryOptions = buildCategoryOptions(spectrum.category)
   const subtypeOptions = buildSubtypeOptions(spectrum.category, spectrum.subtype)
   const scaleUnits = SCALE_UNITS[spectrum.subtype] || ""
@@ -380,6 +394,19 @@ function buildCardHTML(spectrum, index, { shouldNormalize, showFluor, useAutocom
             <option value="">Select a protein...</option>
           </select>
           <div class="alert alert-warning small mt-2 mb-0 d-none" id="owner-warning-${index}"></div>
+        </div>
+      </div>
+
+      <div class="row mb-3" id="product-fields-${index}" style="${showProduct ? "" : "display: none;"}">
+        <div class="col-md-6">
+          <label class="form-label" for="manufacturer-input-${index}">Manufacturer</label>
+          <input type="text" class="form-control form-control-sm" id="manufacturer-input-${index}"
+                 list="manufacturer-options" maxlength="128" placeholder="e.g., Chroma, Semrock">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="part-input-${index}">Part number</label>
+          <input type="text" class="form-control form-control-sm" id="part-input-${index}"
+                 maxlength="128" placeholder="e.g., ET525/50m">
         </div>
       </div>
 
@@ -447,6 +474,8 @@ function attachCardEventHandlers(el, state, spectrum, index) {
   const scaleFactorInput = document.getElementById(`scale-factor-${index}`)
   const phInput = document.getElementById(`ph-input-${index}`)
   const solventInput = document.getElementById(`solvent-input-${index}`)
+  const manufacturerInput = document.getElementById(`manufacturer-input-${index}`)
+  const partInput = document.getElementById(`part-input-${index}`)
   const removeBtn = document.getElementById(`remove-btn-${index}`)
 
   // Restore saved values to form inputs
@@ -507,6 +536,16 @@ function attachCardEventHandlers(el, state, spectrum, index) {
     updateFormState(el, state)
   })
 
+  manufacturerInput?.addEventListener("input", (e) => {
+    spectrum.manufacturer = e.target.value.trim()
+    updateFormState(el, state)
+  })
+
+  partInput?.addEventListener("input", (e) => {
+    spectrum.part = e.target.value.trim()
+    updateFormState(el, state)
+  })
+
   // Remove button handler
   removeBtn?.addEventListener("click", () => {
     handleRemoveSpectrum(spectrum, index, el, state, ownerSelect)
@@ -543,6 +582,14 @@ function restoreCardInputValues(spectrum, index, el, state) {
   }
   if (solventInput && spectrum.solvent) {
     solventInput.value = spectrum.solvent
+  }
+  const manufacturerInput = document.getElementById(`manufacturer-input-${index}`)
+  if (manufacturerInput && spectrum.manufacturer) {
+    manufacturerInput.value = spectrum.manufacturer
+  }
+  const partInput = document.getElementById(`part-input-${index}`)
+  if (partInput && spectrum.part) {
+    partInput.value = spectrum.part
   }
 }
 
@@ -793,7 +840,7 @@ function updateSubtypeOptions(subtypeSelect, existingSubtypes, spectrum) {
 // Card Visibility Updates
 // ============================================================================
 
-function updateCardVisibility(index, { shouldNormalize, showFluor }) {
+function updateCardVisibility(index, { shouldNormalize, showFluor, showProduct }) {
   const peakBadge = document.getElementById(`peak-badge-${index}`)
   const scaleContainer = document.getElementById(`scale-factor-container-${index}`)
   const optionalRow = document.querySelector(`.optional-fields-${index}`)
@@ -809,6 +856,9 @@ function updateCardVisibility(index, { shouldNormalize, showFluor }) {
   document.querySelectorAll(`.fluor-field-${index}`).forEach((field) => {
     field.style.display = showFluor ? "" : "none"
   })
+
+  const productFields = document.getElementById(`product-fields-${index}`)
+  if (productFields) productFields.style.display = showProduct ? "" : "none"
 }
 
 function updateScaleFactorUnits(index, subtype) {
@@ -986,6 +1036,8 @@ function updateFormState(el, state) {
     solvent: FLUOR_CATEGORIES.has(s.category) ? s.solvent : null,
     peak_wave: s.manualPeakWave ?? getPeakWave(s.processed),
     column_name: s.columnName,
+    manufacturer: PRODUCT_CATEGORIES.has(s.category) ? s.manufacturer : null,
+    part: PRODUCT_CATEGORIES.has(s.category) ? s.part : null,
   }))
 
   el.spectraJson.value = JSON.stringify(spectraJson)
@@ -1215,6 +1267,8 @@ function restoreStateFromJson(el, state) {
       scaleFactor: specData.scale_factor,
       ph: specData.ph,
       solvent: specData.solvent || "",
+      manufacturer: specData.manufacturer || "",
+      part: specData.part || "",
       manualPeakWave: specData.peak_wave,
       hasExactMatch: false,
     }
