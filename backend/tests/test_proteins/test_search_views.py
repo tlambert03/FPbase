@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from django.db import connection
 from django.db.models import Count
 from django.test import TestCase, override_settings
@@ -58,3 +59,20 @@ class ProteinSearchViewTests(TestCase):
             f"Expected <= 10 queries with proper prefetch_related. "
             f"This may indicate an N+1 query regression.",
         )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("params", ["kws=GFP", "name__icontains=", "display=t"])
+def test_search_without_filter_value_lists_nothing(client, params: str) -> None:
+    ProteinFactory(name="ListedFP")
+    response = client.get(f"/search/?{params}")
+    assert response.status_code == 200
+    assert not response.context["filter"].qs.exists()
+
+
+@pytest.mark.django_db
+def test_search_query_param_is_q(client) -> None:
+    protein = ProteinFactory(name="QueryFP")
+    response = client.get("/search/?query=QueryFP")
+    assert response.status_code == 302
+    assert response["Location"] == protein.get_absolute_url()

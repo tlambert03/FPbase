@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlencode
 
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Count, Prefetch, Q
@@ -10,12 +11,19 @@ from proteins.util.helpers import getprot
 from references.models import Author, Reference
 
 
+def _has_filter_value(f: ProteinFilter) -> bool:
+    """Whether any known filter was given a value (unknown params are ignored by the filter)."""
+    f.form.is_valid()
+    return any(v not in (None, "", [], ()) for v in f.form.cleaned_data.values())
+
+
 def protein_search(request):
     """renders html for protein search page"""
 
     if request.GET:
-        if set(request.GET.keys()) == {"q"}:
-            query = request.GET.get("q").strip()
+        # `query` is a common guess for the name of `q`
+        if set(request.GET.keys()) in ({"q"}, {"query"}):
+            query = (request.GET.get("q") or request.GET.get("query")).strip()
             page = None
             try:
                 page = getprot(query, visible=True)
@@ -59,14 +67,11 @@ def protein_search(request):
                 except Organism.DoesNotExist:
                     pass
 
-            request.GET._mutable = True
-            request.GET["name__icontains"] = query
-            del request.GET["q"]
-            return redirect("/search/?name__iexact=" + query)
+            return redirect("/search/?" + urlencode({"name__iexact": query}))
 
         stateprefetch = Prefetch(
             "states",
-            queryset=State.objects.order_by("-is_dark", "em_max").prefetch_related("spectra"),
+            queryset=State.objects.order_by("-is_dark", "em_max"),
         )
         f = ProteinFilter(
             request.GET,
@@ -75,6 +80,9 @@ def protein_search(request):
             .prefetch_related(stateprefetch, "transitions")
             .order_by("default_state__em_max"),
         )
+        # without a filter value, the filter would return every protein
+        if not _has_filter_value(f):
+            f = ProteinFilter(request.GET, queryset=Protein.visible.none())
 
         # if no hits, but name was provided... try trigram search
         if len(f.qs) == 0:
