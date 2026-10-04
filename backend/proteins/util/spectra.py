@@ -34,7 +34,7 @@ def interp_linear(
     y = np.asarray(y)
     if not _is_monotonic(x):
         x, y = _make_monotonic(x, y)
-    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))))
+    xnew = range(int(np.ceil(min(x))), int(np.floor(max(x))) + 1)
     ynew = np.interp(xnew, x, y)
     if savgol:
         ynew = scipy.signal.savgol_filter(ynew, 9, 2)
