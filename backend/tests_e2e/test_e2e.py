@@ -770,6 +770,15 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
+def test_search_url_with_unknown_filter(live_server: LiveServer, page: Page) -> None:
+    """A search link naming a filter that no longer exists still loads the known ones."""
+    query = "name__icontains=gfp&retired_field__lt=5"
+    page.goto(f"{live_server.url}{reverse('proteins:search')}?{query}")
+    expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
+    expect(page.locator("#query_builder .query-row")).to_have_count(1)
+    expect(page.locator("#filter-select-0")).to_have_value("name")
+
+
 def test_blast_search(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test BLAST search functionality."""
     protein = ProteinFactory.create(name="BlastTestGFP", seq=SEQ)
