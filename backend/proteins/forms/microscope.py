@@ -1,3 +1,4 @@
+import contextlib
 import re
 
 from dal import autocomplete
@@ -15,40 +16,8 @@ from proteins.models import (
     OpticalConfig,
     ProteinCollection,
 )
-from proteins.util.importers import (
-    add_filter_to_database,
-    check_chroma_for_part,
-    check_semrock_for_part,
-)
 
 User = get_user_model()
-
-
-class FilterPromise:
-    def __init__(self, part):
-        self.part = part
-
-    @property
-    def is_valid(self):
-        if hasattr(self, "_valid"):
-            return self._valid
-        if check_chroma_for_part(self.part):
-            self.brand = "chroma"
-            self._valid = True
-        elif check_semrock_for_part(self.part):
-            self.brand = "semrock"
-            self._valid = True
-        else:
-            self.brand = None
-            self._valid = False
-        return self._valid
-
-    def fetch(self, user=None):
-        try:
-            return Filter.objects.get(part__icontains=self.part)
-        except Filter.DoesNotExist:
-            newObjects, _ = add_filter_to_database(self.brand, self.part, user)
-        return newObjects[0].owner
 
 
 class MicroscopeForm(forms.ModelForm):
@@ -136,8 +105,6 @@ class MicroscopeForm(forms.ModelForm):
                 oc.laser = filt
                 oc.save()
                 return
-            if isinstance(filt, FilterPromise):
-                filt = filt.fetch(self.user)
 
             fp = FilterPlacement(
                 filter=filt,
@@ -202,19 +169,8 @@ class MicroscopeForm(forms.ModelForm):
         # on update form allow for the same name (case insensitive)
         brackets = re.compile(r"[\[\]\{\}]")
 
-        def _getpromise(fname):
-            fp = FilterPromise(fname)
-            if fp.is_valid:
-                return fp
-            else:
-                self.add_error(
-                    "optical_configs",
-                    f"Filter not found in database or at Chroma/Semrock: {fname}",
-                )
-                return None
-
         def lookup(fname, n=None):
-            # lookup filter name in database, then check on chroma/semrock
+            # lookup filter name in database
             if not fname:
                 return None
             if isinstance(fname, str) and fname.isdigit():
@@ -234,12 +190,11 @@ class MicroscopeForm(forms.ModelForm):
             try:
                 return Filter.objects.get(name__icontains=fname)
             except MultipleObjectsReturned:
-                try:
+                with contextlib.suppress(ObjectDoesNotExist):
                     return Filter.objects.get(part__iexact=fname)
-                except ObjectDoesNotExist:
-                    return _getpromise(fname)
             except ObjectDoesNotExist:
-                return _getpromise(fname)
+                pass
+            self.add_error("optical_configs", f"Filter not found in database: {fname}")
             return None
 
         for linenum, line in enumerate(ocs.splitlines()):

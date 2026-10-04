@@ -282,11 +282,6 @@ urlpatterns = [
     # AJAX
     path("ajax/add_taxonomy/", views.add_organism, name="add_taxonomy"),
     re_path(
-        r"^ajax/filter_import/(?P<brand>[-\w]+)$",
-        views.filter_import,
-        name="filter_import",
-    ),
-    re_path(
         r"^ajax/add_protein_reference/(?P<slug>[-\w]+)/$",
         views.add_reference,
         name="add_protein_reference",

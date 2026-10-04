@@ -139,8 +139,8 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
               </dl>
               <dl class="row">
                 <dt class="col-sm-3">Filters</dt>
-                <dd class="col-sm-9">Filters can be specified as any Chroma or Semrock part number, or a name of any
-                  filter in the FPbase spectra database.</dd>
+                <dd class="col-sm-9">Filters can be specified as the name of any filter in the FPbase spectra
+                  database. Missing filters can be <a href="{% url 'proteins:submit-spectra' %}">submitted here</a>.</dd>
               </dl>
               <dl class="row">
                 <dt class="col-sm-3">Multiple Filters</dt>
@@ -181,10 +181,6 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
                 </div>
               </div>
             {% endfor %}
-            {% comment %}
-            this feature is broken...
-            <a href="#" class='text-primary' data-bs-toggle="modal" data-bs-target="#importModal"><button class='btn btn-sm btn-danger mb-1'>{% icon "download" class_="me-2" %}Import Commercial Filter</button></a>
-            {% endcomment %}
           </div>
 
         </div>
@@ -248,9 +244,5 @@ get a custom spectra viewer that you can use to explore the fluorophore spectra 
     </div>
   </div>
 </div>
-
-<!-- Modals -->
-{% comment %} {% include 'proteins/modals/_import_spectrum_modal.html' with user=user %} {% endcomment %}
-
 
 {% endblock content %}
