@@ -452,6 +452,9 @@ class Spectrum(Authorable, StatusModel, TimeStampedModel, AdminURLMixin):
                 raise ValidationError(
                     f"y_values length ({actual_len}) must match wavelength range ({expected_len})"
                 )
+            # NaN/inf can't be served as JSON, and aren't data
+            if not np.isfinite(self._decode_y_values()).all():
+                raise ValidationError("Spectrum values must be finite numbers (no NaN or inf)")
 
     @property
     def owner(self) -> FluorState | Filter | Light | Camera:

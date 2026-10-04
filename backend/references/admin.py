@@ -164,7 +164,8 @@ class ReferenceAdmin(CompareVersionAdmin):
         if not obj.created_by:
             obj.created_by = request.user
         obj.updated_by = request.user
-        obj.save(skipdoi=not form.cleaned_data["refetch_info_on_save"])
+        # a new reference has no year, title etc. until they are fetched from its DOI
+        obj.save(skipdoi=change and not form.cleaned_data["refetch_info_on_save"])
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request).prefetch_related("authors", "primary_proteins")
