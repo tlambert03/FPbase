@@ -46,7 +46,8 @@ class Authorable(models.Model):
 class Product(models.Model):
     PRODUCT_LINKS = {
         "chroma": "https://www.chroma.com/products/parts/*",
-        "semrock": "https://www.semrock.com/FilterDetails.aspx?id=*",
+        # product pages need a size suffix we don't have (ff01_520_35_25): link a search
+        "semrock": "https://www.idex-hs.com/store/search-results/1/?searchCriteria=*",
         "lumencor": "http://lumencor.com/products/filters-for-spectra-x-light-engines/",
     }
 
