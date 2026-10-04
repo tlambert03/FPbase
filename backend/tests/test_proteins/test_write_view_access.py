@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
 from django.urls import reverse
 
@@ -24,7 +22,6 @@ def protein() -> Protein:
 def urls(protein: Protein) -> dict[str, str]:
     reference = ReferenceFactory()
     return {
-        "filter_import": reverse("proteins:filter_import", args=("chroma",)),
         "add_reference": reverse("proteins:add_protein_reference", args=(protein.slug,)),
         "add_protein_excerpt": reverse("proteins:add_protein_excerpt", args=(protein.slug,)),
         "add_excerpt": reverse("references:add_excerpt", args=(reference.pk,)),
@@ -33,7 +30,6 @@ def urls(protein: Protein) -> dict[str, str]:
 
 
 VIEWS = [
-    "filter_import",
     "add_reference",
     "add_protein_excerpt",
     "add_excerpt",
@@ -43,12 +39,10 @@ VIEWS = [
 
 @pytest.mark.parametrize("view", VIEWS)
 def test_anonymous_post_is_sent_to_login(client, urls: dict[str, str], view: str):
-    data = {"part": "ET525/50m", "reference_doi": "10.1038/nmeth.2413", "excerpt_content": "x"}
-    with patch("proteins.views.spectra.add_filter_to_database") as add_filter:
-        response = client.post(urls[view], data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+    data = {"reference_doi": "10.1038/nmeth.2413", "excerpt_content": "x"}
+    response = client.post(urls[view], data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
     assert response.status_code == 302
     assert response.url.startswith(reverse("account_login"))
-    add_filter.assert_not_called()
 
 
 @pytest.mark.parametrize("view", VIEWS)

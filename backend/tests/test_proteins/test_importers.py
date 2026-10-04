@@ -4,12 +4,8 @@ Comprehensive test suite for CSV parsing in proteins.util.importers.
 Tests text_to_spectra() with various CSV formats to ensure production safety.
 """
 
-from types import SimpleNamespace
-
-import pytest
 from django.test import TestCase
 
-from proteins.util import importers
 from proteins.util.importers import text_to_spectra
 
 
@@ -211,17 +207,3 @@ class TestTextToSpectra(TestCase):
         with self.assertRaises(ValueError) as cm:
             text_to_spectra(csv)
         self.assertIn("Could not parse", str(cm.exception))
-
-
-@pytest.mark.parametrize(
-    "check", [importers.check_semrock_for_part, importers.check_chroma_for_part]
-)
-def test_part_check_follows_redirect_to_404(monkeypatch, check) -> None:
-    """A retired URL that redirects to a 404 is not a valid part (FPBASE-70F)."""
-
-    def fake_head(url, allow_redirects=False, **kwargs):
-        # the vendor answers 301; following it lands on a 404
-        return SimpleNamespace(ok=not allow_redirects)
-
-    monkeypatch.setattr(importers.requests, "head", fake_head)
-    assert check("FF495-Di03-25x36") is False

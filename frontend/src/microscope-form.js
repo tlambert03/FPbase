@@ -4,7 +4,6 @@ import "vite/modulepreload-polyfill"
 // Initialize Sentry first to catch errors during module loading
 import "./js/sentry-init.js"
 import "./js/ajax-sentry.js" // Track jQuery AJAX errors
-import { fetchWithSentry } from "./js/ajax-sentry"
 
 const $ = window.jQuery // jQuery loaded from CDN
 
@@ -93,59 +92,4 @@ $(() => {
       $('#microscopeFormTabs a[href="#bulk"]').tab("show")
     })
   }
-})
-
-$("#chromaImportForm, #semrockImportForm").submit(function (e) {
-  e.preventDefault() // avoid to execute the actual submit of the form.
-  $("#footerSpinner").show()
-  $("#footerFail").hide()
-  $("#footerSuccess").hide()
-  const form = $(this).closest("form")
-  const brand = form.data("brand")
-
-  fetchWithSentry(form.attr("data-action-url"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      // Legacy header required by Django is_ajax() check in dual-purpose endpoints
-      "X-Requested-With": "XMLHttpRequest",
-    },
-    body: form.serialize(),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status) {
-        const newdata = JSON.parse(data.spectra_options)
-        $('.data-selector[data-category="f"]').append(
-          $("<option>", {
-            value: newdata.slug,
-          }).text(newdata.name)
-        )
-        $(`#${brand}Input`).removeClass("is-invalid")
-        $(`#${brand}Help`).removeClass("invalid-feedback").addClass("text-muted").text("Success!")
-        $("#footerSpinner").hide()
-        $("#footerFail").hide()
-        $("#footerSuccess").show()
-      } else {
-        $(`#${brand}Input`).addClass("is-invalid")
-        $(`#${brand}Help`)
-          .removeClass("text-muted")
-          .addClass("invalid-feedback")
-          .text(`ERROR: ${data.message}`)
-          .show()
-        $("#footerSpinner").hide()
-        $("#footerFail").show()
-        $("#footerSuccess").hide()
-      }
-    })
-    .finally(() => {
-      $("#footerSpinner").hide()
-      // $('#importModal').modal('hide')
-    })
-})
-
-$(".importerClose").click(() => {
-  $("#footerSpinner").hide()
-  $("#footerFail").hide()
-  $("#footerSuccess").hide()
 })

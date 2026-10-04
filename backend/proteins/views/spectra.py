@@ -1,6 +1,5 @@
 import contextlib
 import io
-import json
 import logging
 import traceback
 from textwrap import dedent
@@ -12,7 +11,6 @@ from django.core.mail import EmailMessage
 from django.db.models import QuerySet
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
-from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -22,9 +20,8 @@ from django.views.generic import CreateView
 from fpbase.util import is_ajax, uncache_protein_page
 from proteins.forms import SpectrumForm
 from proteins.forms.spectrum_v2 import SpectrumFormV2
-from proteins.models import Filter, Protein, Spectrum, State
+from proteins.models import Protein, Spectrum, State
 from proteins.models.fluorophore import FluorState
-from proteins.util.importers import add_filter_to_database
 from proteins.util.spectra import spectra2csv
 
 
@@ -376,45 +373,6 @@ def spectrum_preview(request) -> JsonResponse:
             },
             status=500,
         )
-
-
-@login_required
-@require_POST
-def filter_import(request, brand):
-    part = request.POST["part"]
-    new_objects = []
-    errors = []
-    response = {"status": 0}
-
-    with contextlib.suppress(Filter.DoesNotExist):
-        Filter.objects.get(slug=slugify(f"{brand} {part}"))
-        response["message"] = f"{part} is already in the database"
-        return JsonResponse(response)
-
-    try:
-        new_objects, errors = add_filter_to_database(brand, part, request.user)
-    except Exception as e:
-        response["message"] = str(e)
-
-    if new_objects:
-        spectrum = new_objects[0]
-        response = {
-            "status": 1,
-            "objects": spectrum.name,
-            "spectra_options": json.dumps(
-                {
-                    "category": spectrum.category,
-                    "subtype": spectrum.subtype,
-                    "slug": spectrum.owner.slug,
-                    "name": spectrum.owner.name,
-                }
-            ),
-        }
-    elif errors:
-        with contextlib.suppress(Exception):
-            if errors[0][1].as_data()["owner"][0].code == "owner_exists":
-                response["message"] = f"{part} already appears to be imported"
-    return JsonResponse(response)
 
 
 @permission_required(["proteins.change_spectrum", "proteins.delete_spectrum"])
