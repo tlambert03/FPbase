@@ -11,7 +11,14 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from graphene.validation import depth_limit_validator
 from graphene_django.views import GraphQLView
-from graphql import specified_rules
+from graphql import (
+    KnownFragmentNamesRule,
+    NoFragmentCyclesRule,
+    ValidationContext,
+    ValidationRule,
+    specified_rules,
+    validate,
+)
 from rest_framework import exceptions
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from sentry_sdk import last_event_id
@@ -28,6 +35,23 @@ GRAPHQL_CACHE_MAX_SIZE = 1_000_000
 # how many levels of objects a query may nest: types refer back to each other
 # (organism -> proteins -> organism ...), and each added level multiplies the result
 GRAPHQL_MAX_DEPTH = 5
+_GrapheneDepthLimit = depth_limit_validator(max_depth=GRAPHQL_MAX_DEPTH)
+
+
+class DepthLimitRule(ValidationRule):
+    """graphene's depth limit, applied only to documents whose fragments resolve.
+
+    graphene measures depth as soon as the rule is created, before any other rule runs,
+    and looks up each spread fragment unchecked: an unknown fragment raises KeyError and
+    a fragment cycle recurses forever. Such documents are reported (as a 400) by
+    KnownFragmentNamesRule and NoFragmentCyclesRule instead.
+    """
+
+    def __init__(self, context: ValidationContext):
+        super().__init__(context)
+        fragment_rules = (KnownFragmentNamesRule, NoFragmentCyclesRule)
+        if not validate(context.schema, context.document, fragment_rules):
+            _GrapheneDepthLimit(context)
 
 
 class CloudflareIdentMixin:
@@ -116,7 +140,7 @@ class RateLimitedGraphQLView(GraphQLView):
     # the spectra viewer and protein pages fetch every spectrum with its own request
     throttle_classes = [SameOriginExemptAnonThrottle, UserThrottle]
     # (naming rules here replaces the standard ones, so they are listed too)
-    validation_rules = (*specified_rules, depth_limit_validator(max_depth=GRAPHQL_MAX_DEPTH))
+    validation_rules = (*specified_rules, DepthLimitRule)
 
     def get_throttles(self):
         """Instantiate and return the list of throttles that this view uses."""

@@ -46,3 +46,20 @@ def test_standard_validation_still_applies(client):
     response = _post(client, "{ proteins { notAField } }")
     assert response.status_code == 400
     assert "Cannot query field 'notAField'" in response.json()["errors"][0]["message"]
+
+
+def test_unknown_fragment_is_rejected(client):
+    response = _post(client, "{ spectrum(id: 1) { owner { id ...FluorophoreParts } } }")
+    assert response.status_code == 400
+    assert "Unknown fragment 'FluorophoreParts'" in response.json()["errors"][0]["message"]
+
+
+def test_fragment_cycle_is_rejected(client):
+    query = """
+        { proteins { ...A } }
+        fragment A on Protein { id ...B }
+        fragment B on Protein { id ...A }
+    """
+    response = _post(client, query)
+    assert response.status_code == 400
+    assert "Cannot spread fragment 'A'" in response.json()["errors"][0]["message"]
