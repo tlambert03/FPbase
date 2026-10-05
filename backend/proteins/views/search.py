@@ -22,8 +22,8 @@ def protein_search(request):
 
     if request.GET:
         # `query` is a common guess for the name of `q`
-        if set(request.GET.keys()) in ({"q"}, {"query"}):
-            query = (request.GET.get("q") or request.GET.get("query")).strip()
+        query = (request.GET.get("q") or request.GET.get("query") or "").strip()
+        if query and set(request.GET.keys()) in ({"q"}, {"query"}):
             page = None
             try:
                 page = getprot(query, visible=True)

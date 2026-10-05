@@ -62,7 +62,9 @@ class ProteinSearchViewTests(TestCase):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("params", ["kws=GFP", "name__icontains=", "display=t"])
+@pytest.mark.parametrize(
+    "params", ["kws=GFP", "name__icontains=", "display=t", "q=", "q=%20", "query="]
+)
 def test_search_without_filter_value_lists_nothing(client, params: str) -> None:
     ProteinFactory(name="ListedFP")
     response = client.get(f"/search/?{params}")
