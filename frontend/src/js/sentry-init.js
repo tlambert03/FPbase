@@ -31,6 +31,12 @@ function isReplayedCopy() {
   return ["fpbase.org", "www.fpbase.org"].includes(hostname) && origin !== "https://www.fpbase.org"
 }
 
+// The page's jQuery <script> (from cdnjs) didn't load, so every bundle using `$` fails at
+// import and cascades (FPBASE-65J, -6FP, -68N); seen almost only from bots with fake UAs.
+function jQueryFailedToLoad() {
+  return !window.jQuery && document.querySelector('script[src*="/jquery.min.js"]') !== null
+}
+
 /**
  * Initialize Sentry with production-optimized configuration
  * This function is idempotent - calling it multiple times is safe
@@ -80,7 +86,7 @@ export function initSentry() {
 
         // Filter sensitive data before sending
         beforeSend(event, _hint) {
-          if (isReplayedCopy()) return null
+          if (isReplayedCopy() || jQueryFailedToLoad()) return null
 
           // Add bundle information for easier debugging
           event.tags = {
