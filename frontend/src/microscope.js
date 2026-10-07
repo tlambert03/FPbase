@@ -692,6 +692,7 @@ window.initMicroscope = () => {
       nv.addGraph(
         () => {
           chart = nv.models.lineChart().options(chartOptions())
+          if ($(document).width() < 576) chart.legend.maxKeyLength(15)
           chart.lines.duration(0)
           chart.brushExtent(options.startingBrush)
           chart.interactiveLayer.tooltip.valueFormatter((d, _i) => {
@@ -1870,9 +1871,6 @@ window.initMicroscope = () => {
       setTimeout(() => {
         autoSizeText()
         chart?.update()
-        if ($(document).width() < 576) {
-          chart.legend.maxKeyLength(15)
-        }
 
         $(".filter-label").each(function (_i) {
           this.innerHTML = this.innerHTML.replace(/^\s*\w+/, (x) => {
