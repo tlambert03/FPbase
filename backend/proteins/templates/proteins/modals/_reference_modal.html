@@ -16,7 +16,7 @@
           <div id="div_id_reference_doi" class="mb-3">
             <label for="id_reference_doi" class="form-label">Reference DOI</label>
             <div class="">
-              <input type="text" name="reference_doi" maxlength="100" class="textinput textInput form-control" required="" id="id_reference_doi" pattern="10.\d{4,9}/[-._;()/:a-zA-Z0-9]+" oninvalid="setCustomValidity('Not a valid DOI string')" oninput="setCustomValidity('')">
+              <input type="text" name="reference_doi" maxlength="100" class="textinput textInput form-control" required="" id="id_reference_doi" pattern="10\.\d{4,9}/[\-._;\(\)\/:a-zA-Z0-9]+" oninvalid="setCustomValidity('Not a valid DOI string')" oninput="setCustomValidity('')">
             </div>
             <small id="hint_id_reference_doi" class="text-muted">e.g. 10.1038/nmeth.2413</small>
           </div>
