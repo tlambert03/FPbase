@@ -371,6 +371,41 @@ def test_microscope_page_with_interaction(
     config_select.select_option(label="TestOC1")
 
 
+_HOVER_CHART = """(configIndex) => {
+  const svg = document.querySelector('.microscope-wrapper #spectra svg')
+  const r = svg.getBoundingClientRect()
+  if (configIndex !== null) {
+    $('#config-select option').eq(configIndex).prop('selected', true).change()
+  }
+  svg.dispatchEvent(new MouseEvent('mousemove', {
+    bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 3,
+  }))
+}"""
+
+
+def test_microscope_hover_without_visible_spectra(live_server: LiveServer, page: Page) -> None:
+    """Hovering the chart while a config loads, or with no spectra, doesn't error (FPBASE-5MR)."""
+    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
+    OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
+    page.goto(f"{live_server.url}{reverse('proteins:microscope-detail', args=(microscope.id,))}")
+    expect(page.locator(".nv-linesWrap .nv-group")).not_to_have_count(0)
+
+    page.evaluate(_HOVER_CHART, None)
+    expect(page.locator(".nvtooltip")).to_be_visible()
+
+    # the hover lands before the new config's spectra are back in the chart data
+    page.evaluate(_HOVER_CHART, 2)
+    expect(page.locator(".nv-linesWrap .nv-group")).not_to_have_count(0)
+
+    page.evaluate("""() => {
+      $('#config-select, #light-select, #camera-select').val('')
+      $('.filter-selector').prop('checked', false).first().change()
+    }""")
+    expect(page.locator(".nv-noData")).to_be_visible()
+    page.evaluate(_HOVER_CHART, None)
+    expect(page.locator(".nvtooltip")).to_have_css("opacity", "0")  # how nvd3 hides it
+
+
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test FRET page loads with donor/acceptor selection."""
     ProteinFactory(

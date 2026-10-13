@@ -156,6 +156,22 @@ window.initMicroscope = () => {
 
     const svg = d3.select(".microscope-wrapper #spectra svg")
 
+    // nvd3's hover handler crashes when no series is visible, which happens while
+    // updateData has old spectra out of `data` and the new ones are still loading,
+    // and after a "no data" render (which leaves the handler bound to the svg)
+    for (const type of ["mousemove", "touchmove"]) {
+      svg.node().parentNode.addEventListener(
+        type,
+        (e) => {
+          if (data.some((d) => !d.disabled)) return
+          e.stopPropagation()
+          chart?.interactiveLayer.tooltip.hidden(true)
+          chart?.interactiveLayer.renderGuideLine(null)
+        },
+        true
+      )
+    }
+
     function getData(slug) {
       const dfd = $.Deferred()
       // download if not already downloaded
