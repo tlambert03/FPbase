@@ -17,7 +17,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.mail import mail_admins, mail_managers
-from django.db import transaction
+from django.db import connections, transaction
 from django.db.models import Case, Count, F, Prefetch, Q, When
 from django.forms.models import BaseInlineFormSet, modelformset_factory
 from django.http import (
@@ -132,6 +132,11 @@ class _RollBackRevisionView(Exception):
         self.response = response
 
 
+# version_view writes the old version to the db (then rolls back), and two at once
+# can deadlock, so they take turns.  one key for all: revisions can share rows.
+VERSION_VIEW_LOCK_KEY = 5_118_001
+
+
 def _get_protein_or_404(request, slug: str, queryset=Protein.objects) -> Protein:
     """The protein with this slug, unless it is hidden from the requesting user."""
     protein = get_object_or_404(queryset, slug=slug)
@@ -180,6 +185,8 @@ class ProteinDetailView(DetailView):
     def version_view(self, request, version, *args, **kwargs):
         try:
             with transaction.atomic(using=version.db):
+                with connections[version.db].cursor() as cursor:
+                    cursor.execute("SELECT pg_advisory_xact_lock(%s)", [VERSION_VIEW_LOCK_KEY])
                 # Revert the revision.
                 version.revision.revert(delete=True)
                 # Run the normal changeform view.
