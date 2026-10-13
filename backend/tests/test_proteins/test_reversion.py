@@ -3,13 +3,15 @@
 import pytest
 import reversion
 from django.contrib.auth import get_user_model
+from django.db import connection
 from django.test import TestCase
 from django.urls import reverse
 from reversion import is_registered
-from reversion.models import Version
+from reversion.models import Revision, Version
 
 from proteins.factories import ProteinFactory, StateFactory
 from proteins.models import FluorState, Protein, State
+from proteins.views.protein import VERSION_VIEW_LOCK_KEY
 
 User = get_user_model()
 
@@ -145,3 +147,36 @@ def test_version_view_when_old_state_slug_was_taken(client):
     response = client.get(f"/protein/{protein.slug}/ver/{version.id}")
     assert response.status_code == 200
     assert State.objects.get(pk=state.pk).slug == "new-slug"
+
+
+def _holds_version_view_lock() -> bool:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT count(*) FROM pg_locks WHERE locktype = 'advisory' "
+            "AND pid = pg_backend_pid() AND granted AND objid = %s",
+            [VERSION_VIEW_LOCK_KEY],
+        )
+        return cursor.fetchone() == (1,)
+
+
+# transaction=True, so the request's own transaction ends and must release the lock
+@pytest.mark.django_db(transaction=True)
+def test_version_view_reverts_under_lock(client, monkeypatch):
+    """Version views take turns, so two at once can't deadlock (FPBASE-5E8)."""
+    protein = ProteinFactory()
+    with reversion.create_revision():
+        reversion.add_to_revision(protein)
+    version = Version.objects.get_for_object(protein).first()
+
+    held = []
+    revert = Revision.revert
+
+    def checked_revert(self, *args, **kwargs):
+        held.append(_holds_version_view_lock())
+        return revert(self, *args, **kwargs)
+
+    monkeypatch.setattr(Revision, "revert", checked_revert)
+    response = client.get(f"/protein/{protein.slug}/ver/{version.id}")
+    assert response.status_code == 200
+    assert held == [True]
+    assert not _holds_version_view_lock()
