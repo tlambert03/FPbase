@@ -8,12 +8,14 @@ from typing import TYPE_CHECKING, cast
 
 import django.forms
 import django.forms.formsets
+import httpx
 import reversion
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.core.mail import mail_admins, mail_managers
 from django.db import transaction
 from django.db.models import Case, Count, F, Prefetch, Q, When
@@ -62,6 +64,7 @@ from proteins.models import (
 from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
+from proteins.validators import validate_doi
 from references.models import Reference  # breaks application modularity
 
 if TYPE_CHECKING:
@@ -673,14 +676,25 @@ def problems_inconsistencies(request):
     )
 
 
+def _get_or_create_reference(doi: str) -> Reference:
+    """Get or create the Reference for `doi`; `ValidationError` if invalid or unknown."""
+    doi = doi.strip().lower()
+    validate_doi(doi)
+    try:
+        return Reference.objects.get_or_create(doi=doi)[0]
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            raise ValidationError("DOI not found at Crossref") from e
+        raise
+
+
 @login_required
 @require_POST
 def add_reference(request, slug=None):
+    p = get_object_or_404(Protein, slug=slug)
     try:
         with reversion.create_revision():
-            doi = request.POST.get("reference_doi").lower()
-            p = Protein.objects.get(slug=slug)
-            ref, _created = Reference.objects.get_or_create(doi=doi)
+            ref = _get_or_create_reference(request.POST.get("reference_doi", ""))
             p.references.add(ref)
             if not request.user.is_staff:
                 p.status = "pending"
@@ -697,21 +711,20 @@ def add_reference(request, slug=None):
                 uncache_protein_page(slug, request)
             except Exception as e:
                 logger.error("failed to uncache protein: %s", e)
-        return JsonResponse({"status": "success"})
-    except Exception as e:
-        return JsonResponse({"status": "failed", "msg": e})
+    except ValidationError as e:
+        return JsonResponse({"status": "failed", "msg": e.messages[0]}, status=400)
+    return JsonResponse({"status": "success"})
 
 
 @login_required
 @require_POST
 def add_protein_excerpt(request, slug=None):
+    p = get_object_or_404(Protein, slug=slug)
     try:
         with reversion.create_revision():
-            doi = request.POST.get("excerpt_doi").lower()
-            p = Protein.objects.get(slug=slug)
             content = request.POST.get("excerpt_content")
             if content:
-                ref, _created = Reference.objects.get_or_create(doi=doi)
+                ref = _get_or_create_reference(request.POST.get("excerpt_doi", ""))
                 p.references.add(ref)
                 excerpt = Excerpt.objects.create(
                     reference=ref, content=strip_tags(content), created_by=request.user
@@ -731,9 +744,9 @@ def add_protein_excerpt(request, slug=None):
                     uncache_protein_page(slug, request)
                 except Exception as e:
                     logger.error("failed to uncache protein: %s", e)
-        return JsonResponse({"status": "success"})
-    except Exception as e:
-        return JsonResponse({"status": "failed", "msg": e})
+    except ValidationError as e:
+        return JsonResponse({"status": "failed", "msg": e.messages[0]}, status=400)
+    return JsonResponse({"status": "success"})
 
 
 def _revert_to_revision(request, revision: Revision) -> JsonResponse:

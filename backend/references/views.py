@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import mail_managers
 from django.db.models import Prefetch
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.html import strip_tags
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
@@ -99,24 +100,21 @@ class ReferenceAutocomplete(autocomplete.Select2QuerySetView):
 def add_excerpt(request, pk=None):
     if not is_ajax(request):
         return HttpResponseNotAllowed([])
-    try:
-        with reversion.create_revision():
-            ref = Reference.objects.get(pk=pk)
-            content = request.POST.get("excerpt_content")
-            if content:
-                # P.references.add(ref)
-                Excerpt.objects.create(
-                    reference=ref, content=strip_tags(content), created_by=request.user
+    ref = get_object_or_404(Reference, pk=pk)
+    with reversion.create_revision():
+        content = request.POST.get("excerpt_content")
+        if content:
+            # P.references.add(ref)
+            Excerpt.objects.create(
+                reference=ref, content=strip_tags(content), created_by=request.user
+            )
+            if not request.user.is_staff:
+                msg = (
+                    f"User: {request.user.username}\nReference: {ref}, {ref.title}"
+                    f"\nExcerpt: {strip_tags(content)}\n"
+                    f"{request.build_absolute_uri(ref.get_absolute_url())}"
                 )
-                if not request.user.is_staff:
-                    msg = (
-                        f"User: {request.user.username}\nReference: {ref}, {ref.title}"
-                        f"\nExcerpt: {strip_tags(content)}\n"
-                        f"{request.build_absolute_uri(ref.get_absolute_url())}"
-                    )
-                    mail_managers("Excerpt Added", msg, fail_silently=True)
-                reversion.set_user(request.user)
-                reversion.set_comment(f"Excerpt from {ref} added")
-        return JsonResponse({"status": "success"})
-    except Exception as e:
-        return JsonResponse({"status": "failed", "msg": e})
+                mail_managers("Excerpt Added", msg, fail_silently=True)
+            reversion.set_user(request.user)
+            reversion.set_comment(f"Excerpt from {ref} added")
+    return JsonResponse({"status": "success"})

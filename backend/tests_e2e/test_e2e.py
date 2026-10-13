@@ -11,6 +11,7 @@ import re
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
+import httpx
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, Page
+    from playwright.sync_api import Browser, BrowserContext, Page
     from pytest_django.fixtures import SettingsWrapper
     from pytest_django.live_server_helper import LiveServer
 
@@ -1128,6 +1129,39 @@ def test_legacy_spectrum_form_warns_on_similar_owner(
     hint = auth_page.locator("#div_id_owner")
     expect(hint).to_contain_text("Avoid duplicates")
     expect(hint).to_contain_text("Chroma <i>ET525/50m")
+
+
+def test_add_reference_shows_doi_errors(
+    auth_context: BrowserContext, live_server: LiveServer
+) -> None:
+    """The add-reference modal rejects non-DOIs and shows the server's error message."""
+    # not `auth_page`: its error checks would fail on the expected 400
+    page = auth_context.new_page()
+    page_errors: list[Exception] = []
+    page.on("pageerror", lambda error: page_errors.append(error))
+    page.route(re.compile(r"api\.crossref\.org"), lambda route: route.fulfill(status=404))
+    protein = ProteinFactory.create()
+    page.goto(f"{live_server.url}{protein.get_absolute_url()}")
+
+    page.get_by_role("button", name="Add a reference").click()
+    doi_input = page.locator("#id_reference_doi")
+    doi_input.fill("https://www.fpbase.org/protein/dtomato/")
+    assert not doi_input.evaluate("el => el.checkValidity()")
+
+    def crossref_404(doi: str):
+        request = httpx.Request("GET", f"https://api.crossref.org/works/{doi}")
+        response = httpx.Response(404, request=request)
+        raise httpx.HTTPStatusError("Not Found", request=request, response=response)
+
+    doi_input.fill("10.1234/nope")
+    with patch("proteins.extrest.entrez.doi_lookup", side_effect=crossref_404):
+        page.locator("#refModalForm button[type='submit']").click()
+        expect(page.locator("#refModalForm .modal-form-error")).to_have_text(
+            "DOI not found at Crossref"
+        )
+    expect(page.locator("#refModalForm button[type='submit']")).to_be_enabled()
+    assert not page_errors
+    page.close()
 
 
 def test_lineage_tooltip_shows_names(page: Page, live_server: LiveServer) -> None:

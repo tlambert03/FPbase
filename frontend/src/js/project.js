@@ -703,9 +703,21 @@ $(window).resize(() => {
   })
 })
 
-$("#refModalForm").submit(function (e) {
-  e.preventDefault() // avoid to execute the actual submit of the form.
-  var form = $(this).closest("form")
+// Submit an add-reference/excerpt modal form, showing any error in the modal footer
+function submitModalForm(form) {
+  const $submitBtn = form.find('button[type="submit"]')
+  if ($submitBtn.prop("disabled")) return // Prevent double submission
+  $submitBtn.prop("disabled", true)
+
+  const showError = (msg = "Something went wrong, please try again.") => {
+    let $error = form.find(".modal-form-error")
+    if (!$error.length) {
+      $error = $('<div class="modal-form-error text-danger me-auto"></div>')
+      form.find(".modal-footer").prepend($error)
+    }
+    $error.text(msg)
+    $submitBtn.prop("disabled", false)
+  }
 
   fetchWithSentry(form.attr("data-action-url"), {
     method: "POST",
@@ -716,43 +728,27 @@ $("#refModalForm").submit(function (e) {
     },
     body: form.serialize(),
   })
-    .then((response) => response.json())
+    .then((response) => response.json().catch(() => ({})))
     .then((data) => {
       if (data.status === "success") {
         window.location.reload()
+      } else {
+        showError(data.msg)
       }
     })
+    .catch(() => showError())
+}
+
+$("#refModalForm").on("submit", function (e) {
+  e.preventDefault()
+  submitModalForm($(this))
 })
 
 $("#excerptModalForm")
   .off("submit")
   .on("submit", function (e) {
-    e.preventDefault() // Prevent default FIRST
-    var form = $(this).closest("form")
-    var $submitBtn = form.find('button[type="submit"]')
-
-    // Prevent double submission
-    if ($submitBtn.prop("disabled")) return
-    $submitBtn.prop("disabled", true)
-
-    fetchWithSentry(form.attr("data-action-url"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        // Legacy header required by Django is_ajax() check in dual-purpose endpoints
-        "X-Requested-With": "XMLHttpRequest",
-      },
-      body: form.serialize(),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "success") {
-          window.location.reload()
-        }
-      })
-      .catch(() => {
-        $submitBtn.prop("disabled", false) // Re-enable on error
-      })
+    e.preventDefault()
+    submitModalForm($(this))
   })
 
 function register_transition_form() {
