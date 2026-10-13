@@ -5,7 +5,7 @@ from reversion_compare.admin import CompareVersionAdmin
 
 from proteins.models import Excerpt, Protein
 from references.forms import ReferenceForm
-from references.models import Author, Reference
+from references.models import Author, Reference, ordered_authors
 
 
 @admin.register(Author)
@@ -168,5 +168,7 @@ class ReferenceAdmin(CompareVersionAdmin):
         obj.save(skipdoi=change and not form.cleaned_data["refetch_info_on_save"])
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).prefetch_related("authors", "primary_proteins")
+        queryset = (
+            super().get_queryset(request).prefetch_related(ordered_authors(), "primary_proteins")
+        )
         return queryset

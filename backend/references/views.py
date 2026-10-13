@@ -12,7 +12,7 @@ from django.views.generic import DetailView, ListView
 from fpbase.util import is_ajax
 from proteins.models import BleachMeasurement, Excerpt, OSERMeasurement, Protein
 from proteins.util.helpers import link_excerpts
-from references.models import Author, Reference
+from references.models import Author, Reference, ordered_authors
 
 
 class AuthorDetailView(DetailView):
@@ -20,8 +20,9 @@ class AuthorDetailView(DetailView):
 
     queryset = Author.objects.all().prefetch_related(
         "publications",
-        "publications__authors",
+        ordered_authors("publications__authors"),
         Prefetch("publications__primary_proteins", queryset=Protein.visible.all()),
+        Prefetch("publications__proteins", queryset=Protein.visible.all()),
     )
 
 
@@ -29,7 +30,7 @@ class ReferenceListView(ListView):
     """renders html for single reference page"""
 
     queryset = Reference.objects.all().prefetch_related(
-        "authors",
+        ordered_authors(),
         Prefetch("proteins", queryset=Protein.visible.all()),
         Prefetch("primary_proteins", queryset=Protein.visible.all()),
     )
@@ -40,15 +41,20 @@ class ReferenceDetailView(DetailView):
 
     # (the template lists these relations: not what belongs to a hidden protein)
     queryset = Reference.objects.all().prefetch_related(
-        "authors",
+        ordered_authors(),
         Prefetch("primary_proteins", queryset=Protein.visible.all()),
+        Prefetch("proteins", queryset=Protein.visible.all()),
         Prefetch(
             "oser_measurements",
-            queryset=OSERMeasurement.objects.exclude(protein__status="hidden"),
+            queryset=OSERMeasurement.objects.exclude(protein__status="hidden").select_related(
+                "protein"
+            ),
         ),
         Prefetch(
             "bleach_measurements",
-            queryset=BleachMeasurement.objects.exclude(state__protein__status="hidden"),
+            queryset=BleachMeasurement.objects.exclude(
+                state__protein__status="hidden"
+            ).select_related("state__protein"),
         ),
     )
 
