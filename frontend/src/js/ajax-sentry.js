@@ -37,17 +37,27 @@ export function createFormData(obj) {
   return new URLSearchParams(filtered)
 }
 
+// endpoints that answer invalid user input with a 400 and a message
+const FORM_VALIDATION_URLS = [
+  "/ajax/add_protein_reference/",
+  "/ajax/add_protein_excerpt/",
+  "/ajax/spectrum_preview/",
+]
+
 /**
  * Determine if an error should be reported to Sentry
  * Override this function to customize filtering logic
  */
-export function shouldReportError(_url, status, _method) {
+export function shouldReportError(url, status, _method) {
   // Don't report user aborts
   if (status === 0) return false
 
   // Don't report 503 Service Unavailable
   // these are transient infrastructure issues that resolve on retry
   if (status === 503) return false
+
+  // Don't report form validation errors (e.g. a bad DOI); the form shows them
+  if (status === 400 && FORM_VALIDATION_URLS.some((path) => url.includes(path))) return false
 
   // Add more filtering rules here as needed
   // Example: Don't report 404s for optional resources

@@ -11,6 +11,7 @@ import re
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
+import httpx
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from django.contrib.auth.models import AbstractUser
-    from playwright.sync_api import Browser, Page
+    from playwright.sync_api import Browser, BrowserContext, Page
     from pytest_django.fixtures import SettingsWrapper
     from pytest_django.live_server_helper import LiveServer
 
@@ -368,6 +369,41 @@ def test_microscope_page_with_interaction(
     # Switch optical config - select by label (TestOC1 is the second config created)
     config_select = page.locator("#config-select")
     config_select.select_option(label="TestOC1")
+
+
+_HOVER_CHART = """(configIndex) => {
+  const svg = document.querySelector('.microscope-wrapper #spectra svg')
+  const r = svg.getBoundingClientRect()
+  if (configIndex !== null) {
+    $('#config-select option').eq(configIndex).prop('selected', true).change()
+  }
+  svg.dispatchEvent(new MouseEvent('mousemove', {
+    bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 3,
+  }))
+}"""
+
+
+def test_microscope_hover_without_visible_spectra(live_server: LiveServer, page: Page) -> None:
+    """Hovering the chart while a config loads, or with no spectra, doesn't error (FPBASE-5MR)."""
+    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
+    OpticalConfigWithFiltersFactory.create_batch(2, microscope=microscope)
+    page.goto(f"{live_server.url}{reverse('proteins:microscope-detail', args=(microscope.id,))}")
+    expect(page.locator(".nv-linesWrap .nv-group")).not_to_have_count(0)
+
+    page.evaluate(_HOVER_CHART, None)
+    expect(page.locator(".nvtooltip")).to_be_visible()
+
+    # the hover lands before the new config's spectra are back in the chart data
+    page.evaluate(_HOVER_CHART, 2)
+    expect(page.locator(".nv-linesWrap .nv-group")).not_to_have_count(0)
+
+    page.evaluate("""() => {
+      $('#config-select, #light-select, #camera-select').val('')
+      $('.filter-selector').prop('checked', false).first().change()
+    }""")
+    expect(page.locator(".nv-noData")).to_be_visible()
+    page.evaluate(_HOVER_CHART, None)
+    expect(page.locator(".nvtooltip")).to_have_css("opacity", "0")  # how nvd3 hides it
 
 
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -1128,6 +1164,39 @@ def test_legacy_spectrum_form_warns_on_similar_owner(
     hint = auth_page.locator("#div_id_owner")
     expect(hint).to_contain_text("Avoid duplicates")
     expect(hint).to_contain_text("Chroma <i>ET525/50m")
+
+
+def test_add_reference_shows_doi_errors(
+    auth_context: BrowserContext, live_server: LiveServer
+) -> None:
+    """The add-reference modal rejects non-DOIs and shows the server's error message."""
+    # not `auth_page`: its error checks would fail on the expected 400
+    page = auth_context.new_page()
+    page_errors: list[Exception] = []
+    page.on("pageerror", lambda error: page_errors.append(error))
+    page.route(re.compile(r"api\.crossref\.org"), lambda route: route.fulfill(status=404))
+    protein = ProteinFactory.create()
+    page.goto(f"{live_server.url}{protein.get_absolute_url()}")
+
+    page.get_by_role("button", name="Add a reference").click()
+    doi_input = page.locator("#id_reference_doi")
+    doi_input.fill("https://www.fpbase.org/protein/dtomato/")
+    assert not doi_input.evaluate("el => el.checkValidity()")
+
+    def crossref_404(doi: str):
+        request = httpx.Request("GET", f"https://api.crossref.org/works/{doi}")
+        response = httpx.Response(404, request=request)
+        raise httpx.HTTPStatusError("Not Found", request=request, response=response)
+
+    doi_input.fill("10.1234/nope")
+    with patch("proteins.extrest.entrez.doi_lookup", side_effect=crossref_404):
+        page.locator("#refModalForm button[type='submit']").click()
+        expect(page.locator("#refModalForm .modal-form-error")).to_have_text(
+            "DOI not found at Crossref"
+        )
+    expect(page.locator("#refModalForm button[type='submit']")).to_be_enabled()
+    assert not page_errors
+    page.close()
 
 
 def test_lineage_tooltip_shows_names(page: Page, live_server: LiveServer) -> None:
