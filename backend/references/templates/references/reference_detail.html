@@ -20,14 +20,16 @@
 	</ol>
   {% endif %}
 
-	{% if reference.protein_secondary_reference.count > 0 %}
+	{% with secondary=reference.protein_secondary_reference %}
+	{% if secondary %}
 	    <ol class='protein-list'>
 	    	<h5>Secondary Proteins:</h5>
-	    	{% for protein in reference.protein_secondary_reference.all %}
+	    	{% for protein in secondary %}
 	    		<li class='me-1'><a href="{{ protein.get_absolute_url }}">{{ protein.name }}{% if not forloop.last %},{% endif %}</a></li>
 	    	{% endfor %}
 	    </ol>
 	{% endif %}
+	{% endwith %}
 
 
 {% if reference.bleach_measurements.count %}

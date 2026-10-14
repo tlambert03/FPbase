@@ -65,7 +65,7 @@ from proteins.util.helpers import link_excerpts, most_favorited
 from proteins.util.maintain import check_lineages, suggested_switch_type
 from proteins.util.spectra import spectra2csv
 from proteins.validators import validate_doi
-from references.models import Reference  # breaks application modularity
+from references.models import Reference, ordered_authors  # breaks application modularity
 
 if TYPE_CHECKING:
     from proteins.forms.forms import BaseStateFormSet
@@ -256,7 +256,9 @@ class ProteinDetailView(DetailView):
         data["hidden_spectra"] = ",".join([str(sp.id) for sp in spectra if sp.subtype in ("2p")])
 
         # Reuse these results for the template's presence checks and table rendering.
-        data["additional_references"] = list(self.object.additional_references)
+        data["additional_references"] = list(
+            self.object.additional_references.prefetch_related(ordered_authors())
+        )
         data["has_bleach_measurements"] = any(
             state.bleach_measurements.all() for state in self.object.states.all()
         )

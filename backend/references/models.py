@@ -156,6 +156,9 @@ class Reference(TimeStampedModel):
         ordering = ("date",)
 
     def get_authors(self):
+        # a prefetch of "authors" has to be ordered_authors(), so it's in paper order
+        if "authors" in getattr(self, "_prefetched_objects_cache", {}):
+            return self.authors.all()
         return self.authors.order_by("referenceauthor")
 
     @property
@@ -166,9 +169,10 @@ class Reference(TimeStampedModel):
             return None
 
     @property
-    def protein_secondary_reference(self):
-        proteins = self.proteins.exclude(status="hidden")
-        return proteins.exclude(id__in=self.primary_proteins.all())
+    def protein_secondary_reference(self) -> list[Protein]:
+        # in python, so prefetched proteins and primary_proteins are used
+        primary = {p.id for p in self.primary_proteins.all()}
+        return [p for p in self.proteins.all() if p.status != "hidden" and p.id not in primary]
 
     def get_citation(self, authorlist):
         try:
@@ -241,6 +245,11 @@ class Reference(TimeStampedModel):
 
     def url(self):
         return self.get_absolute_url()
+
+
+def ordered_authors(lookup: str = "authors") -> models.Prefetch:
+    """Prefetch the authors of references at `lookup`, in the order they appear on the paper."""
+    return models.Prefetch(lookup, queryset=Author.objects.order_by("referenceauthor__author_idx"))
 
 
 class ReferenceAuthor(models.Model):
