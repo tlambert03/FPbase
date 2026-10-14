@@ -406,6 +406,30 @@ def test_microscope_hover_without_visible_spectra(live_server: LiveServer, page:
     expect(page.locator(".nvtooltip")).to_have_css("opacity", "0")  # how nvd3 hides it
 
 
+def test_microscope_laser_efficiency_without_merge(live_server: LiveServer, page: Page) -> None:
+    """With a laser, unmerging light and ex filter doesn't break efficiency (FPBASE-6PZ)."""
+    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
+    OpticalConfigWithFiltersFactory(microscope=microscope, laser=488)
+    protein = ProteinFactory()
+    page.goto(f"{live_server.url}{reverse('proteins:microscope-detail', args=(microscope.id,))}")
+    expect(page.locator("#light-select")).to_have_value("laser-488")
+    expect(page.locator("#merge-light-exfilter")).to_be_checked()
+    page.evaluate("$('#fluor-select').val($('#fluor-select option').eq(1).val()).change()")
+    expect(page.locator(".nv-legend-text", has_text=protein.name).first).to_be_visible()
+    efficiency = page.locator("#efficiency-text")
+    merged = efficiency.get_attribute("placeholder")
+    assert merged
+
+    page.locator("#merge-light-exfilter").uncheck()
+    # the merged legend reads "488 laser+..."; this is the laser alone
+    expect(page.locator(".nv-legend-text", has_text=re.compile(r"^488 laser$"))).to_be_visible()
+    expect(efficiency).to_have_attribute("placeholder", merged)
+    # recalculates efficiency directly, outside the Deferred that swallowed the old error
+    # (an uncaught error there fails the test via the page fixture)
+    page.locator("#scale-camera").check()
+    expect(efficiency).to_have_attribute("placeholder", merged)
+
+
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
     """Test FRET page loads with donor/acceptor selection."""
     ProteinFactory(
