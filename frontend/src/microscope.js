@@ -1631,8 +1631,11 @@ window.initMicroscope = () => {
             })
             .get()
         )
-        if ($("#light-select :selected").val()) {
-          expath.push(data.find((d) => d.slug === $("#light-select :selected").val()))
+        const light = $("#light-select :selected").val()
+        if (light) {
+          // a laser's data item is "custom_laser", not its option value ("laser-488")
+          const slug = light.startsWith("laser") ? "custom_laser" : light
+          expath.push(data.find((d) => d.slug === slug))
         }
       }
       return {
