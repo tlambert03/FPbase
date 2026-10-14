@@ -64,12 +64,14 @@ class Organism(Authorable, TimeStampedModel):
 
 
 COMMONS_UPLOAD = "https://upload.wikimedia.org/wikipedia/commons"
-# Wikimedia only serves (and permits hotlinking of) thumbnails at these widths.
-COMMONS_THUMB_WIDTHS = (330, 500, 960, 1280)
 
 
 class OrganismPhoto(models.Model):
-    """A photograph of an organism, hotlinked from Wikimedia Commons or uploaded."""
+    """A photograph of an organism, from Wikimedia Commons or uploaded.
+
+    Commons photos are copied into our own storage with `manage.py fetch_organism_photos`;
+    Wikimedia rate-limits hotlinked images, so we only link to Commons until then.
+    """
 
     organism = models.OneToOneField(Organism, on_delete=models.CASCADE, related_name="photo")
     commons_file = models.CharField(
@@ -83,10 +85,12 @@ class OrganismPhoto(models.Model):
         blank=True,
         width_field="width",
         height_field="height",
-        help_text="Uploaded image, used only when there is no Commons file.",
+        help_text="The image we serve. Filled from the Commons file by "
+        "`manage.py fetch_organism_photos`, or upload one.",
     )
-    width = models.PositiveIntegerField(null=True, blank=True, help_text="Original width (px)")
-    height = models.PositiveIntegerField(null=True, blank=True, help_text="Original height (px)")
+    thumbnail = models.ImageField(upload_to="organism_photos/thumbs/", blank=True, editable=False)
+    width = models.PositiveIntegerField(null=True, blank=True, help_text="Image width (px)")
+    height = models.PositiveIntegerField(null=True, blank=True, help_text="Image height (px)")
     author = models.CharField(max_length=255)
     license = models.CharField(max_length=64, help_text="e.g. 'CC BY-SA 4.0' or 'Public domain'")
     license_url = models.URLField(blank=True)
@@ -137,25 +141,17 @@ class OrganismPhoto(models.Model):
             return f"https://commons.wikimedia.org/wiki/File:{_commons_name(self.commons_file)}"
         return ""
 
-    def url(self, width: int | None = None) -> str:
-        """Image URL, as a Commons thumbnail no wider than `width` when possible."""
-        if not self.commons_file:
-            return self.image.url if self.image else ""
+    def commons_url(self, width: int | None = None) -> str:
+        """URL of the Commons file, as a thumbnail no wider than `width` when possible.
+
+        `width` must be one of Wikimedia's standard thumbnail sizes.
+        """
         name = _commons_name(self.commons_file)
         digest = hashlib.md5(name.encode()).hexdigest()
         quoted = quote(name)
         if width is None or (self.width and width >= self.width):
             return f"{COMMONS_UPLOAD}/{digest[0]}/{digest[:2]}/{quoted}"
         return f"{COMMONS_UPLOAD}/thumb/{digest[0]}/{digest[:2]}/{quoted}/{width}px-{quoted}"
-
-    def srcset(self) -> str:
-        if not self.commons_file:
-            return ""
-        widths = [w for w in COMMONS_THUMB_WIDTHS if not self.width or w < self.width]
-        items = [f"{self.url(w)} {w}w" for w in widths]
-        if self.width and self.width <= COMMONS_THUMB_WIDTHS[-1]:
-            items.append(f"{self.url()} {self.width}w")
-        return ", ".join(items)
 
     def size_at(self, width: int) -> tuple[int, int] | None:
         """(width, height) of the image when served at most `width` wide."""
@@ -167,7 +163,9 @@ class OrganismPhoto(models.Model):
     # template conveniences
     @property
     def src(self) -> str:
-        return self.url(960)
+        if self.image:
+            return self.image.url
+        return self.commons_url(960) if self.commons_file else ""
 
     @property
     def src_size(self) -> tuple[int, int] | None:
@@ -175,7 +173,11 @@ class OrganismPhoto(models.Model):
 
     @property
     def thumb_src(self) -> str:
-        return self.url(330)
+        if self.thumbnail:
+            return self.thumbnail.url
+        if self.image:
+            return self.image.url
+        return self.commons_url(330) if self.commons_file else ""
 
     @property
     def thumb_size(self) -> tuple[int, int] | None:

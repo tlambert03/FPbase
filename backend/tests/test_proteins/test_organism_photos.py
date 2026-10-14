@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 from pathlib import Path
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
+from PIL import Image
 
 from proteins.factories import OrganismFactory
+from proteins.management.commands import fetch_organism_photos
 from proteins.models import OrganismPhoto
-from proteins.models.organism import COMMONS_THUMB_WIDTHS
 
 MIGRATION_DATA = (
     Path(__file__).parents[2] / "proteins" / "migrations" / "0066_organism_photos.json"
@@ -33,21 +36,19 @@ def test_commons_urls():
     # the hashed path Commons itself serves for this file
     base = "https://upload.wikimedia.org/wikipedia/commons"
     name = "Acropora_digitifera%2C_Erub.JPG"
-    assert photo.url() == f"{base}/d/db/{name}"
-    assert photo.url(500) == f"{base}/thumb/d/db/{name}/500px-{name}"
+    assert photo.commons_url() == f"{base}/d/db/{name}"
+    assert photo.commons_url(500) == f"{base}/thumb/d/db/{name}/500px-{name}"
     assert photo.credit_source_url == (
         "https://commons.wikimedia.org/wiki/File:Acropora_digitifera,_Erub.JPG"
     )
-    assert photo.srcset().count("px-") == len(COMMONS_THUMB_WIDTHS)
     assert photo.size_at(960) == (960, 720)
 
 
 @pytest.mark.django_db
 def test_small_commons_image_is_never_upscaled():
     photo = _photo(OrganismFactory(id=3702), width=200, height=600)
-    assert photo.src == photo.url()  # the original, not a 960px thumbnail
+    assert photo.src == photo.commons_url()  # the original, not a 960px thumbnail
     assert photo.size_at(960) == (200, 600)
-    assert photo.srcset() == f"{photo.url()} 200w"
 
 
 @pytest.mark.django_db
@@ -93,6 +94,40 @@ def test_organism_list_thumbnails(client):
     assert photo.thumb_src in html
     assert 'title="Photo: Kerryn Johns · CC BY 3.0"' in html
     assert organism.get_absolute_url() in html
+
+
+def _jpeg(width: int, height: int) -> bytes:
+    buf = BytesIO()
+    Image.new("RGB", (width, height), "teal").save(buf, "JPEG")
+    return buf.getvalue()
+
+
+@pytest.mark.django_db
+def test_fetch_organism_photos(client, settings, tmp_path, monkeypatch):
+    """Commons photos are copied into our storage, so pages don't hotlink Wikimedia."""
+    settings.MEDIA_ROOT = tmp_path
+    photo = _photo(OrganismFactory(id=70779, scientific_name="Acropora digitifera"))
+    requested = []
+
+    def fake_download(_client, url):
+        requested.append(url)
+        return _jpeg(960, 720)
+
+    monkeypatch.setattr(fetch_organism_photos, "_download", fake_download)
+    call_command("fetch_organism_photos")
+    call_command("fetch_organism_photos")  # already fetched photos are skipped
+
+    assert requested == [photo.commons_url(960)]
+    photo.refresh_from_db()
+    assert (photo.width, photo.height) == (960, 720)
+    assert (photo.thumbnail.width, photo.thumbnail.height) == (330, 248)
+    assert photo.src == photo.image.url
+    assert photo.thumb_src == photo.thumbnail.url
+
+    for url in ("/organisms/", photo.organism.get_absolute_url()):
+        html = client.get(url).content.decode()
+        assert "upload.wikimedia.org" not in html
+    assert photo.thumbnail.url in client.get("/organisms/").content.decode()
 
 
 def test_migration_data_is_complete():
