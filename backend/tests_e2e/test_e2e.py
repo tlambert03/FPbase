@@ -406,6 +406,15 @@ def test_microscope_hover_without_visible_spectra(live_server: LiveServer, page:
     expect(page.locator(".nvtooltip")).to_have_css("opacity", "0")  # how nvd3 hides it
 
 
+def test_microscope_hover_before_any_spectra(live_server: LiveServer, page: Page) -> None:
+    """Hovering a chart that has only ever rendered "no data" doesn't error (FPBASE-74Y)."""
+    microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
+    page.goto(f"{live_server.url}{reverse('proteins:microscope-detail', args=(microscope.id,))}")
+    expect(page.locator(".nv-noData")).to_be_visible()
+    page.evaluate(_HOVER_CHART, None)
+    expect(page.locator(".nv-noData")).to_be_visible()
+
+
 def test_microscope_laser_efficiency_without_merge(live_server: LiveServer, page: Page) -> None:
     """With a laser, unmerging light and ex filter doesn't break efficiency (FPBASE-6PZ)."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")

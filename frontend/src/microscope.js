@@ -166,7 +166,7 @@ window.initMicroscope = () => {
           if (data.some((d) => !d.disabled)) return
           e.stopPropagation()
           chart?.interactiveLayer.tooltip.hidden(true)
-          chart?.interactiveLayer.renderGuideLine(null)
+          chart?.interactiveLayer.renderGuideLine?.(null)
         },
         true
       )
