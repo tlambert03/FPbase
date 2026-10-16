@@ -10,7 +10,7 @@
 {% block twitter_image %}{% if photo %}{{ photo.src }}{% else %}{{ block.super }}{% endif %}{% endblock twitter_image %}
 
 {% block extrahead %}
-{% if photo.is_commons %}<link rel="preconnect" href="https://upload.wikimedia.org">{% endif %}
+{% if photo.is_commons and not photo.image %}<link rel="preconnect" href="https://upload.wikimedia.org">{% endif %}
 {% endblock extrahead %}
 
 {% block container-class %}container organism-page{% endblock %}
@@ -32,7 +32,6 @@
     <figure class="organism-photo">
       <div class="organism-photo-frame">
         <img src="{{ photo.src }}"
-          {% if photo.srcset %}srcset="{{ photo.srcset }}" sizes="(min-width: 1200px) 450px, (min-width: 768px) 45vw, calc(100vw - 2rem)"{% endif %}
           {% if photo.src_size %}width="{{ photo.src_size.0 }}" height="{{ photo.src_size.1 }}"{% endif %}
           alt="{{ photo.alt_text }}" fetchpriority="high" decoding="async">
       </div>
