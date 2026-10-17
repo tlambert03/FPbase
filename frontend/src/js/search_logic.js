@@ -10,6 +10,8 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
   }
 
   var available_fields = new Set(Object.keys(fields))
+  // filterable by URL, but not offered in the query builder
+  const hidden_fields = new Set(["id", "slug"])
   var i = 0
   var prevName
   var prevOperator
@@ -26,7 +28,7 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
   function name_options() {
     var out = ""
     for (const n of available_fields) {
-      if (n !== "id" && n !== "slug") {
+      if (!hidden_fields.has(n)) {
         let name
         if (n in labelLookup) {
           name = labelLookup[n]
@@ -250,8 +252,13 @@ export default function initSearch(filterfields, operatorLookup, labelLookup) {
         filter = splits.slice(0, splits.length - 1).join("__")
         operator = splits[splits.length - 1]
       }
-      // (saved or linked searches may name a filter that no longer exists)
-      if (filter && operator && filter in fields) {
+      // (saved or linked searches may name a filter that no longer exists, a hidden
+      // filter, or a filter + operator that already has a row)
+      if (
+        Object.hasOwn(fields, filter) &&
+        !hidden_fields.has(filter) &&
+        fields[filter].has(operator)
+      ) {
         addRow("#query_builder", filter, operator)
       }
     }

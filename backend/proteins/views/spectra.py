@@ -35,9 +35,15 @@ def protein_spectra(request, slug=None):
         function returns an array containing ALL of the spectra
         belonging to that owner
         """
-        owner = Spectrum.objects.filter_owner(slug)
-        if owner.count():
-            return JsonResponse({"spectra": [s.d3dict() for s in owner]})
+        spectra = Spectrum.objects.filter_owner(slug).select_related(
+            "owner_fluor__state__protein",
+            "owner_fluor__dyestate__dye",
+            "owner_filter",
+            "owner_light",
+            "owner_camera",
+        )
+        if d3dicts := [s.d3dict() for s in spectra]:
+            return JsonResponse({"spectra": d3dicts})
         raise Http404
 
     return render(request, template)

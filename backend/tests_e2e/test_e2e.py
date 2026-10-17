@@ -418,16 +418,35 @@ def test_microscope_hover_before_any_spectra(live_server: LiveServer, page: Page
 def test_microscope_laser_efficiency_without_merge(live_server: LiveServer, page: Page) -> None:
     """With a laser, unmerging light and ex filter doesn't break efficiency (FPBASE-6PZ)."""
     microscope = MicroscopeFactory(name="TestScope", id="TESTSCOPE123")
-    OpticalConfigWithFiltersFactory(microscope=microscope, laser=488)
-    protein = ProteinFactory()
+    # (fixed rather than random filters and fluor: if the fluor doesn't absorb at 488 or
+    # the ex filter blocks it, there is no efficiency to show)
+    OpticalConfigWithFiltersFactory(
+        microscope=microscope,
+        laser=488,
+        ex_filter__filter__bandcenter=488,
+        ex_filter__filter__bandwidth=20,
+        bs_filter__filter__edge=500,
+        em_filter__filter__bandcenter=525,
+        em_filter__filter__bandwidth=20,
+    )
+    protein = ProteinFactory(default_state__ex_max=488, default_state__em_max=510)
+    # jQuery's Deferred swallows errors in callbacks (logging only a warning)
+    deferred_errors: list[str] = []
+    page.on("console", lambda m: "Deferred exception" in m.text and deferred_errors.append(m.text))
     page.goto(f"{live_server.url}{reverse('proteins:microscope-detail', args=(microscope.id,))}")
     expect(page.locator("#light-select")).to_have_value("laser-488")
     expect(page.locator("#merge-light-exfilter")).to_be_checked()
     page.evaluate("$('#fluor-select').val($('#fluor-select option').eq(1).val()).change()")
     expect(page.locator(".nv-legend-text", has_text=protein.name).first).to_be_visible()
+    # the merged spectrum can load after the fluor's (an update without it shows the
+    # efficiency of the ex path minus the laser); the chart redraw that adds it to the
+    # legend follows the efficiency update that used it. (.first: overlapping updates
+    # can add it twice)
+    merged_legend = page.locator(".nv-legend-text", has_text=re.compile(r"^488 laser\+"))
+    expect(merged_legend.first).to_be_visible()
     efficiency = page.locator("#efficiency-text")
+    expect(efficiency).to_have_attribute("placeholder", re.compile("%"))
     merged = efficiency.get_attribute("placeholder")
-    assert merged
 
     page.locator("#merge-light-exfilter").uncheck()
     # the merged legend reads "488 laser+..."; this is the laser alone
@@ -437,6 +456,7 @@ def test_microscope_laser_efficiency_without_merge(live_server: LiveServer, page
     # (an uncaught error there fails the test via the page fixture)
     page.locator("#scale-camera").check()
     expect(efficiency).to_have_attribute("placeholder", merged)
+    assert not deferred_errors, deferred_errors
 
 
 def test_fret_page_loads(live_server: LiveServer, page: Page, assert_snapshot: Callable) -> None:
@@ -697,6 +717,10 @@ def test_microscope_views(
         paths = svg.locator("path")
         assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
+        # the share modal needs Bootstrap JS, which the embed page once lacked (FPBASE-752)
+        page.locator("#share-button").click()
+        expect(page.locator("#shareModal")).to_be_visible()
+
     # Visual snapshot: embedded microscope viewer
     # assert_snapshot(page)
 
@@ -839,9 +863,17 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
-def test_search_url_with_unknown_filter(live_server: LiveServer, page: Page) -> None:
-    """A search link naming a filter that no longer exists still loads the known ones."""
-    query = "name__icontains=gfp&retired_field__lt=5"
+@pytest.mark.parametrize(
+    "extra",
+    [
+        "retired_field__lt=5",  # filter that no longer exists
+        "slug=egfp",  # filter not offered in the query builder (FPBASE-6PA)
+        "name__bogus=5",  # unknown operator
+    ],
+)
+def test_search_url_with_unknown_filter(live_server: LiveServer, page: Page, extra: str) -> None:
+    """A search link naming a filter the builder can't show still loads the known ones."""
+    query = f"name__icontains=gfp&{extra}"
     page.goto(f"{live_server.url}{reverse('proteins:search')}?{query}")
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
     expect(page.locator("#query_builder .query-row")).to_have_count(1)
