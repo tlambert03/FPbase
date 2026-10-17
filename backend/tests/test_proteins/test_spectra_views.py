@@ -71,4 +71,6 @@ def test_owner_spectra_ajax_query_count(client: Client, factory) -> None:
     spectra = response.json()["spectra"]
     assert len(spectra) == 3
     assert {s["url"] for s in spectra} == {FluorState.objects.get(pk=fluor.pk).get_absolute_url()}
-    assert len(ctx.captured_queries) == 1
+    # (only SELECTs: with ATOMIC_REQUESTS, as in CI, the request also runs SAVEPOINTs)
+    selects = [q["sql"] for q in ctx.captured_queries if q["sql"].startswith("SELECT")]
+    assert len(selects) == 1, selects
