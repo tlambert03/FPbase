@@ -697,6 +697,10 @@ def test_microscope_views(
         paths = svg.locator("path")
         assert paths.count() > 10, f"Expected more than 10 paths, but got {paths.count()}"
 
+        # the share modal needs Bootstrap JS, which the embed page once lacked (FPBASE-752)
+        page.locator("#share-button").click()
+        expect(page.locator("#shareModal")).to_be_visible()
+
     # Visual snapshot: embedded microscope viewer
     # assert_snapshot(page)
 
@@ -839,9 +843,17 @@ def test_contact_form_submission(live_server: LiveServer, page: Page) -> None:
         expect(page).to_have_url(re.compile(r"/thanks/?$"))
 
 
-def test_search_url_with_unknown_filter(live_server: LiveServer, page: Page) -> None:
-    """A search link naming a filter that no longer exists still loads the known ones."""
-    query = "name__icontains=gfp&retired_field__lt=5"
+@pytest.mark.parametrize(
+    "extra",
+    [
+        "retired_field__lt=5",  # filter that no longer exists
+        "slug=egfp",  # filter not offered in the query builder (FPBASE-6PA)
+        "name__bogus=5",  # unknown operator
+    ],
+)
+def test_search_url_with_unknown_filter(live_server: LiveServer, page: Page, extra: str) -> None:
+    """A search link naming a filter the builder can't show still loads the known ones."""
+    query = f"name__icontains=gfp&{extra}"
     page.goto(f"{live_server.url}{reverse('proteins:search')}?{query}")
     expect(page.locator("#query_builder[data-search-ready='true']")).to_be_attached()
     expect(page.locator("#query_builder .query-row")).to_have_count(1)

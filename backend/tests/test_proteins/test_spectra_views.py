@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import pytest
 from django.db import connection
 from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 
-from proteins.factories import SpectrumFactory, StateFactory
-from proteins.models import Spectrum
+from proteins.factories import DyeStateFactory, SpectrumFactory, StateFactory
+from proteins.models import FluorState, Spectrum
+
+if TYPE_CHECKING:
+    from django.test import Client
 
 
 class SpectraCSVViewTests(TestCase):
@@ -50,3 +56,19 @@ class SpectraCSVViewTests(TestCase):
             f"Expected <= 5 queries with proper select_related. "
             f"This may indicate an N+1 query regression.",
         )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("factory", [StateFactory, DyeStateFactory])
+def test_owner_spectra_ajax_query_count(client: Client, factory) -> None:
+    # FPBASE-74Z: each spectrum's owner was fetched separately
+    fluor = factory()
+    with CaptureQueriesContext(connection) as ctx:
+        response = client.get(
+            f"/spectra/{fluor.slug}", headers={"x-requested-with": "XMLHttpRequest"}
+        )
+    assert response.status_code == 200
+    spectra = response.json()["spectra"]
+    assert len(spectra) == 3
+    assert {s["url"] for s in spectra} == {FluorState.objects.get(pk=fluor.pk).get_absolute_url()}
+    assert len(ctx.captured_queries) == 1
