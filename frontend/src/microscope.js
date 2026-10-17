@@ -1821,6 +1821,9 @@ window.initMicroscope = () => {
         return
       }
 
+      // (before calcExEmPaths: efficiency items have no slug, and when two updates
+      // overlap the previous update's items are still in `data`)
+      removeSubtypes("eff")
       const a = calcExEmPaths()
       const L = $("#light-select :selected")
       let emeff
@@ -1851,7 +1854,6 @@ window.initMicroscope = () => {
       if (!$("#fluor-select :selected").val()) {
         return
       }
-      removeSubtypes("eff")
       const fluorslug = $("#fluor-select :selected").val()
       if (a.emvalues?.length) {
         emeff = efficiency(a.emvalues, { slug: fluorslug, type: "em" })
