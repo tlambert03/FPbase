@@ -215,11 +215,15 @@ class Mutation:
         # leaving start_char out should prevent this check
         if self.operation == "ext":
             if self.start_idx != len(seq) - idx0 + 2:
-                raise ValueError("Extension start char not consistent")
+                raise self.SequenceMismatch(
+                    f"Extension {self} does not start right after the end of the parent seq"
+                )
             return
         # if we're inserting at the very beginning, we don't need to check
         if startpos < 0:
             return
+        if (self.stop_idx or self.start_idx) - idx0 >= len(seq):
+            raise self.SequenceMismatch(f"Mutation {self} goes past the end of the parent seq")
         if self.start_char and seq[startpos] != self.start_char:
             beg = startpos - 3
             beg2 = startpos + 1

@@ -3,6 +3,17 @@ import pytest
 from fpseq import Mutation, mutate_sequence
 
 
+@pytest.mark.parametrize("mutation", ["K7T", "D2_K7del", "K6_L7insA", "*9TextA"])
+def test_position_outside_sequence_is_a_mismatch(mutation: str) -> None:
+    with pytest.raises(Mutation.SequenceMismatch):
+        mutate_sequence("MDELYK", mutation)
+
+
+def test_position_past_end_suggests_nearby_match() -> None:
+    with pytest.raises(Mutation.SequenceMismatch, match="found -1 position away: K6T"):
+        mutate_sequence("MDELYK", "K7T")
+
+
 class TestMutations:
     def test_deletion_position_consistency(self):
         mut = Mutation.from_str("D2_E3del")

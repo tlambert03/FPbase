@@ -80,6 +80,10 @@ class TestLineageMPTT:
         # no new residues: the field rejects it, but full_clean still calls clean()
         ("S3, G5", "A substitution must have a single new character S3"),
         ("A3T", "does not align with the ParentFP seq"),
+        ("S300T", "goes past the end of the ParentFP seq"),
+        ("S3_K300del", "goes past the end of the ParentFP seq"),
+        ("K10_K11insA", "goes past the end of the ParentFP seq"),
+        ("*300TextA", "does not start right after the end of the ParentFP seq"),
     ],
 )
 @pytest.mark.django_db
@@ -87,12 +91,34 @@ def test_submit_reports_bad_mutation_as_form_error(
     client, mutation: str, expected_error: str
 ) -> None:
     parent = Protein.objects.create(name="ParentFP", slug="parent-fp", seq="MVSKGEAVIK")
+    response = _submit_child_of(client, parent, mutation)
+
+    assert response.status_code == 200
+    (errors,) = [form.errors for form in response.context["lineage"].forms]
+    (message,) = errors["mutation"]
+    assert expected_error in message
+    assert not Protein.objects.filter(name="ChildFP").exists()
+
+
+@pytest.mark.django_db
+def test_submit_child_of_parent_without_sequence(client) -> None:
+    parent = Protein.objects.create(name="ParentFP", slug="parent-fp")
+
+    assert _submit_child_of(client, parent, "S3T").status_code == 302
+
+    child = Protein.objects.get(name="ChildFP")
+    assert child.seq is None
+    assert str(child.lineage.mutation) == "S3T"
+    assert child.lineage.parent == parent.lineage
+
+
+def _submit_child_of(client, parent: Protein, mutation: str):
     user = User.objects.create_user(username="submitter", password="password")
     client.force_login(user)
-    response = client.post(
+    return client.post(
         reverse("proteins:submit"),
         data={
-            "name": "BadMutationFP",
+            "name": "ChildFP",
             "reference_doi": "10.1038/nmeth.2413",
             "states-0-name": "default",
             "states-0-ex_max": 488,
@@ -103,9 +129,3 @@ def test_submit_reports_bad_mutation_as_form_error(
         }
         | INLINE_FORMSET,
     )
-
-    assert response.status_code == 200
-    (errors,) = [form.errors for form in response.context["lineage"].forms]
-    (message,) = errors["mutation"]
-    assert expected_error in message
-    assert not Protein.objects.filter(name="BadMutationFP").exists()
