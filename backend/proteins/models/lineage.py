@@ -110,6 +110,9 @@ class Lineage(MPTTModel, TimeStampedModel, Authorable):
         return str(self.protein)
 
     def clean(self):
+        # full_clean runs this even if the field rejected the mutation (still a raw str)
+        if isinstance(self.mutation, str):
+            return
         errors = validate_node(self)
         if errors:
             raise ValidationError({"mutation": ValidationError(errors[0])})

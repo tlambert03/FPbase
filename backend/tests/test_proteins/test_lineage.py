@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import pytest
+from django.contrib.auth import get_user_model
+from django.urls import reverse
 
 from proteins.models import Lineage, Protein
+from tests.test_proteins.test_views import INLINE_FORMSET
+
+User = get_user_model()
 
 
 @pytest.mark.django_db
@@ -67,3 +72,40 @@ class TestLineageMPTT:
         assert lineage1.tree_id != lineage2.tree_id
         assert lineage2 not in lineage1.get_descendants()
         assert lineage1 not in lineage2.get_descendants()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected_error"),
+    [
+        # no new residues: the field rejects it, but full_clean still calls clean()
+        ("S3, G5", "A substitution must have a single new character S3"),
+        ("A3T", "does not align with the ParentFP seq"),
+    ],
+)
+@pytest.mark.django_db
+def test_submit_reports_bad_mutation_as_form_error(
+    client, mutation: str, expected_error: str
+) -> None:
+    parent = Protein.objects.create(name="ParentFP", slug="parent-fp", seq="MVSKGEAVIK")
+    user = User.objects.create_user(username="submitter", password="password")
+    client.force_login(user)
+    response = client.post(
+        reverse("proteins:submit"),
+        data={
+            "name": "BadMutationFP",
+            "reference_doi": "10.1038/nmeth.2413",
+            "states-0-name": "default",
+            "states-0-ex_max": 488,
+            "states-0-em_max": 525,
+            "confirmation": True,
+            "lineage-0-parent": Lineage.objects.create(protein=parent).pk,
+            "lineage-0-mutation": mutation,
+        }
+        | INLINE_FORMSET,
+    )
+
+    assert response.status_code == 200
+    (errors,) = [form.errors for form in response.context["lineage"].forms]
+    (message,) = errors["mutation"]
+    assert expected_error in message
+    assert not Protein.objects.filter(name="BadMutationFP").exists()
