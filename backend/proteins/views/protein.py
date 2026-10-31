@@ -294,7 +294,7 @@ class ProteinCreateUpdateMixin:
             for lform in lineage.forms:
                 mut = lform.cleaned_data.get("mutation")
                 par = lform.cleaned_data.get("parent")
-                if par and mut:
+                if par and mut and par.protein.seq:
                     seq = par.protein.seq.mutate(mut)
                     with contextlib.suppress(Protein.DoesNotExist):
                         prot = Protein.objects.get(seq__iexact=str(seq))
@@ -344,10 +344,9 @@ class ProteinCreateUpdateMixin:
                 lin.delete()
 
             if hasattr(self.object, "lineage"):
-                if not self.object.seq:
-                    seq = self.object.lineage.parent.protein.seq.mutate(
-                        self.object.lineage.mutation
-                    )
+                parent = self.object.lineage.parent
+                if not self.object.seq and parent and parent.protein.seq:
+                    seq = parent.protein.seq.mutate(self.object.lineage.mutation)
                     self.object.seq = str(seq)
                 if not self.object.parent_organism:
                     self.object.parent_organism = (
