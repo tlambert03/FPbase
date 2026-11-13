@@ -1,0 +1,17 @@
+{% extends "account/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block head_title %}Confirm Access{% endblock %}
+
+{% block inner %}
+    <h1>Confirm Access</h1>
+    <p>Please enter your password to continue.</p>
+
+    <form method="POST" action="{% url 'account_reauthenticate' %}">
+        {% csrf_token %}
+        {{ form|crispy }}
+        {{ redirect_field }}
+        <button class="btn btn-primary" type="submit">Confirm</button>
+    </form>
+{% endblock %}

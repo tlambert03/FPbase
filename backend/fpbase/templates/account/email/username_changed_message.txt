@@ -1,0 +1,3 @@
+{% extends "account/email/base_notification.txt" %}
+
+{% block notification_message %}Your username has been changed from "{{ old_username }}" to "{{ new_username }}". Use your new username to log in.{% endblock notification_message %}

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}{{ user.username }}{% endblock %}
+{% block title %}Edit profile{% endblock %}
 
 {% block content %}
-  <h1>{{ user.username }}</h1>
+<div class="container">
+  <h1>Edit profile</h1>
   <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
     {% csrf_token %}
     {{ form|crispy }}
@@ -14,4 +15,5 @@
       </div>
     </div>
   </form>
+</div>
 {% endblock %}
