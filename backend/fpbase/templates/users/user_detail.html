@@ -11,7 +11,7 @@
 
       <div class='mb-2'>{% avatar user %}</div>
       <ul class="list-unstyled">
-        <li>Username: {{ object.username }}</li>
+        <li>Username: {{ object.username }} <a class=" ms-2 text-muted small" href="{% url 'users:update' %}" role="button">change</a></li>
         <li>Name: {{ object.name | default:'' }} <a class=" ms-2 text-muted small" href="{% url 'users:update' %}" role="button">change</a></li>
         <li>Email: {{ object.email | default:'' }} <a class=" ms-2 text-muted small" href="{% url 'account_email' %}" role="button">change</a></li>
       </ul>
@@ -36,7 +36,7 @@
 
 <h3 class='mt-3'>My Collections</h3>
 <ul>
-  {% for collection in object.collections.all %}
+  {% for collection in object.proteincollections.all %}
     <li><a href="{{ collection.get_absolute_url }}">{{ collection }}</a></li>
   {% empty %}
     <p>You have not created any collections.</p>
@@ -55,6 +55,12 @@
 </ul>
 <a href="{% url 'proteins:newmicroscope' %}"><button class='btn btn-primary btn-sm'>Create microscope</button></a>
 <p class='mt-4'><em>Your can view and share your microscopes with others at <a href="{% url 'proteins:microscopes' owner=object %}">{{ request.META.HTTP_HOST }}{% url 'proteins:microscopes' owner=object %}</a></p></em>
+
+{% if not object.is_staff %}
+<h3 class='mt-5'>Delete account</h3>
+<p>Permanently delete your account and your collections.</p>
+<a class="btn btn-outline-danger btn-sm" href="{% url 'users:delete' %}" role="button">Delete my account</a>
+{% endif %}
 
 {% endif %}
 

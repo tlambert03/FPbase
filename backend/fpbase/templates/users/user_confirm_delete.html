@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Delete account{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 720px">
+  <h1>Delete account</h1>
+  <p>This permanently deletes your account <strong>{{ user.username }}</strong>. It cannot be undone.</p>
+
+  <p class="mb-1">The following will be deleted:</p>
+  <ul>
+    <li>your login, email addresses, linked social accounts, avatar, and favorites</li>
+    {% with collections=user.proteincollections.all %}
+    {% if collections %}
+    <li>your collections:
+      <ul>{% for c in collections %}<li><a href="{{ c.get_absolute_url }}">{{ c }}</a></li>{% endfor %}</ul>
+    </li>
+    {% endif %}
+    {% endwith %}
+  </ul>
+  <p>
+    Your microscopes, and any proteins, spectra, references, or other data you
+    contributed to FPbase, will remain but will no longer be associated with you.
+    {% if user.microscopes.exists %}If you'd like your microscopes removed, please
+    delete them first.{% endif %}
+  </p>
+
+  <form method="post" action="{% url 'users:delete' %}">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-danger">Permanently delete my account</button>
+    <a class="btn btn-link" href="{% url 'users:detail' user.username %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

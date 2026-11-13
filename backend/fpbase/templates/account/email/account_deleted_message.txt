@@ -1,0 +1,3 @@
+{% extends "account/email/base_notification.txt" %}
+
+{% block notification_message %}Your account "{{ username }}" has been permanently deleted.{% endblock notification_message %}

@@ -130,7 +130,7 @@ class Reference(TimeStampedModel):
         related_name="reference_author",
         blank=True,
         null=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
     )
     updated_by_id: int | None
     updated_by: models.ForeignKey[AbstractUser | None] = models.ForeignKey(
@@ -138,7 +138,7 @@ class Reference(TimeStampedModel):
         related_name="reference_modifier",
         blank=True,
         null=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
     )
 
     if TYPE_CHECKING:

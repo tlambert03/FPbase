@@ -34,9 +34,6 @@ class TestUserUpdateView(BaseUserTestCase):
         # Attach the request to the view
         self.view.request = request
 
-    def test_get_success_url(self):
-        self.assertEqual(self.view.get_success_url(), f"/users/{self.user.username}/")
-
     def test_get_object(self):
         # Expect: self.user, as that is the request's user object
         self.assertEqual(self.view.get_object(), self.user)

@@ -12,6 +12,7 @@ urlpatterns = [
     ),
     re_path(r"^~redirect/$", view=views.UserRedirectView.as_view(), name="redirect"),
     re_path(r"^~update/$", view=views.UserUpdateView.as_view(), name="update"),
+    re_path(r"^~delete/$", view=views.user_delete, name="delete"),
     re_path(
         r"^(?P<username>[\w.@+-]+)/$",
         view=views.UserDetailView.as_view(),
