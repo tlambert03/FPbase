@@ -83,18 +83,17 @@ def update_scope_report(request, scope_id: str):
             result = app.AsyncResult(job_id)
             ready = result.ready()
             return JsonResponse({"status": 200, "ready": ready, "info": result.info})
-    elif request.POST.get("action") == "cancel":
-        if job_id:
-            result = app.AsyncResult(job_id)
-            result.revoke(terminate=True)
-            return JsonResponse(
-                {
-                    "status": 200,
-                    "ready": result.ready(),
-                    "info": "result.info",
-                    "canceled": True,
-                }
-            )
+    elif request.POST.get("action") == "cancel" and job_id:
+        result = app.AsyncResult(job_id)
+        result.revoke(terminate=True)
+        return JsonResponse(
+            {
+                "status": 200,
+                "ready": result.ready(),
+                "info": "result.info",
+                "canceled": True,
+            }
+        )
     return JsonResponse({"status": 404})
 
 
